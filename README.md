@@ -33,16 +33,48 @@
       - [4.2.1.1. Container and Image](#4211-container-and-image)
     - [4.2.2. Test Tools Introduction](#422-test-tools-introduction)
       - [4.2.2.1. Container tools](#4221-container-tools)
+        - [Dockerfile](#dockerfile)
+        - [Build Dockerfile](#build-dockerfile)
+        - [List image](#list-image)
+        - [Docker run](#docker-run)
+        - [Podman build](#podman-build)
+        - [Podman run](#podman-run)
     - [4.2.3. The PID Namespace](#423-the-pid-namespace)
+      - [Run c1 container](#run-c1-container)
+      - [Show process on c1 container](#show-process-on-c1-container)
+      - [Run c2 container](#run-c2-container)
+      - [Show process on c2 container](#show-process-on-c2-container)
+      - [Show process on host](#show-process-on-host)
+      - [Delete c2 container](#delete-c2-container)
+      - [Recreate container with same namespace.](#recreate-container-with-same-namespace)
+      - [Show process on c2 container (you can see other container process).](#show-process-on-c2-container-you-can-see-other-container-process)
+      - [Show process on c1 container (you can see other container process).](#show-process-on-c1-container-you-can-see-other-container-process)
     - [4.2.4. Recap](#424-recap)
 - [5. Cluster setup](#5-cluster-setup)
   - [5.1. Network Policies](#51-network-policies)
     - [5.1.1. Cluster Reset](#511-cluster-reset)
     - [5.1.2. Introduction 1](#512-introduction-1)
     - [5.1.3. Introduction 2](#513-introduction-2)
+      - [NetworkPolicy example](#networkpolicy-example)
     - [5.1.4. Default Deny](#514-default-deny)
+      - [Create a frontend and backend applications and expose.](#create-a-frontend-and-backend-applications-and-expose)
+      - [Test connection between applications](#test-connection-between-applications)
+      - [Create the NetworkPolicy](#create-the-networkpolicy)
+      - [Test connection between apps](#test-connection-between-apps)
     - [5.1.5. Frontend to Backend traffic](#515-frontend-to-backend-traffic)
+      - [Test connection](#test-connection)
+      - [Test connection](#test-connection-1)
+      - [If you want connect to DNS, you indicate Port 53](#if-you-want-connect-to-dns-you-indicate-port-53)
     - [5.1.6. Backend to database traffic](#516-backend-to-database-traffic)
+      - [Create a namespace](#create-a-namespace)
+      - [Create a Pod](#create-a-pod)
+      - [Get Pod Cassandra IP](#get-pod-cassandra-ip)
+      - [Test connection](#test-connection-2)
+      - [Apply egress to cassandra namespace](#apply-egress-to-cassandra-namespace)
+      - [Test connection](#test-connection-3)
+      - [Create configuration to Deny all to cassandra Pod](#create-configuration-to-deny-all-to-cassandra-pod)
+      - [And create NetworkPolicy to cassandra ingress from default](#and-create-networkpolicy-to-cassandra-ingress-from-default)
+      - [Labeled default namespace and launch curl](#labeled-default-namespace-and-launch-curl)
     - [5.1.7. Recap](#517-recap)
   - [5.2. GUI Elements](#52-gui-elements)
     - [5.2.1. Introduction](#521-introduction)
@@ -382,13 +414,13 @@ minikube start --network-plugin=cni --cni=calico -p cks
 **Crictl**: CLI for CRI-compatible Container Runtimes
 **Podman**: Tool for managing containers and images
 
-1. Dockerfile
+##### Dockerfile
 ```sh
 FROM bash
 CMD ["ping", "killer.sh"]
 ```
 
-2. Build Dockerfile
+##### Build Dockerfile
 ```sh
 $ docker build -t simple .
 
@@ -409,14 +441,14 @@ Successfully built 92ccea391f11
 Successfully tagged simple:latest
 ```
 
-3. List image
+##### List image
 ```sh
 $ docker image ls | grep simple
 
 simple  latest      92ccea391f11   21 seconds ago   13.3MB
 ```
 
-4. Docker run
+##### Docker run
 ```sh
 $ docker run simple
 
@@ -434,7 +466,7 @@ PING killer.sh (35.227.196.29): 56 data bytes
 round-trip min/avg/max = 11.517/11.782/12.187 ms
 ```
 
-5. Podman build
+##### Podman build
 ```sh
 $ podman build -t simple .
 
@@ -455,7 +487,7 @@ Successfully tagged localhost/simple:latest
 3cbf70561b780951ece7abfb1f59f18018f7bb47fc8838e1496be2f7f82753bb
 ```
 
-6. Podman run
+##### Podman run
 ```sh
 $ podman run simple
 
@@ -473,7 +505,7 @@ round-trip min/avg/max = 13.569/13.691/13.926 ms
 ### 4.2.3. The PID Namespace
 Create two containers and check they cannot see each other.
 
-1. Run c1 container
+#### Run c1 container
 ```sh
 $ docker run --name c1 -d ubuntu sh -c "sleep 1d"
 
@@ -485,7 +517,7 @@ Status: Downloaded newer image for ubuntu:latest
 8e3e209a6bccd98763d0a53843fcd0d3f6ba4034518d90f6739a62b101fecf13
 ```
 
-2. Show process on c1 container
+#### Show process on c1 container
 ```sh
 $ docker exec c1 ps aux
 
@@ -495,14 +527,14 @@ root           7  0.0  0.0   2788  1052 ?        S    16:24   0:00 sleep 1d
 root           8  0.0  0.0   7060  1584 ?        Rs   16:25   0:00 ps aux
 ```
 
-3. Run c2 container
+#### Run c2 container
 ```sh
 $ docker run --name c2 -d ubuntu sh -c "sleep 999d"
 
 7868efe1dca5c0c97632ee9631974e85836a035120acf358a25ffa6e5b034a0b
 ```
 
-4. Show process on c2 container
+#### Show process on c2 container
 ```sh
 $ docker exec c2 ps aux
 
@@ -512,7 +544,7 @@ root           7  0.0  0.0   2788  1020 ?        S    16:25   0:00 sleep 999d
 root           8  0.0  0.0   7060  1664 ?        Rs   16:26   0:00 ps aux
 ```
 
-5. Show process on host
+#### Show process on host
 ```sh
 $ ps aux | grep sleep
 
@@ -523,20 +555,20 @@ root       16340  0.0  0.0   2788  1020 ?        S    18:25   0:00 sleep 999d
 adrianm+   16599  0.0  0.0  11664  2624 pts/0    S+   18:26   0:00 grep --color=auto sleep
 ```
 
-6. Delete c2 container
+#### Delete c2 container
 ```sh
 $ docker rm c2 --force
 c2
 ```
 
-7. Recreate container with same namespace.
+#### Recreate container with same namespace.
 ```sh
 $ docker run --name c2 --pid=container:c1 -d ubuntu sh -c "sleep 999d"
 
 71fa5ea24dc86f99af4c2c04f7599409b4b1b92082bb07b57261a4d4418fd5a7
 ```
 
-8. Show process on c2 container (you can see other container process).
+#### Show process on c2 container (you can see other container process).
 ```sh
 $ docker exec c2 ps aux
 
@@ -548,7 +580,7 @@ root          20  0.0  0.0   2788  1028 ?        S    16:30   0:00 sleep 999d
 root          28  0.0  0.0   7060  1588 ?        Rs   16:32   0:00 ps aux
 ```
 
-9. Show process on c1 container (you can see other container process).
+#### Show process on c1 container (you can see other container process).
 ```sh
 $ docker exec c1 ps aux
 
@@ -580,6 +612,7 @@ https://www.youtube.com/watch?v=MHv6cWjvQjM
 * Pods are **NOT** isolated.
 
 ### 5.1.3. Introduction 2
+#### NetworkPolicy example
 ```yaml
 apiVersion: networking.k8s.io/v1
 kind: NetworkPolicy
@@ -660,7 +693,7 @@ spec:
 
 
 ### 5.1.4. Default Deny
-* Create a frontend and backend applications and expose.
+#### Create a frontend and backend applications and expose.
 ```sh
 $ kubectl run frontend --image=nginx
 pod/frontend created
@@ -685,7 +718,7 @@ service/frontend     ClusterIP   10.109.74.7     <none>        80/TCP    32s
 service/kubernetes   ClusterIP   10.96.0.1       <none>        443/TCP   7h
 ```
 
-* Test connection between applications
+#### Test connection between applications
 ```sh
 # From frontend
 $ kubectl exec frontend -- curl backend
@@ -747,7 +780,7 @@ Commercial support is available at
 </html>
 ```
 
-* Create the NetworkPolicy
+#### Create the NetworkPolicy
 ```yaml
 # deny all incoming and outgoing traffic from all pods in namespace default
 apiVersion: networking.k8s.io/v1
@@ -762,7 +795,7 @@ spec:
   - Ingress
 ```
 
-* Test connection between apps
+#### Test connection between apps
 ```sh
 $ kubectl exec frontend -- curl backend
 
@@ -801,7 +834,7 @@ spec:
           run: backend
 ```
 
-* Test connection
+#### Test connection
 ```sh
 kubectl exec frontend -- curl 10.98.148.165
   % Total    % Received % Xferd  Average Speed   Time    Time     Time  Current
@@ -829,7 +862,7 @@ spec:
           run: frontend
 ```
 
-* Test connection
+#### Test connection
 ```sh
 $ kubectl exec frontend -- curl 10.98.148.165             
 
@@ -861,7 +894,7 @@ Commercial support is available at
 </html>
 ```
 
-* If you want connect to DNS, you indicate Port 53
+#### If you want connect to DNS, you indicate Port 53
 ```yaml
 # deny all incoming and outgoing traffic from all pods in namespace default
 # but allow DNS traffic. This way you can do for example: kubectl exec frontend -- curl backend
@@ -884,7 +917,7 @@ spec:
 ```
 
 ### 5.1.6. Backend to database traffic
-* Create a namespace
+#### Create a namespace
 ```sh
 $ kubectl create ns cassandra
 namespace/cassandra created
@@ -892,21 +925,20 @@ namespace/cassandra created
 $ kubectl label namespace cassandra "ns=cassandra"
 namespace/cassandra labeled
 ```
-
-* Create a Pod
+#### Create a Pod
 ```sh
 $ kubectl -n cassandra run cassandra --image nginx
 pod/cassandra created
 ```
 
-* Get Pod Cassandra IP
+#### Get Pod Cassandra IP
 ```sh
 kubectl -n cassandra get po -owide
 NAME        READY   STATUS    RESTARTS   AGE   IP               NODE    NOMINATED NODE   READINESS GATES
 cassandra   1/1     Running   0          35s   10.244.158.131   cksv1   <none>           <none>
 ```
 
-* Test connection
+#### Test connection
 ```sh
 $ kubectl exec backend -- curl 10.244.158.131
   % Total    % Received % Xferd  Average Speed   Time    Time     Time  Current
@@ -914,8 +946,8 @@ $ kubectl exec backend -- curl 10.244.158.131
   0     0    0     0    0     0      0      0 --:--:--  0:00:31 --:--:--     0^C
 ```
 
-* Apply egress to cassandra namespace
-```ymal
+#### Apply egress to cassandra namespace
+```yaml
 apiVersion: networking.k8s.io/v1
 kind: NetworkPolicy
 metadata:
@@ -940,7 +972,7 @@ spec:
           ns: cassandra
 ```
 
-* Test connection
+#### Test connection
 ```sh
 kubectl exec backend -- curl 10.244.158.131           
   % Total    % Received % Xferd  Average Speed   Time    Time     Time  Current
@@ -971,7 +1003,7 @@ Commercial support is available at
 </html>
 ```
 
-* Create configuration to Deny all to cassandra Pod
+#### Create configuration to Deny all to cassandra Pod
 ```yaml
 apiVersion: networking.k8s.io/v1
 kind: NetworkPolicy
@@ -987,7 +1019,7 @@ spec:
   - Egress
 ```
 
-* And create NetworkPolicy to cassandra ingress from default
+#### And create NetworkPolicy to cassandra ingress from default
 ```yaml
 apiVersion: networking.k8s.io/v1
 kind: NetworkPolicy
@@ -1006,7 +1038,7 @@ spec:
         matchLabels:
           ns: default
 ```
-* Labeled default namespace and launch curl
+#### Labeled default namespace and launch curl
 ```sh
 $ kubectl label namespaces default "ns=default"
 namespace/default labeled
