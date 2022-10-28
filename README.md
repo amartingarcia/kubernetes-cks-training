@@ -7,6 +7,10 @@
   - [1.1. Welcome](#11-welcome)
   - [1.2. Best Video Quality](#12-best-video-quality)
   - [1.3. K8s Security Best Practices](#13-k8s-security-best-practices)
+    - [Security Principles](#security-principles)
+    - [K8s Security Categories](#k8s-security-categories)
+    - [K8s Best Practices](#k8s-best-practices)
+    - [Links](#links)
 - [2. Create your course K8S cluster](#2-create-your-course-k8s-cluster)
   - [2.1. Cluster Specification](#21-cluster-specification)
   - [2.2. Create GCP Account](#22-create-gcp-account)
@@ -21,14 +25,16 @@
   - [3.2. Your Access Code](#32-your-access-code)
 - [4. Foundation](#4-foundation)
   - [4.1. Kubernetes Secure Arquitecture](#41-kubernetes-secure-arquitecture)
-  - [4.1.1. Intro](#411-intro)
-  - [4.1.2. Find various k8s certificates](#412-find-various-k8s-certificates)
-  - [4.1.3. Recap](#413-recap)
+    - [4.1.1. Intro](#411-intro)
+    - [4.1.2. Find various k8s certificates](#412-find-various-k8s-certificates)
+    - [4.1.3. Recap](#413-recap)
   - [4.2. Containers under the hood](#42-containers-under-the-hood)
-  - [4.2.1. Intro](#421-intro)
-  - [4.2.2. Test Tools Introduction](#422-test-tools-introduction)
-  - [4.2.3. The PID Namespace](#423-the-pid-namespace)
-  - [4.2.4. Recap](#424-recap)
+    - [4.2.1. Intro](#421-intro)
+      - [4.2.1.1. Container and Image](#4211-container-and-image)
+    - [4.2.2. Test Tools Introduction](#422-test-tools-introduction)
+      - [4.2.2.1. Container tools](#4221-container-tools)
+    - [4.2.3. The PID Namespace](#423-the-pid-namespace)
+    - [4.2.4. Recap](#424-recap)
 - [5. Cluster setup](#5-cluster-setup)
   - [5.1. Network Policies](#51-network-policies)
     - [5.1.1. Cluster Reset](#511-cluster-reset)
@@ -208,32 +214,356 @@
 ## 1.1. Welcome
 ## 1.2. Best Video Quality
 ## 1.3. K8s Security Best Practices
+### Security Principles
+### K8s Security Categories
+**Host Operating System Security (Ex. Linux)**
+* Kubernetes Nodes should only do one thing: Kubernetes
+* Reduce Attack Surface
+  * Remove unnecessary applications
+  * Keep up to date
+* Runtime Security Tools
+* Find and identify malicious processes
+* Restrict IAM/SSH access
+
+**Kubernetes Cluster Security (Ex. Kubernetes)**
+* Kubernetes componentes are running secure and up-to-date:
+  * Apiserver
+  * Kubelet
+  * ETCD
+* Restrict (external) access
+* AdmissionControllers
+  * NodeRestriction
+  * Custom Policies (OPA)
+* Enable Audit Logging
+* Security Benchmarking
+
+**Application Security (Ex. Container)**
+* Use Secrets/no hardcoded credentials
+* RBAC
+* Container Sandboxing
+* Container Hardening
+  * Attachk Surface
+  * Run as user
+  * Readonly filesystem
+* Vulnerability Scanning
+* mTLS/ServiceMeshes
+
+### K8s Best Practices
+### Links
+https://www.youtube.com/watch?v=wqsUfvRyYpw
+
+
 
 # 2. Create your course K8S cluster
 ## 2.1. Cluster Specification
+```sh
+# cks-master
+sudo -i
+bash <(curl -s https://raw.githubusercontent.com/killer-sh/cks-course-environment/master/cluster-setup/latest/install_master.sh)
+
+
+# cks-worker
+sudo -i
+bash <(curl -s https://raw.githubusercontent.com/killer-sh/cks-course-environment/master/cluster-setup/latest/install_worker.sh)
+
+
+# run the printed kubeadm-join-command from the master on the worker
+
+```
 ## 2.2. Create GCP Account
 ## 2.3. Configure gcloud command
+```sh
+# install gcloud sdk from
+https://cloud.google.com/sdk/auth_success
+
+# then run locally
+gcloud auth login
+gcloud projects list
+gcloud config set project YOUR-PROJECT-ID
+gcloud compute instances list # should be empty right now
+```
+
 ## 2.4. Create Kubeadm Cluster in GCP
+```sh
+# CREATE cks-master VM using gcloud command
+# not necessary if created using the browser interface
+gcloud compute instances create cks-master --zone=europe-west3-c \
+--machine-type=e2-medium \
+--image=ubuntu-2004-focal-v20220419 \
+--image-project=ubuntu-os-cloud \
+--boot-disk-size=50GB
+
+# CREATE cks-worker VM using gcloud command
+# not necessary if created using the browser interface
+gcloud compute instances create cks-worker --zone=europe-west3-c \
+--machine-type=e2-medium \
+--image=ubuntu-2004-focal-v20220419 \
+--image-project=ubuntu-os-cloud \
+--boot-disk-size=50GB
+
+# you can use a region near you
+https://cloud.google.com/compute/docs/regions-zones
+
+
+# INSTALL cks-master
+gcloud compute ssh cks-master
+sudo -i
+bash <(curl -s https://raw.githubusercontent.com/killer-sh/cks-course-environment/master/cluster-setup/latest/install_master.sh)
+
+
+# INSTALL cks-worker
+gcloud compute ssh cks-worker
+sudo -i
+bash <(curl -s https://raw.githubusercontent.com/killer-sh/cks-course-environment/master/cluster-setup/latest/install_worker.sh)
+```
+
 ## 2.5. Firewall rules for NodePorts
+```sh
+gcloud compute firewall-rules create nodeports --allow tcp:30000-40000
+```
+
 ## 2.6. Always stop your instances
 ## 2.7. Containerd Course Upgrade
+docker --> containerd
 ## 2.8. Recap
+
+
 
 # 3. Killercoda Access
 ## 3.1. How to get access
 ## 3.2. Your Access Code
 
 
+
 # 4. Foundation
 ## 4.1. Kubernetes Secure Arquitecture
-## 4.1.1. Intro
-## 4.1.2. Find various k8s certificates
-## 4.1.3. Recap
+### 4.1.1. Intro
+### 4.1.2. Find various k8s certificates
+
+| Default CN                   | recommended key path         | recommended cert path       | command        | key argument                 | cert argument                             |
+|------------------------------|------------------------------|-----------------------------|----------------|------------------------------|-------------------------------------------|
+| etcd-ca                      |     etcd/ca.key                         | etcd/ca.crt                 | kube-apiserver |                              | --etcd-cafile                             |
+| kube-apiserver-etcd-client   | apiserver-etcd-client.key    | apiserver-etcd-client.crt   | kube-apiserver | --etcd-keyfile               | --etcd-certfile                           |
+| kubernetes-ca                |    ca.key                          | ca.crt                      | kube-apiserver |                              | --client-ca-file                          |
+| kubernetes-ca                |    ca.key                          | ca.crt                      | kube-controller-manager | --cluster-signing-key-file      | --client-ca-file, --root-ca-file, --cluster-signing-cert-file  |
+| kube-apiserver               | apiserver.key                | apiserver.crt               | kube-apiserver | --tls-private-key-file       | --tls-cert-file                           |
+| kube-apiserver-kubelet-client|     apiserver-kubelet-client.key                         | apiserver-kubelet-client.crt| kube-apiserver | --kubelet-client-key | --kubelet-client-certificate              |
+| front-proxy-ca               |     front-proxy-ca.key                         | front-proxy-ca.crt          | kube-apiserver |                              | --requestheader-client-ca-file            |
+| front-proxy-ca               |     front-proxy-ca.key                         | front-proxy-ca.crt          | kube-controller-manager |                              | --requestheader-client-ca-file |
+| front-proxy-client           | front-proxy-client.key       | front-proxy-client.crt      | kube-apiserver | --proxy-client-key-file      | --proxy-client-cert-file                  |
+| etcd-ca                      |         etcd/ca.key                     | etcd/ca.crt                 | etcd           |                              | --trusted-ca-file, --peer-trusted-ca-file |
+| kube-etcd                    | etcd/server.key              | etcd/server.crt             | etcd           | --key-file                   | --cert-file                               |
+| kube-etcd-peer               | etcd/peer.key                | etcd/peer.crt               | etcd           | --peer-key-file              | --peer-cert-file                          |
+| etcd-ca                      |                              | etcd/ca.crt                 | etcdctl    |                              | --cacert                                  |
+| kube-etcd-healthcheck-client | etcd/healthcheck-client.key  | etcd/healthcheck-client.crt | etcdctl     | --key                        | --cert                                    |
+
+> https://kubernetes.io/docs/setup/best-practices/certificates/#certificate-paths
+
+> https://www.youtube.com/watch?v=gXz4cq3PKdg
+
+> https://kubernetes.io/docs/setup/best-practices/certificates
+
+
+### 4.1.3. Recap
 ## 4.2. Containers under the hood
-## 4.2.1. Intro
-## 4.2.2. Test Tools Introduction
-## 4.2.3. The PID Namespace
-## 4.2.4. Recap
+### 4.2.1. Intro
+#### 4.2.1.1. Container and Image
+* **Dockerfile**: Script/text defines how to build an image
+* **Image** (docker build): Multi layer binary representation of state
+* **Container** (docker run): "running" instnace of an image
+  * Collection of one or multiple applications.
+  * Includes all its dependencies.
+  * Just a process which runs on the Linux Kernel (but which cannot see everything).
+
+### 4.2.2. Test Tools Introduction
+#### 4.2.2.1. Container tools
+**Docker**: Container Runtime + Tool for managing containers and images
+**Containerd**: Container Runtime
+**Crictl**: CLI for CRI-compatible Container Runtimes
+**Podman**: Tool for managing containers and images
+
+* Dockerfile
+```sh
+FROM bash
+CMD ["ping", "killer.sh"]
+```
+
+* Build Dockerfile
+```sh
+$ docker build -t simple .
+
+Sending build context to Docker daemon  9.242GB
+Step 1/2 : FROM bash
+latest: Pulling from library/bash
+9621f1afde84: Pull complete 
+a3c37d376888: Pull complete 
+ad3bdcf0e4f6: Pull complete 
+Digest: sha256:3814c0222f2036d56f45b683943b668b685e76aa3c4ffe80449be865cefc54f9
+Status: Downloaded newer image for bash:latest
+ ---> 9306da3708d9
+Step 2/2 : CMD ["ping", "killer.sh"]
+ ---> Running in 002dac3d4de7
+Removing intermediate container 002dac3d4de7
+ ---> 92ccea391f11
+Successfully built 92ccea391f11
+Successfully tagged simple:latest
+```
+
+* List image
+```sh
+$ docker image ls | grep simple
+
+simple  latest      92ccea391f11   21 seconds ago   13.3MB
+```
+
+* Docker run
+```sh
+$ docker run simple
+
+PING killer.sh (35.227.196.29): 56 data bytes
+64 bytes from 35.227.196.29: seq=0 ttl=116 time=11.946 ms
+64 bytes from 35.227.196.29: seq=1 ttl=116 time=11.609 ms
+64 bytes from 35.227.196.29: seq=2 ttl=116 time=11.517 ms
+64 bytes from 35.227.196.29: seq=3 ttl=116 time=11.538 ms
+64 bytes from 35.227.196.29: seq=4 ttl=116 time=12.187 ms
+64 bytes from 35.227.196.29: seq=5 ttl=116 time=11.891 ms
+64 bytes from 35.227.196.29: seq=6 ttl=116 time=11.787 ms
+^C
+--- killer.sh ping statistics ---
+7 packets transmitted, 7 packets received, 0% packet loss
+round-trip min/avg/max = 11.517/11.782/12.187 ms
+```
+
+* Podman build
+```sh
+$ podman build -t simple .
+
+STEP 1/2: FROM bash
+✔ docker.io/library/bash:latest
+Trying to pull docker.io/library/bash:latest...
+Getting image source signatures
+Copying blob ad3bdcf0e4f6 done  
+Copying blob 9621f1afde84 done  
+Copying blob a3c37d376888 done  
+Copying config 9306da3708 done  
+Writing manifest to image destination
+Storing signatures
+STEP 2/2: CMD ["ping", "killer.sh"]
+COMMIT simple
+--> 3cbf70561b7
+Successfully tagged localhost/simple:latest
+3cbf70561b780951ece7abfb1f59f18018f7bb47fc8838e1496be2f7f82753bb
+```
+
+* Podman run
+```sh
+$ podman run simple
+
+PING killer.sh (35.227.196.29): 56 data bytes
+64 bytes from 35.227.196.29: seq=0 ttl=42 time=13.926 ms
+64 bytes from 35.227.196.29: seq=1 ttl=42 time=13.576 ms
+64 bytes from 35.227.196.29: seq=2 ttl=42 time=13.696 ms
+64 bytes from 35.227.196.29: seq=3 ttl=42 time=13.569 ms
+^C
+--- killer.sh ping statistics ---
+4 packets transmitted, 4 packets received, 0% packet loss
+round-trip min/avg/max = 13.569/13.691/13.926 ms
+```
+
+### 4.2.3. The PID Namespace
+Create two containers and check they cannot see each other.
+
+* Run c1 container
+```sh
+$ docker run --name c1 -d ubuntu sh -c "sleep 1d"
+
+Unable to find image 'ubuntu:latest' locally
+latest: Pulling from library/ubuntu
+301a8b74f71f: Pull complete 
+Digest: sha256:7cfe75438fc77c9d7235ae502bf229b15ca86647ac01c844b272b56326d56184
+Status: Downloaded newer image for ubuntu:latest
+8e3e209a6bccd98763d0a53843fcd0d3f6ba4034518d90f6739a62b101fecf13
+```
+
+* Show process on c1 container
+```sh
+$ docker exec c1 ps aux
+
+USER         PID %CPU %MEM    VSZ   RSS TTY      STAT START   TIME COMMAND
+root           1  0.1  0.0   2888   988 ?        Ss   16:24   0:00 sh -c sleep 1d
+root           7  0.0  0.0   2788  1052 ?        S    16:24   0:00 sleep 1d
+root           8  0.0  0.0   7060  1584 ?        Rs   16:25   0:00 ps aux
+```
+
+* Run c2 container
+```sh
+$ docker run --name c2 -d ubuntu sh -c "sleep 999d"
+
+7868efe1dca5c0c97632ee9631974e85836a035120acf358a25ffa6e5b034a0b
+```
+
+* Show process on c2 container
+```sh
+$ docker exec c2 ps aux
+
+USER         PID %CPU %MEM    VSZ   RSS TTY      STAT START   TIME COMMAND
+root           1  0.2  0.0   2888   964 ?        Ss   16:25   0:00 sh -c sleep 999d
+root           7  0.0  0.0   2788  1020 ?        S    16:25   0:00 sleep 999d
+root           8  0.0  0.0   7060  1664 ?        Rs   16:26   0:00 ps aux
+```
+
+* Show process on host
+```sh
+$ ps aux | grep sleep
+
+root       15871  0.0  0.0   2888   988 ?        Ss   18:24   0:00 sh -c sleep 1d
+root       15942  0.0  0.0   2788  1052 ?        S    18:24   0:00 sleep 1d
+root       16269  0.0  0.0   2888   964 ?        Ss   18:25   0:00 sh -c sleep 999d
+root       16340  0.0  0.0   2788  1020 ?        S    18:25   0:00 sleep 999d
+adrianm+   16599  0.0  0.0  11664  2624 pts/0    S+   18:26   0:00 grep --color=auto sleep
+```
+
+* Delete c2 container
+```sh
+$ docker rm c2 --force
+c2
+```
+
+* Recreate container with same namespace.
+```sh
+$ docker run --name c2 --pid=container:c1 -d ubuntu sh -c "sleep 999d"
+
+71fa5ea24dc86f99af4c2c04f7599409b4b1b92082bb07b57261a4d4418fd5a7
+```
+
+* Show process on c2 container (you can see other container process).
+```sh
+$ docker exec c2 ps aux
+
+USER         PID %CPU %MEM    VSZ   RSS TTY      STAT START   TIME COMMAND
+root           1  0.0  0.0   2888   988 ?        Ss   16:24   0:00 sh -c sleep 1d
+root           7  0.0  0.0   2788  1052 ?        S    16:24   0:00 sleep 1d
+root          14  0.0  0.0   2888   960 ?        Ss   16:30   0:00 sh -c sleep 999d
+root          20  0.0  0.0   2788  1028 ?        S    16:30   0:00 sleep 999d
+root          28  0.0  0.0   7060  1588 ?        Rs   16:32   0:00 ps aux
+```
+
+* Show process on c1 container (you can see other container process).
+```sh
+$ docker exec c1 ps aux
+
+USER         PID %CPU %MEM    VSZ   RSS TTY      STAT START   TIME COMMAND
+root           1  0.0  0.0   2888   988 ?        Ss   16:24   0:00 sh -c sleep 1d
+root           7  0.0  0.0   2788  1052 ?        S    16:24   0:00 sleep 1d
+root          14  0.0  0.0   2888   960 ?        Ss   16:30   0:00 sh -c sleep 999d
+root          20  0.0  0.0   2788  1028 ?        S    16:30   0:00 sleep 999d
+root          35  1.0  0.0   7060  1584 ?        Rs   16:32   0:00 ps aux
+```
+
+### 4.2.4. Recap
+https://www.youtube.com/watch?v=MHv6cWjvQjM
+
+
 
 # 5. Cluster setup
 ## 5.1. Network Policies
@@ -271,6 +601,8 @@
 ### 5.6.3. Verify apiserver binary running in our cluster
 ### 5.6.4. Recap
 
+
+
 # 6. Cluster Hardening
 ## 6.1. RBAC
 ### 6.1.1. Intro
@@ -300,6 +632,8 @@
 ### 6.4.4. Upgrade controlplane node
 ### 6.4.5. Upgrade node
 ### 6.4.6. Recap
+
+
 
 # 7. Microservice Vulnerabilities
 ## 7.1. Manage Kubernetes
@@ -335,6 +669,8 @@
 ### 7.4.2. Create sidecar proxy
 ### 7.4.3. Recap
 
+
+
 # 8. Open Policy Agent (OPA)
 ## 8.1. Cluster Reset
 ## 8.2. Introduction
@@ -344,6 +680,8 @@
 ## 8.6. Enforce Deployment Replica
 ## 8.7. The Rego Playground and more examples
 ## 8.8. Recap
+
+
 
 # 9. Supply Chain Security
 ## 9.1. Image footprint
@@ -372,6 +710,8 @@
 ### 9.4.5. Practice ImagePolicyWebhook
 ### 9.4.6. Recap
 
+
+
 # 10. Runtime Security
 ## 10.1. Behavioral Analytics at host and ...
 ### 10.1.1. Introduction
@@ -396,7 +736,9 @@
 ### 10.3.4. Create advanced Audit Policy
 ### 10.3.5. Recap
 
-# 11. System Hardening 
+
+
+# 11. System Hardening
 ## 11.1. Kernel Hardening Tools
 ### 11.1.1. Introduction
 ### 11.1.2. AppArmor
@@ -414,5 +756,7 @@
 ### 11.2.4. Disabled application listening on port
 ### 11.2.5. Investigate Linux Users
 ### 11.2.6. Recap
+
+
 
 # 12. Linux Foundation Simulator Sessions
