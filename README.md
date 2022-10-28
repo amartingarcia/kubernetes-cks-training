@@ -326,7 +326,7 @@ gcloud compute firewall-rules create nodeports --allow tcp:30000-40000
 ## 2.7. Containerd Course Upgrade
 docker --> containerd
 ## 2.8. Recap
-
+minikube start --network-plugin=cni --cni=calico -p cks
 
 
 # 3. Killercoda Access
@@ -382,13 +382,13 @@ docker --> containerd
 **Crictl**: CLI for CRI-compatible Container Runtimes
 **Podman**: Tool for managing containers and images
 
-* Dockerfile
+1. Dockerfile
 ```sh
 FROM bash
 CMD ["ping", "killer.sh"]
 ```
 
-* Build Dockerfile
+2. Build Dockerfile
 ```sh
 $ docker build -t simple .
 
@@ -409,14 +409,14 @@ Successfully built 92ccea391f11
 Successfully tagged simple:latest
 ```
 
-* List image
+3. List image
 ```sh
 $ docker image ls | grep simple
 
 simple  latest      92ccea391f11   21 seconds ago   13.3MB
 ```
 
-* Docker run
+4. Docker run
 ```sh
 $ docker run simple
 
@@ -434,7 +434,7 @@ PING killer.sh (35.227.196.29): 56 data bytes
 round-trip min/avg/max = 11.517/11.782/12.187 ms
 ```
 
-* Podman build
+5. Podman build
 ```sh
 $ podman build -t simple .
 
@@ -455,7 +455,7 @@ Successfully tagged localhost/simple:latest
 3cbf70561b780951ece7abfb1f59f18018f7bb47fc8838e1496be2f7f82753bb
 ```
 
-* Podman run
+6. Podman run
 ```sh
 $ podman run simple
 
@@ -473,7 +473,7 @@ round-trip min/avg/max = 13.569/13.691/13.926 ms
 ### 4.2.3. The PID Namespace
 Create two containers and check they cannot see each other.
 
-* Run c1 container
+1. Run c1 container
 ```sh
 $ docker run --name c1 -d ubuntu sh -c "sleep 1d"
 
@@ -485,7 +485,7 @@ Status: Downloaded newer image for ubuntu:latest
 8e3e209a6bccd98763d0a53843fcd0d3f6ba4034518d90f6739a62b101fecf13
 ```
 
-* Show process on c1 container
+2. Show process on c1 container
 ```sh
 $ docker exec c1 ps aux
 
@@ -495,14 +495,14 @@ root           7  0.0  0.0   2788  1052 ?        S    16:24   0:00 sleep 1d
 root           8  0.0  0.0   7060  1584 ?        Rs   16:25   0:00 ps aux
 ```
 
-* Run c2 container
+3. Run c2 container
 ```sh
 $ docker run --name c2 -d ubuntu sh -c "sleep 999d"
 
 7868efe1dca5c0c97632ee9631974e85836a035120acf358a25ffa6e5b034a0b
 ```
 
-* Show process on c2 container
+4. Show process on c2 container
 ```sh
 $ docker exec c2 ps aux
 
@@ -512,7 +512,7 @@ root           7  0.0  0.0   2788  1020 ?        S    16:25   0:00 sleep 999d
 root           8  0.0  0.0   7060  1664 ?        Rs   16:26   0:00 ps aux
 ```
 
-* Show process on host
+5. Show process on host
 ```sh
 $ ps aux | grep sleep
 
@@ -523,20 +523,20 @@ root       16340  0.0  0.0   2788  1020 ?        S    18:25   0:00 sleep 999d
 adrianm+   16599  0.0  0.0  11664  2624 pts/0    S+   18:26   0:00 grep --color=auto sleep
 ```
 
-* Delete c2 container
+6. Delete c2 container
 ```sh
 $ docker rm c2 --force
 c2
 ```
 
-* Recreate container with same namespace.
+7. Recreate container with same namespace.
 ```sh
 $ docker run --name c2 --pid=container:c1 -d ubuntu sh -c "sleep 999d"
 
 71fa5ea24dc86f99af4c2c04f7599409b4b1b92082bb07b57261a4d4418fd5a7
 ```
 
-* Show process on c2 container (you can see other container process).
+8. Show process on c2 container (you can see other container process).
 ```sh
 $ docker exec c2 ps aux
 
@@ -548,7 +548,7 @@ root          20  0.0  0.0   2788  1028 ?        S    16:30   0:00 sleep 999d
 root          28  0.0  0.0   7060  1588 ?        Rs   16:32   0:00 ps aux
 ```
 
-* Show process on c1 container (you can see other container process).
+9. Show process on c1 container (you can see other container process).
 ```sh
 $ docker exec c1 ps aux
 
@@ -569,11 +569,479 @@ https://www.youtube.com/watch?v=MHv6cWjvQjM
 ## 5.1. Network Policies
 ### 5.1.1. Cluster Reset
 ### 5.1.2. Introduction 1
+**NetworkPolicies**
+* Firewall rules in Kubernetes
+* Implemented by the Network Plugins CNI (Calico/Weave)
+* Namespace level
+* Restrict the Ingress and/or Egress for a group of Pods based on certain rules and conditions
+
+**Without NetworkPolicies**
+* By default every pod can access every pod
+* Pods are **NOT** isolated.
+
 ### 5.1.3. Introduction 2
+```yaml
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: example
+  namespace: default
+spec:
+  # Will be applied to these pods
+  podSelector:
+    matchLabels:
+      id: frontend
+  # Will be about outgoing traffic
+  policyTypes:
+    - Egress
+  egress:
+  # to namespace with lable id=ns1 and port 80
+    - to:
+      - namespaceSelector:
+          matchLabels:
+            id: ns1
+      ports:
+        - protocol: TCP
+          port: 80
+  # to pods with label id=backend in same namespace
+    - to:
+      - podSelector:
+          matchLabels:
+            id: backend
+```
+
+**Multiple NetworkPolicies**
+* Possible to have multiple NPs selecting the same pods
+* If a pod has more than one NP
+  * Then the union of all NPs is applied
+  * order doesnt affect policy result
+
+Merge example2a + example2b
+```yaml
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: example2a
+  namespace: default
+spec:
+  podSelector:
+    matchLabels:
+      id: frontend
+  policyTypes:
+    - Egress
+  egress:
+    - to:
+      - namespaceSelector:
+          matchLabels:
+            id: ns1
+      ports:
+        - protocol: TCP
+          port: 80
+```
+
+```yaml
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: example2b
+  namespace: default
+spec:
+  podSelector:
+    matchLabels:
+      id: frontend
+  policyTypes:
+    - Egress
+  egress:
+    - to:
+      - podSelector:
+          matchLabels:
+            id: backend
+```
+
+
 ### 5.1.4. Default Deny
+* Create a frontend and backend applications and expose.
+```sh
+$ kubectl run frontend --image=nginx
+pod/frontend created
+
+$ kubectl run backend --image=nginx
+pod/backend created
+
+$ kubectl expose pod frontend --port 80
+service/frontend exposed
+
+$ kubectl expose pod backend --port 80
+service/backend exposed
+
+$ kubectl get po,svc
+NAME           READY   STATUS    RESTARTS   AGE
+pod/backend    1/1     Running   0          112s
+pod/frontend   1/1     Running   0          2m12s
+
+NAME                 TYPE        CLUSTER-IP      EXTERNAL-IP   PORT(S)   AGE
+service/backend      ClusterIP   10.105.193.37   <none>        80/TCP    25s
+service/frontend     ClusterIP   10.109.74.7     <none>        80/TCP    32s
+service/kubernetes   ClusterIP   10.96.0.1       <none>        443/TCP   7h
+```
+
+* Test connection between applications
+```sh
+# From frontend
+$ kubectl exec frontend -- curl backend
+
+  % Total    % Received % Xferd  Average Speed   Time    Time     Time  Current
+                                 Dload  Upload   Total   Spent    Left  Speed
+  0     0    0     0    0     0      0      0 --:--:-- --:--:-- --:--:--     0<!DOCTYPE html>
+<html>
+<head>
+<title>Welcome to nginx!</title>
+<style>
+html { color-scheme: light dark; }
+body { width: 35em; margin: 0 auto;
+font-family: Tahoma, Verdana, Arial, sans-serif; }
+</style>
+</head>
+<body>
+<h1>Welcome to nginx!</h1>
+<p>If you see this page, the nginx web server is successfully installed and
+working. Further configuration is required.</p>
+
+<p>For online documentation and support please refer to
+<a href="http://nginx.org/">nginx.org</a>.<br/>
+Commercial support is available at
+<a href="http://nginx.com/">nginx.com</a>.</p>
+
+<p><em>Thank you for using nginx.</em></p>
+</body>
+</html>
+100   615  100   615    0     0   600k      0 --:--:-- --:--:-- --:--:--  600k
+
+# From backend
+$ kubectl exec backend -- curl frontend
+  % Total    % Received % Xferd  Average Speed   Time    Time     Time  Current
+                                 Dload  Upload   Total   Spent    Left  Speed
+100   615  100   615    0     0   600k      0 --:--:-- --:--:-- --:--:--  600k
+<!DOCTYPE html>
+<html>
+<head>
+<title>Welcome to nginx!</title>
+<style>
+html { color-scheme: light dark; }
+body { width: 35em; margin: 0 auto;
+font-family: Tahoma, Verdana, Arial, sans-serif; }
+</style>
+</head>
+<body>
+<h1>Welcome to nginx!</h1>
+<p>If you see this page, the nginx web server is successfully installed and
+working. Further configuration is required.</p>
+
+<p>For online documentation and support please refer to
+<a href="http://nginx.org/">nginx.org</a>.<br/>
+Commercial support is available at
+<a href="http://nginx.com/">nginx.com</a>.</p>
+
+<p><em>Thank you for using nginx.</em></p>
+</body>
+</html>
+```
+
+* Create the NetworkPolicy
+```yaml
+# deny all incoming and outgoing traffic from all pods in namespace default
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: deny
+  namespace: default
+spec:
+  podSelector: {}
+  policyTypes:
+  - Egress
+  - Ingress
+```
+
+* Test connection between apps
+```sh
+$ kubectl exec frontend -- curl backend
+
+  % Total    % Received % Xferd  Average Speed   Time    Time     Time  Current
+                                 Dload  Upload   Total   Spent    Left  Speed
+  0     0    0     0    0     0      0      0 --:--:--  0:00:19 --:--:--     0curl: (6) Could not resolve host: backend
+command terminated with exit code 6
+
+$ kubectl exec backend -- curl frontend
+
+  % Total    % Received % Xferd  Average Speed   Time    Time     Time  Current
+                                 Dload  Upload   Total   Spent    Left  Speed
+  0     0    0     0    0     0      0      0 --:--:--  0:00:19 --:--:--     0curl: (6) Could not resolve host: frontend
+command terminated with exit code 6
+```
+
+
 ### 5.1.5. Frontend to Backend traffic
+```yaml
+# allows frontend pods to communicate with backend pods
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: frontend
+  namespace: default
+spec:
+  podSelector:
+    matchLabels:
+      run: frontend
+  policyTypes:
+  - Egress
+  egress:
+  - to:
+    - podSelector:
+        matchLabels:
+          run: backend
+```
+
+* Test connection
+```sh
+kubectl exec frontend -- curl 10.98.148.165
+  % Total    % Received % Xferd  Average Speed   Time    Time     Time  Current
+                                 Dload  Upload   Total   Spent    Left  Speed
+  0     0    0     0    0     0      0      0 --:--:--  0:00:41 --:--:--     0^C
+```
+
+```yaml
+# allows backend pods to have incoming traffic from frontend pods
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: backend
+  namespace: default
+spec:
+  podSelector:
+    matchLabels:
+      run: backend
+  policyTypes:
+  - Ingress
+  ingress:
+  - from:
+    - podSelector:
+        matchLabels:
+          run: frontend
+```
+
+* Test connection
+```sh
+$ kubectl exec frontend -- curl 10.98.148.165             
+
+  % Total    % Received % Xferd  Average Speed   Time    Time     Time  Current
+                                 Dload  Upload   Total   Spent    Left  Speed
+100   615  100   615    0     0   600k      0 --:--:-- --:--:-- --:--:--  600k
+<!DOCTYPE html>
+<html>
+<head>
+<title>Welcome to nginx!</title>
+<style>
+html { color-scheme: light dark; }
+body { width: 35em; margin: 0 auto;
+font-family: Tahoma, Verdana, Arial, sans-serif; }
+</style>
+</head>
+<body>
+<h1>Welcome to nginx!</h1>
+<p>If you see this page, the nginx web server is successfully installed and
+working. Further configuration is required.</p>
+
+<p>For online documentation and support please refer to
+<a href="http://nginx.org/">nginx.org</a>.<br/>
+Commercial support is available at
+<a href="http://nginx.com/">nginx.com</a>.</p>
+
+<p><em>Thank you for using nginx.</em></p>
+</body>
+</html>
+```
+
+* If you want connect to DNS, you indicate Port 53
+```yaml
+# deny all incoming and outgoing traffic from all pods in namespace default
+# but allow DNS traffic. This way you can do for example: kubectl exec frontend -- curl backend
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: deny
+  namespace: default
+spec:
+  podSelector: {}
+  policyTypes:
+  - Egress
+  - Ingress
+  egress:
+  - ports:
+    - port: 53
+      protocol: TCP
+    - port: 53
+      protocol: UDP
+```
+
 ### 5.1.6. Backend to database traffic
+* Create a namespace
+```sh
+$ kubectl create ns cassandra
+namespace/cassandra created
+
+$ kubectl label namespace cassandra "ns=cassandra"
+namespace/cassandra labeled
+```
+
+* Create a Pod
+```sh
+$ kubectl -n cassandra run cassandra --image nginx
+pod/cassandra created
+```
+
+* Get Pod Cassandra IP
+```sh
+kubectl -n cassandra get po -owide
+NAME        READY   STATUS    RESTARTS   AGE   IP               NODE    NOMINATED NODE   READINESS GATES
+cassandra   1/1     Running   0          35s   10.244.158.131   cksv1   <none>           <none>
+```
+
+* Test connection
+```sh
+$ kubectl exec backend -- curl 10.244.158.131
+  % Total    % Received % Xferd  Average Speed   Time    Time     Time  Current
+                                 Dload  Upload   Total   Spent    Left  Speed
+  0     0    0     0    0     0      0      0 --:--:--  0:00:31 --:--:--     0^C
+```
+
+* Apply egress to cassandra namespace
+```ymal
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: backend-network-policy
+  namespace: default
+spec:
+  podSelector:
+    matchLabels:
+      run: backend
+  policyTypes:
+  - Ingress
+  - Egress
+  ingress:
+  - from:
+    - podSelector:
+        matchLabels:
+          run: frontend
+  egress:
+  - to:
+    - namespaceSelector:
+        matchLabels:
+          ns: cassandra
+```
+
+* Test connection
+```sh
+kubectl exec backend -- curl 10.244.158.131           
+  % Total    % Received % Xferd  Average Speed   Time    Time     Time  Current
+                                 Dload  Upload   Total   Spent    Left  Speed
+100   615  100   615    0     0   600k      0 --:--:-- --:--:-- --:--:--  600k
+<!DOCTYPE html>
+<html>
+<head>
+<title>Welcome to nginx!</title>
+<style>
+html { color-scheme: light dark; }
+body { width: 35em; margin: 0 auto;
+font-family: Tahoma, Verdana, Arial, sans-serif; }
+</style>
+</head>
+<body>
+<h1>Welcome to nginx!</h1>
+<p>If you see this page, the nginx web server is successfully installed and
+working. Further configuration is required.</p>
+
+<p>For online documentation and support please refer to
+<a href="http://nginx.org/">nginx.org</a>.<br/>
+Commercial support is available at
+<a href="http://nginx.com/">nginx.com</a>.</p>
+
+<p><em>Thank you for using nginx.</em></p>
+</body>
+</html>
+```
+
+* Create configuration to Deny all to cassandra Pod
+```yaml
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: cassandra-deny
+  namespace: cassandra
+spec:
+  podSelector:
+    matchLabels:
+      run: cassandra
+  policyTypes:
+  - Ingress
+  - Egress
+```
+
+* And create NetworkPolicy to cassandra ingress from default
+```yaml
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: cassandra-network-policy
+  namespace: cassandra
+spec:
+  podSelector:
+    matchLabels:
+      run: cassandra
+  policyTypes:
+  - Ingress
+  ingress:
+  - from:
+    - namespaceSelector:
+        matchLabels:
+          ns: default
+```
+* Labeled default namespace and launch curl
+```sh
+$ kubectl label namespaces default "ns=default"
+namespace/default labeled
+
+$ kubectl exec backend -- curl 10.244.158.131
+  % Total    % Received % Xferd  Average Speed   Time    Time     Time  Current
+                                 Dload  Upload   Total   Spent    Left  Speed
+100   615  100   615    0     0   150k      0 --:--:-- --:--:-- --:--:--  200k
+<!DOCTYPE html>
+<html>
+<head>
+<title>Welcome to nginx!</title>
+<style>
+html { color-scheme: light dark; }
+body { width: 35em; margin: 0 auto;
+font-family: Tahoma, Verdana, Arial, sans-serif; }
+</style>
+</head>
+<body>
+<h1>Welcome to nginx!</h1>
+<p>If you see this page, the nginx web server is successfully installed and
+working. Further configuration is required.</p>
+
+<p>For online documentation and support please refer to
+<a href="http://nginx.org/">nginx.org</a>.<br/>
+Commercial support is available at
+<a href="http://nginx.com/">nginx.com</a>.</p>
+
+<p><em>Thank you for using nginx.</em></p>
+</body>
+</html>
+```
+
 ### 5.1.7. Recap
+> https://kubernetes.io/docs/concepts/services-networking/network-policies
 ## 5.2. GUI Elements
 ### 5.2.1. Introduction
 ### 5.2.2. Install Dashboard
