@@ -79,7 +79,10 @@
   - [5.2. GUI Elements](#52-gui-elements)
     - [5.2.1. Introduction](#521-introduction)
     - [5.2.2. Install Dashboard](#522-install-dashboard)
+      - [Deploy Dashboard](#deploy-dashboard)
+      - [Get objects](#get-objects)
     - [5.2.3. Outside Insecure Access](#523-outside-insecure-access)
+      - [Expose insecure Dashboard](#expose-insecure-dashboard)
     - [5.2.4. RBAC for the dashboard](#524-rbac-for-the-dashboard)
     - [5.2.5. Recap](#525-recap)
   - [5.3. Secure Ingress](#53-secure-ingress)
@@ -1076,10 +1079,125 @@ Commercial support is available at
 > https://kubernetes.io/docs/concepts/services-networking/network-policies
 ## 5.2. GUI Elements
 ### 5.2.1. Introduction
+**Gui Elements and the Dashboard**
+* only expose services externally if needed
+* cluster internal services/dashboards can also be accessed using `kubectl port-forward`
+
+**Kubectl proxy**
+* Creates a proxy server between localhost and the Kubernetes API Server
+* Uses connection as configured in the kubeconfig
+* Allows to access API locally just over http and without authentication
+
+![cks](images/07_intro_kubectl_proxy.png)
+
+**Kubectl port-forward**
+* Forwards connections from a localhost-por to a pod-port
+* More generic than kubectl proxy
+* Can be used for all TCP traffic not just HTTP
+
+![cks](images/07_intro_kubectl_port-forward.png)
+
+**Ingress**
+![cks](images/07_intro_ingress.png)
+
 ### 5.2.2. Install Dashboard
+#### Deploy Dashboard
+```sh
+$ kubectl apply -f https://raw.githubusercontent.com/kubernetes/dashboard/v2.1.0/aio/deploy/recommended.yaml
+```
+
+#### Get objects
+```sh
+# Get Namespaces
+$ kubectl get ns
+
+NAME                   STATUS   AGE
+cassandra              Active   24h
+default                Active   24h
+kube-node-lease        Active   24h
+kube-public            Active   24h
+kube-system            Active   24h
+kubernetes-dashboard   Active   66s
+
+# Get Pod and SVCs
+$ kubectl -n kubernetes-dashboard get po,svc
+
+NAME                                             READY   STATUS    RESTARTS   AGE
+pod/dashboard-metrics-scraper-7cc7856cfb-gz48q   1/1     Running   0          2m3s
+pod/kubernetes-dashboard-b8df5b7bc-bxfk4         1/1     Running   0          2m3s
+
+NAME                                TYPE        CLUSTER-IP       EXTERNAL-IP   PORT(S)    AGE
+service/dashboard-metrics-scraper   ClusterIP   10.104.44.96     <none>        8000/TCP   2m3s
+service/kubernetes-dashboard        ClusterIP   10.101.163.180   <none>        443/TCP
+```
+
 ### 5.2.3. Outside Insecure Access
+#### Expose insecure Dashboard
+```sh
+# Edit deployment
+$ kubectl -n kubernetes-dashboard edit deploy kubernetes-dashboard
+
+...
+
+- args:
+  - --auto-generate-certificates        # delete line
+  - --namespace=kubernetes-dashboard
+  - --insecure-port=9090                # include line
+...
+
+# Edit SVC
+$ kubectl -n kubernetes-dashboard edit svc kubernetes-dashboard
+...
+  ports:
+  - port: 443         # delete line
+  - port: 9090        # include line
+    protocol: TCP
+    targetPort: 8443  # delete line
+    targetPort: 9090  # include line
+  selector:
+    k8s-app: kubernetes-dashboard
+  sessionAffinity: None
+  type: ClusterIP     # delete line
+  type: NodePort      # include line
+...
+```
+
+> https://github.com/kubernetes/dashboard/blob/master/docs/common/dashboard-arguments.md
+
+
 ### 5.2.4. RBAC for the dashboard
+
+```sh
+# Get Service Accounts
+$ kubectl -n kubernetes-dashboard get sa
+NAME                   SECRETS   AGE
+default                0         11m
+kubernetes-dashboard   0         11m
+
+# Get roles
+$ kubectl get clusterroles | grep view
+
+system:aggregate-to-view                                               2022-10-28T17:16:41Z
+system:public-info-viewer                                              2022-10-28T17:16:41Z
+view                                                                   2022-10-28T17:16:41Z
+
+# Create Rolebinding
+$ kubectl -n kubernetes-dashboard create rolebinding insecure --serviceaccount kubernetes-dashboard:kubernetes-dashboard --clusterrole view
+
+# Create ClusterRoleBinding
+$ kubectl -n kubernetes-dashboard create clusterrolebinding insecure --serviceaccount kubernetes-dashboard:kubernetes-dashboard --clusterrole view
+```
+
 ### 5.2.5. Recap
+**Interesting dashboard security arguments**
+```sh
+--authentication-mode=basic
+--enable-skip=true
+```
+>https://github.com/kubernetes/dashboard/blob/master/docs/common/dashboard-arguments.md
+
+>https://github.com/kubernetes/dashboard/blob/master/docs/user/access-control/README.md
+
 ## 5.3. Secure Ingress
 ### 5.3.1. K8S docs in correct version
 ### 5.3.2. Introduction
