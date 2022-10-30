@@ -1312,8 +1312,72 @@ https://kubernetes.io/docs/concepts/services-networking/ingress/#tls
 ### 5.3.5. Recap
 ## 5.4. Node metadata protection
 ### 5.4.1. Introduction
+**Cloud Platform Node Metadata**
+* Metadata service API by default reachable from VMs
+* Can contain cloud credentials for VMs/Nodes
+* Can contain provisioning dat like kubelet credentials
+
+**Limit permissions for instance credentials**
+* Ensure that the cloud-instance-account has only the necessary permissions
+* Each cloud provider has a set of recommendations to follow
+* Not in the hands of Kubernetes
+
+
 ### 5.4.2. Access Node Metadata
+
+```sh
+# Example
+curl "http://metadata.google.internal/computeMetadata/v1/instance/disks/" -H "Metadata-Flavor: Google"
+```
+
+> https://cloud.google.com/compute/docs/metadata/overview
+
+
 ### 5.4.3. Protect Node Metadata via Network Policy
+
+**All pods in namespace cannot access metadata endpoint**
+```yaml
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: cloud-metadata-deny
+  namespace: default
+spec:
+  podSelector: {}
+  policyTypes:
+  - Egress
+  egress:
+  - to:
+    - ipBlock:
+        cidr: 0.0.0.0/0
+        except:
+        - 169.254.169.254/32
+```
+
+**Only pods with label are allowed to access metadata endpoint**
+```yaml
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: cloud-metadata-allow
+  namespace: default
+spec:
+  podSelector:
+    matchLabels:
+      role: metadata-accessor
+  policyTypes:
+  - Egress
+  egress:
+  - to:
+    - ipBlock:
+        cidr: 169.254.169.254/32
+```
+
+**Labeled Pod**
+```sh
+$ kubectl label pod nginx role=metadata-accessor 
+```
+
 ## 5.5. CIS Bechmarck
 ### 5.5.1. Introduction
 ### 5.5.2. CIS in action
