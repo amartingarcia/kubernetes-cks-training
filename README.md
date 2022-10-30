@@ -1380,9 +1380,38 @@ $ kubectl label pod nginx role=metadata-accessor
 
 ## 5.5. CIS Bechmarck
 ### 5.5.1. Introduction
+**CIS - Center for Internet Security**
+* Best practices for the secure configuration of a target system
+* Covering more than 14 technology groups
+* Developed through a unique consensus-based process comprised of cybersecurity professionals and subject matter experts around the world
+
+![cks](images/10_intro_cis.png)
+
 ### 5.5.2. CIS in action
+
+> https://www.cisecurity.org/benchmark/kubernetes
+
+> https://ettayeb.fr/content/files/2022/03/CIS_Kubernetes_Benchmark_v1.6.0.pdf
+
 ### 5.5.3. kube-bench
+**How to run**
+> https://github.com/aquasecurity/kube-bench/blob/main/docs/running.md
+
+```sh
+# run on master
+docker run --pid=host -v /etc:/etc:ro -v /var:/var:ro -t aquasec/kube-bench:latest run --targets=master --version 1.22
+
+# run on worker
+docker run --pid=host -v /etc:/etc:ro -v /var:/var:ro -t aquasec/kube-bench:latest run --targets=node --version 1.22
+```
 ### 5.5.4. Recap
+> https://cloud.google.com/kubernetes-engine/docs/concepts/cis-benchmarks?hl=es-419#status
+
+> https://www.youtube.com/watch?v=53-v3stlnCo
+
+> https://github.com/docker/docker-bench-security
+
+
 ## 5.6. Verify Platform Binaries
 ### 5.6.1. Introduction
 ### 5.6.2. Download and verify k8s release
