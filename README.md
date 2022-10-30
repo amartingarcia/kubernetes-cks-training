@@ -1416,6 +1416,27 @@ docker run --pid=host -v /etc:/etc:ro -v /var:/var:ro -t aquasec/kube-bench:late
 ### 5.6.1. Introduction
 ### 5.6.2. Download and verify k8s release
 ### 5.6.3. Verify apiserver binary running in our cluster
+```sh
+# Get version
+$ kubectl get nodes
+NAME    STATUS   ROLES           AGE   VERSION
+cksv1   Ready    control-plane   19s   v1.25.0
+
+# Download release version
+$ wget https://dl.k8s.io/v1.25.0/kubernetes-server-linux-amd64.tar.gz
+
+# Check version
+$ kubernetes/server/bin/kube-apiserver --version
+Kubernetes v1.25.0
+
+# Get hash from Github
+$ sha512sum kubernetes/server/bin/kube-apiserver
+c0826f1dbb94c224b888e7caba035a187e0dbd1bf23a57042eca99633fdf7aa9f0f1663745307b096aada158c2421fadafdd480028291c21c0dca74876d2beaf  kubernetes/server/bin/kube-apiserver
+
+# Get hash from local
+$ sha512sum /proc/26579/root/usr/local/bin/kube-apiserver
+c0826f1dbb94c224b888e7caba035a187e0dbd1bf23a57042eca99633fdf7aa9f0f1663745307b096aada158c2421fadafdd480028291c21c0dca74876d2beaf  /proc/26579/root/usr/local/bin/kube-apiserver
+```
 ### 5.6.4. Recap
 
 
