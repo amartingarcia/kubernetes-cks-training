@@ -126,21 +126,35 @@
     - [6.1.6. Recap](#616-recap)
   - [6.2. Exercise caution in using ServiceAccounts](#62-exercise-caution-in-using-serviceaccounts)
     - [6.2.1. Intro](#621-intro)
+      - [Accounts](#accounts)
+      - [ServiceAccounts and Pods](#serviceaccounts-and-pods)
     - [6.2.2. Pods uses custom ServiceAccount](#622-pods-uses-custom-serviceaccount)
     - [6.2.3. Disable ServiceAccount Mounting](#623-disable-serviceaccount-mounting)
     - [6.2.4. Limits ServiceAccounts using RBAC](#624-limits-serviceaccounts-using-rbac)
     - [6.2.5. Recap](#625-recap)
   - [6.3. Restrict API Access](#63-restrict-api-access)
     - [6.3.1. Intro](#631-intro)
+      - [Request workflow](#request-workflow)
+      - [Restrictions](#restrictions)
     - [6.3.2. Anonymous Access](#632-anonymous-access)
+      - [Anonymous Access](#anonymous-access)
+        - [Set anonymous-auth=false](#set-anonymous-authfalse)
     - [6.3.3. Insecure Access](#633-insecure-access)
+      - [HTTP/HTTPS Access](#httphttps-access)
+      - [Insecure Access](#insecure-access)
     - [6.3.4. Manual API Requests](#634-manual-api-requests)
-    - [6.3.5. External Apiserver Access](#635-external-apiserver-access)
-    - [6.3.6. NodeRestriction AdmissionController](#636-noderestriction-admissioncontroller)
-    - [6.3.7. Verify NodeRestriction](#637-verify-noderestriction)
-    - [6.3.8. Recap](#638-recap)
+    - [6.3.5. NodeRestriction AdmissionController](#635-noderestriction-admissioncontroller)
+      - [NodeRestriction](#noderestriction)
+    - [6.3.6. Verify NodeRestriction](#636-verify-noderestriction)
+    - [6.3.7. Recap](#637-recap)
   - [6.4. Upgrade Kubernetes](#64-upgrade-kubernetes)
     - [6.4.1. Intro](#641-intro)
+      - [Why upgrade frequently?](#why-upgrade-frequently)
+      - [Kubernetes Release Cycles](#kubernetes-release-cycles)
+      - [Support](#support)
+      - [How to upgrade a cluster](#how-to-upgrade-a-cluster)
+      - [How to upgrade a node](#how-to-upgrade-a-node)
+      - [How to make your application survive an upgrade](#how-to-make-your-application-survive-an-upgrade)
     - [6.4.2. Ubuntu 20.04 Update](#642-ubuntu-2004-update)
     - [6.4.3. Create outdated cluster](#643-create-outdated-cluster)
     - [6.4.4. Upgrade controlplane node](#644-upgrade-controlplane-node)
@@ -1616,133 +1630,407 @@ $ kubectl auth can-i delete pods -A # no
 $ kubectl auth can-i get secrets -A # no
 $ kubectl auth can-i get secrets -n red # yes
 ```
+
 ### 6.1.6. Recap
+
 ## 6.2. Exercise caution in using ServiceAccounts
 ### 6.2.1. Intro
+#### Accounts
+![cks](images/13_sa_intro.png)
+
+#### ServiceAccounts and Pods
+![cks](images/13_sa_intro_01.png)
+
 ### 6.2.2. Pods uses custom ServiceAccount
 ```sh
-# from inside a Pod we can do:
-cat /run/secrets/kubernetes.io/serviceaccount/token
+# Get SAs
+$ kubectl get sa
+NAME      SECRETS   AGE
+default   0         3d1h
 
-curl https://kubernetes.default -k -H "Authorization: Bearer SA_TOKEN"
+# Create SA
+$ kubectl create sa accessor
+serviceaccount/accessor created
 
-https://kubernetes.io/docs/tasks/run-application/access-api-from-pod
+# Get SAs
+$ kubectl get sa
+NAME       SECRETS   AGE
+accessor   0         2s
+default    0         3d1h
 
-# Bound Service Account Tokens
-https://github.com/kubernetes/enhancements/blob/master/keps/sig-auth/1205-bound-service-account-tokens/README.md
+# Create Token
+$ kubectl create token accessor 
+eyJhbGciOiJSUzI1NiIsImtpZCI6IkFPV2lUbkhDV05CaHRROFpmOHNiZlNQME1wOWt6NWUybllvcVJuUmxkRTQifQ.eyJhdWQiOlsiaHR0cHM6Ly9rdWJlcm5ldGVzLmRlZmF1bHQuc3ZjLmNsdXN0ZXIubG9jYWwiXSwiZXhwIjoxNjY3Mzk0NDA2LCJpYXQiOjE2NjczOTA4MDYsImlzcyI6Imh0dHBzOi8va3ViZXJuZXRlcy5kZWZhdWx0LnN2Yy5jbHVzdGVyLmxvY2FsIiwia3ViZXJuZXRlcy5pbyI6eyJuYW1lc3BhY2UiOiJkZWZhdWx0Iiwic2VydmljZWFjY291bnQiOnsibmFtZSI6ImFjY2Vzc29yIiwidWlkIjoiM2JiYWJmZmYtOTRiNi00MjViLWJlMWQtZmViYTdmMTgxMDQ0In19LCJuYmYiOjE2NjczOTA4MDYsInN1YiI6InN5c3RlbTpzZXJ2aWNlYWNjb3VudDpkZWZhdWx0OmFjY2Vzc29yIn0.L2NFwQEsvntnaqMyvsn3L7gKXpPNoUMRUvFlAtdIayo4JGTaPVrVOEY9149KJONmqawlV0ZNJGuBbsoS1wTvtvXMbaza_MngB7RGW0ae91e7t6EF2sPGrJ3CVe1iIy1pIrc9aYWkvLK3NMVuz9Suz0z3bYeleXTjy1kMWSCtiKVdYUe_8O0tmq4NHZfMABgjIRHxyivFpXmVSHp1LR1JBINN0LWBHzHdHW0d1vW06DWNnIF2FM7_NhiLEwcZOKlBW6xo3TlM9gnPesdMzleRAgyaQoKCYdcr3rlTB-UfdspUHO0c6wGPlJbg83QEy0X-S4DOac37u6iqtXhLd0nHqQ
 ```
+
+```yaml
+apiVersion: v1
+kind: Pod
+metadata:
+  creationTimestamp: null
+  labels:
+    run: accessor
+  name: accessor
+spec:
+  serviceAccountName: accessor
+  containers:
+  - image: nginx
+    name: accessor
+    resources: {}
+  dnsPolicy: ClusterFirst
+  restartPolicy: Always
+status: {}
+```
+
+```sh
+$ kubectl exec -it -- bash
+
+# Inside container
+$  mount | grep ser
+tmpfs on /run/secrets/kubernetes.io/serviceaccount type tmpfs (ro,relatime,size=16113736k,inode64)
+
+# Show token file
+$ cat /run/secrets/kubernetes.io/serviceaccount/token 
+eyJhbGciOiJSUzI1NiIsImtpZCI6IkFPV2lUbkhDV05CaHRROFpmOHNiZlNQME1wOWt6NWUybllvcVJuUmxkRTQifQ.eyJhdWQiOlsiaHR0cHM6Ly9rdWJlcm5ldGVzLmRlZmF1bHQuc3ZjLmNsdXN0ZXIubG9jYWwiXSwiZXhwIjoxNjk4OTI3MDIwLCJpYXQiOjE2NjczOTEwMjAsImlzcyI6Imh0dHBzOi8va3ViZXJuZXRlcy5kZWZhdWx0LnN2Yy5jbHVzdGVyLmxvY2FsIiwia3ViZXJuZXRlcy5pbyI6eyJuYW1lc3BhY2UiOiJkZWZhdWx0IiwicG9kIjp7Im5hbWUiOiJhY2Nlc3NvciIsInVpZCI6IjY0YTNjOWQ0LWJhMWUtNGJhZS04N2Q0LTA1YmEzNzMwYzAwYyJ9LCJzZXJ2aWNlYWNjb3VudCI6eyJuYW1lIjoiYWNjZXNzb3IiLCJ1aWQiOiIzYmJhYmZmZi05NGI2LTQyNWItYmUxZC1mZWJhN2YxODEwNDQifSwid2FybmFmdGVyIjoxNjY3Mzk0NjI3fSwibmJmIjoxNjY3MzkxMDIwLCJzdWIiOiJzeXN0ZW06c2VydmljZWFjY291bnQ6ZGVmYXVsdDphY2Nlc3NvciJ9.t0UUAiAoFp0fS51-ggL_BZbttF_WXuZiOQPeSPI9NPmpszNsAVWxIHbUqeYh61w2oUKKLyxQ30n-1qs2Y9RbO-s4R-DLWOe7c3Z33VdnZIb24-ztcfvYPi9XYQrEQ4nVwwEya2qCiHYtz5Ba4eXCLN5Q-mQthy_rbQeig02Md2lxMXw1UeoDkbXTRc5Ak9l10E7KzT1tLfRq4bYbiM4KF27gF9pBcOeX6w1_Tsw1q7o3bjp3nPr9e9YuiRtLaj_1rl1tRPM_UdWw75gKxdoSuKTHvCjr7b-9hKaAqpI3JXLM0FJrrSMAodpPKjS9eUkYRSVUkoxXTzIToxNZaT8dGg
+
+# Get Envs
+$ env
+KUBERNETES_PORT_443_TCP_ADDR=10.96.0.1
+
+# Curl Kubernetes Port
+$ curl https://10.96.0.1 -k
+{
+  "kind": "Status",
+  "apiVersion": "v1",
+  "metadata": {},
+  "status": "Failure",
+  "message": "forbidden: User \"system:anonymous\" cannot get path \"/\"",
+  "reason": "Forbidden",
+  "details": {},
+  "code": 403
+}
+
+# Curl with token
+$ curl https://10.96.0.1 -k -H "Authorization: Bearer $(cat /run/secrets/kubernetes.io/serviceaccount/token)"
+{
+  "kind": "Status",
+  "apiVersion": "v1",
+  "metadata": {},
+  "status": "Failure",
+  "message": "forbidden: User \"system:serviceaccount:default:accessor\" cannot get path \"/\"",
+  "reason": "Forbidden",
+  "details": {},
+  "code": 403
+}
+```
+
 ### 6.2.3. Disable ServiceAccount Mounting
-```sh
-https://kubernetes.io/docs/tasks/configure-pod-container/configure-service-account
 
+```yaml
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: build-robot
+automountServiceAccountToken: false
+...
 ```
+
+```yaml
+apiVersion: v1
+kind: Pod
+metadata:
+  name: my-pod
+spec:
+  serviceAccountName: build-robot
+  automountServiceAccountToken: false
+  ...
+```
+
+> https://kubernetes.io/docs/tasks/configure-pod-container/configure-service-account
+
+
 ### 6.2.4. Limits ServiceAccounts using RBAC
-### 6.2.5. Recap
 ```sh
-https://kubernetes.io/docs/concepts/security/controlling-access
+# Check with can-i
+$ kubectl auth can-i delete secrets --as system:serviceaccount:default:accessor
+no
+
+# Set edit permissions
+$ kubectl create clusterrolebinding accessor --clusterrole edit --serviceaccount default:accessor
+
+# Check with can-i
+$ kubectl auth can-i delete secrets --as system:serviceaccount:default:accessor
+yes
 ```
+
+### 6.2.5. Recap
+> https://kubernetes.io/docs/reference/access-authn-authz/service-accounts-admin
+
+> https://kubernetes.io/docs/tasks/configure-pod-container/configure-service-account
+
+
 
 ## 6.3. Restrict API Access
 ### 6.3.1. Intro
-### 6.3.2. Anonymous Access
-### 6.3.3. Insecure Access
-### 6.3.4. Manual API Requests
-### 6.3.5. External Apiserver Access
-```sh
-# inspect apiserver cert
-cd /etc/kubernetes/pki
-openssl x509 -in apiserver.crt -text
+#### Request workflow
+![cks](images/14_restrict_api_intro.png)
 
+* API requests are always tied to
+  * A normal user
+  * A Service Account
+  * Are treated as anonymous requets
+* Every request must authenticate
+  * Or be treated as an anonymous user
+
+#### Restrictions
+1. **Dont allow anonymous access**
+2. **Close insecure port**
+3. **Dont expose ApiServer to the outside**
+4. **Restrict access from Nodes to API (NodeRestriction)**
+5. Prevent aunauthorized access (RBAC)
+6. Prevent pods from accessing API
+7. ApiServer port behind firewall/allowed ip ranges (cloud provider)
+
+### 6.3.2. Anonymous Access
+#### Anonymous Access
+* kube-apiserver --anonymous-auth=true|false
+* In 1.6+ anonymous access is enable by default
+  * if authorization mode other than AlwaysAllow
+  * but ABAC and RBAC require explicit authorization for anonymous
+
+```sh
+$ curl -k https://192.168.49.2:8443
+{
+  "kind": "Status",
+  "apiVersion": "v1",
+  "metadata": {},
+  "status": "Failure",
+  "message": "forbidden: User \"system:anonymous\" cannot get path \"/\"",
+  "reason": "Forbidden",
+  "details": {},
+  "code": 403
+}
 ```
-### 6.3.6. NodeRestriction AdmissionController
-### 6.3.7. Verify NodeRestriction
-### 6.3.8. Recap
+
+##### Set anonymous-auth=false
+In kube-apiserver manifest set --anonymous-auth=false
+```sh
+$ curl -k https://192.168.49.2:8443
+{
+  "kind": "Status",
+  "apiVersion": "v1",
+  "metadata": {},
+  "status": "Failure",
+  "message": "Unauthorized",
+  "reason": "Unauthorized",
+  "code": 401
+}
+```
+
+### 6.3.3. Insecure Access
+> Since k8s 1.20 the insecure access is not longer posible. `kube-apiserver --insecure-port=8080`
+
+#### HTTP/HTTPS Access
+![cks](images/14_restrict_api_insecure_access.png)
+
+#### Insecure Access
+* kube-apiserver `--insecure-port=8080` (default: `--insecure-port=0`)
+  * HTTP
+  * Request bypasses authentication and authorization modules
+  * Admision controller still enforces
+
+### 6.3.4. Manual API Requests
+```sh
+$ curl -k https://192.168.49.2:8443 \
+    --cert ~/.minikube/profiles/cksv1/client.crt \
+    --key ~/.minikube/profiles/cksv1/client.key
+{    
+  "paths": [
+    "/.well-known/openid-configuration",
+    "/api",
+    "/api/v1",
+    "/apis",
+    "/apis/",
+    "/apis/admissionregistration.k8s.io",
+    "/apis/admissionregistration.k8s.io/v1",
+    "/apis/apiextensions.k8s.io",
+    "/apis/apiextensions.k8s.io/v1",
+    "/apis/apiregistration.k8s.io",
+    "/apis/apiregistration.k8s.io/v1",
+    "/apis/apps",
+    "/apis/apps/v1",
+    "/apis/authentication.k8s.io",
+    "/apis/authentication.k8s.io/v1",
+    "/apis/authorization.k8s.io",
+    "/apis/authorization.k8s.io/v1",
+    "/apis/autoscaling",
+    "/apis/autoscaling/v1",
+    "/apis/autoscaling/v2",
+    "/apis/autoscaling/v2beta2",
+    "/apis/batch",
+    ...
+  ]
+}
+```
+
+### 6.3.5. NodeRestriction AdmissionController
+![cks](images/14_restrict_api_adm_contr.png)
+
+#### NodeRestriction
+* **Admision Controller**
+  * kube-apiserver --enable-admission-plugins=NodeRestriction
+  * Limits the Node labels a kubelet can modify
+* **Ensure secure workload isolation via labels**
+  * No one can pretend to be a "secure" node and schedule secure pods
+
+### 6.3.6. Verify NodeRestriction
+On a worker node...
+
+```sh
+# Export as kubeconfig the kubelet config
+$ export KUBECONFIG=/etc/kubernetes/kubelet.conf
+
+$ kubectl get ns
+Error from server (Forbidden): nampespaces is forbidden: User "system:node:cks-worker" cannot list resource "namespaces" in API group "" at the cluster scope
+
+$ kubectl label node cks-master cks/test=yes
+Error from server (Forbidden): nodes "cks-master" is forbidden: node "cks-worker" is not allowed to modify node "cks-master"
+
+$ kubectl label node cks-worker cks/test=yes
+node/cks-worker labeled
+
+$ kubectl label node cks-worker node-restriction.kubernetes.io/test=yes
+Error from server (Forbidden): nodes "cks-worker" is forbidden: is not allowed to modify labels: node-restricion.kubernetes.io/test
+```
+
+> https://kubernetes.io/docs/reference/access-authn-authz/admission-controllers/#noderestriction
+
+
+### 6.3.7. Recap
+> https://kubernetes.io/docs/concepts/security/controlling-access
+
 ## 6.4. Upgrade Kubernetes
 ### 6.4.1. Intro
+#### Why upgrade frequently?
+* Support
+* Security fixed
+* Bug fixed
+* Stay up to date for dependencies
+
+#### Kubernetes Release Cycles
+```sh
+1.19.2
+major.minor.path
+```
+
+* Minor version every 3 months
+* No TLS (Long Term Support)
+
+#### Support
+Maintenance release branches for the most recent three minor releases (1.19, 1.18, 1.17)
+
+Applicable fixes, including security fixes, may be backported to those three release branches, depending on severity and feasibility.
+
+#### How to upgrade a cluster
+* **First upgrade the master componentes**
+  * apiserver, controller-manager, scheduler
+* **Then the worker componentes**
+  * kubelet, kube-proxy
+* **Components same minor version as apiserver**
+  * or one below
+
+#### How to upgrade a node
+1. `kubectl drain`
+   1. Safely evict all pods from node
+   2. Mark as node as SchedulingDisabled (`kubectl cordon`)
+2. Do the upgrade
+3. `kubectl uncordon`
+   1. Unmark node as SchedulingDisabled
+  
+#### How to make your application survive an upgrade
+* Pod graciePeriod/Terminating stateç
+* Pod Lifecycle Events
+* PodDisruptionBudget
+
 ### 6.4.2. Ubuntu 20.04 Update
 ### 6.4.3. Create outdated cluster
-```
+```sh
 # master
 bash <(curl -s https://raw.githubusercontent.com/killer-sh/cks-course-environment/master/cluster-setup/previous/install_master.sh)
 
 # worker
 bash <(curl -s https://raw.githubusercontent.com/killer-sh/cks-course-environment/master/cluster-setup/previous/install_worker.sh)
+```
 
-```
 ### 6.4.4. Upgrade controlplane node
-```
+```sh
 # drain
-kubectl drain cks-controlplane
+$ kubectl drain cks-controlplane
 
 # upgrade kubeadm
-apt-get update
-apt-cache show kubeadm | grep 1.22
-apt-mark unhold kubeadm
-apt-mark hold kubectl kubelet
-apt-get install kubeadm=1.22.5-00
-apt-mark hold kubeadm
+$ apt-get update
+$ apt-cache show kubeadm | grep 1.22
+$ apt-mark unhold kubeadm
+$ apt-mark hold kubectl kubelet
+$ apt-get install kubeadm=1.22.5-00
+$ apt-mark hold kubeadm
 
 # kubeadm upgrade
-kubeadm version # correct version?
-kubeadm upgrade plan
-kubeadm upgrade apply 1.22.5
+$ kubeadm version # correct version?
+$ kubeadm upgrade plan
+$ kubeadm upgrade apply 1.22.5
 
 # kubelet and kubectl
-apt-mark unhold kubelet kubectl
-apt-get install kubelet=1.22.5-00 kubectl=1.22.5-00
-apt-mark hold kubelet kubectl
+$ apt-mark unhold kubelet kubectl
+$ apt-get install kubelet=1.22.5-00 kubectl=1.22.5-00
+$ apt-mark hold kubelet kubectl
 
 # restart kubelet
-service kubelet restart
-service kubelet status
+$ service kubelet restart
+$ service kubelet status
 
 # show result
-kubeadm upgrade plan
-kubectl version
+$ kubeadm upgrade plan
+$ kubectl version
 
 # uncordon
-kubectl uncordon cks-controlplane
+$ kubectl uncordon cks-controlplane
 ```
 ### 6.4.5. Upgrade node
-```
+```sh
 # drain
-kubectl drain cks-node
+$ kubectl drain cks-node
 
 # upgrade kubeadm
-apt-get update
-apt-cache show kubeadm | grep 1.22
-apt-mark unhold kubeadm
-apt-mark hold kubectl kubelet
-apt-get install kubeadm=1.22.5-00
-apt-mark hold kubeadm
+$ apt-get update
+$ apt-cache show kubeadm | grep 1.22
+$ apt-mark unhold kubeadm
+$ apt-mark hold kubectl kubelet
+$ apt-get install kubeadm=1.22.5-00
+$ apt-mark hold kubeadm
 
 # kubeadm upgrade
-kubeadm version # correct version?
-kubeadm upgrade node
+$ kubeadm version # correct version?
+$ kubeadm upgrade node
 
 # kubelet and kubectl
-apt-mark unhold kubelet kubectl
-apt-get install kubelet=1.22.5-00 kubectl=1.22.5-00
-apt-mark hold kubelet kubectl
-
+$ apt-mark unhold kubelet kubectl
+$ apt-get install kubelet=1.22.5-00 kubectl=1.22.5-00
+$ apt-mark hold kubelet kubectl
+ 
 # restart kubelet
-service kubelet restart
-service kubelet status
+$ service kubelet restart
+$ service kubelet status
 
 # uncordon
-kubectl uncordon cks-node
-
-
+$ kubectl uncordon cks-node
 ```
+
 ### 6.4.6. Recap
-```
-# kubeadm upgrade
-https://kubernetes.io/docs/tasks/administer-cluster/kubeadm/kubeadm-upgrade
+> https://kubernetes.io/docs/tasks/administer-cluster/kubeadm/kubeadm-upgrade
 
-# k8s versions
-https://kubernetes.io/docs/setup/release/version-skew-policy
+> https://kubernetes.io/docs/setup/release/version-skew-policy
 
-```
 
 # 7. Microservice Vulnerabilities
 ## 7.1. Manage Kubernetes
