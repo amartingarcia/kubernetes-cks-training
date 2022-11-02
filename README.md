@@ -5,41 +5,34 @@
 - [Table of Contents](#table-of-contents)
 - [1. Introduction](#1-introduction)
   - [1.1. Welcome](#11-welcome)
-  - [1.2. Best Video Quality](#12-best-video-quality)
-  - [1.3. K8s Security Best Practices](#13-k8s-security-best-practices)
-    - [Security Principles](#security-principles)
+  - [1.2. K8s Security Best Practices](#12-k8s-security-best-practices)
     - [K8s Security Categories](#k8s-security-categories)
-    - [K8s Best Practices](#k8s-best-practices)
-    - [Links](#links)
+      - [Host Operating System Security (Ex. Linux)](#host-operating-system-security-ex-linux)
+      - [Kubernetes Cluster Security (Ex. Kubernetes)](#kubernetes-cluster-security-ex-kubernetes)
+      - [Application Security (Ex. Container)](#application-security-ex-container)
 - [2. Create your course K8S cluster](#2-create-your-course-k8s-cluster)
   - [2.1. Cluster Specification](#21-cluster-specification)
-  - [2.2. Create GCP Account](#22-create-gcp-account)
-  - [2.3. Configure gcloud command](#23-configure-gcloud-command)
-  - [2.4. Create Kubeadm Cluster in GCP](#24-create-kubeadm-cluster-in-gcp)
-  - [2.5. Firewall rules for NodePorts](#25-firewall-rules-for-nodeports)
-  - [2.6. Always stop your instances](#26-always-stop-your-instances)
-  - [2.7. Containerd Course Upgrade](#27-containerd-course-upgrade)
-  - [2.8. Recap](#28-recap)
-- [3. Killercoda Access](#3-killercoda-access)
-  - [3.1. How to get access](#31-how-to-get-access)
-  - [3.2. Your Access Code](#32-your-access-code)
-- [4. Foundation](#4-foundation)
-  - [4.1. Kubernetes Secure Arquitecture](#41-kubernetes-secure-arquitecture)
-    - [4.1.1. Intro](#411-intro)
-    - [4.1.2. Find various k8s certificates](#412-find-various-k8s-certificates)
-    - [4.1.3. Recap](#413-recap)
-  - [4.2. Containers under the hood](#42-containers-under-the-hood)
-    - [4.2.1. Intro](#421-intro)
-      - [4.2.1.1. Container and Image](#4211-container-and-image)
-    - [4.2.2. Test Tools Introduction](#422-test-tools-introduction)
-      - [4.2.2.1. Container tools](#4221-container-tools)
+  - [2.2. Configure gcloud command](#22-configure-gcloud-command)
+  - [2.3. Create Kubeadm Cluster in GCP](#23-create-kubeadm-cluster-in-gcp)
+  - [2.4. Firewall rules for NodePorts](#24-firewall-rules-for-nodeports)
+  - [2.5. Containerd Course Upgrade](#25-containerd-course-upgrade)
+  - [2.6. Recap](#26-recap)
+- [3. Foundation](#3-foundation)
+  - [3.1. Kubernetes Secure Arquitecture](#31-kubernetes-secure-arquitecture)
+    - [3.1.1. Intro](#311-intro)
+    - [3.1.2. Find various k8s certificates](#312-find-various-k8s-certificates)
+  - [3.2. Containers under the hood](#32-containers-under-the-hood)
+    - [3.2.1. Intro](#321-intro)
+      - [3.2.1.1. Container and Image](#3211-container-and-image)
+    - [3.2.2. Test Tools Introduction](#322-test-tools-introduction)
+      - [Container tools](#container-tools)
         - [Dockerfile](#dockerfile)
         - [Build Dockerfile](#build-dockerfile)
         - [List image](#list-image)
         - [Docker run](#docker-run)
         - [Podman build](#podman-build)
         - [Podman run](#podman-run)
-    - [4.2.3. The PID Namespace](#423-the-pid-namespace)
+    - [3.2.3. The PID Namespace](#323-the-pid-namespace)
       - [Run c1 container](#run-c1-container)
       - [Show process on c1 container](#show-process-on-c1-container)
       - [Run c2 container](#run-c2-container)
@@ -49,23 +42,26 @@
       - [Recreate container with same namespace.](#recreate-container-with-same-namespace)
       - [Show process on c2 container (you can see other container process).](#show-process-on-c2-container-you-can-see-other-container-process)
       - [Show process on c1 container (you can see other container process).](#show-process-on-c1-container-you-can-see-other-container-process)
-    - [4.2.4. Recap](#424-recap)
+    - [3.2.4. Recap](#324-recap)
 - [5. Cluster setup](#5-cluster-setup)
   - [5.1. Network Policies](#51-network-policies)
-    - [5.1.1. Cluster Reset](#511-cluster-reset)
-    - [5.1.2. Introduction 1](#512-introduction-1)
-    - [5.1.3. Introduction 2](#513-introduction-2)
+    - [5.1.1. Introduction 1](#511-introduction-1)
+      - [NetworkPolicies](#networkpolicies)
+      - [Without NetworkPolicies](#without-networkpolicies)
+    - [5.1.2. Introduction 2](#512-introduction-2)
       - [NetworkPolicy example](#networkpolicy-example)
-    - [5.1.4. Default Deny](#514-default-deny)
+      - [Multiple NetworkPolicies](#multiple-networkpolicies)
+        - [Merge example2a + example2b](#merge-example2a--example2b)
+    - [5.1.3. Default Deny](#513-default-deny)
       - [Create a frontend and backend applications and expose.](#create-a-frontend-and-backend-applications-and-expose)
       - [Test connection between applications](#test-connection-between-applications)
       - [Create the NetworkPolicy](#create-the-networkpolicy)
       - [Test connection between apps](#test-connection-between-apps)
-    - [5.1.5. Frontend to Backend traffic](#515-frontend-to-backend-traffic)
+    - [5.1.4. Frontend to Backend traffic](#514-frontend-to-backend-traffic)
       - [Test connection](#test-connection)
       - [Test connection](#test-connection-1)
       - [If you want connect to DNS, you indicate Port 53](#if-you-want-connect-to-dns-you-indicate-port-53)
-    - [5.1.6. Backend to database traffic](#516-backend-to-database-traffic)
+    - [5.1.5. Backend to database traffic](#515-backend-to-database-traffic)
       - [Create a namespace](#create-a-namespace)
       - [Create a Pod](#create-a-pod)
       - [Get Pod Cassandra IP](#get-pod-cassandra-ip)
@@ -75,9 +71,13 @@
       - [Create configuration to Deny all to cassandra Pod](#create-configuration-to-deny-all-to-cassandra-pod)
       - [And create NetworkPolicy to cassandra ingress from default](#and-create-networkpolicy-to-cassandra-ingress-from-default)
       - [Labeled default namespace and launch curl](#labeled-default-namespace-and-launch-curl)
-    - [5.1.7. Recap](#517-recap)
+    - [5.1.6. Recap](#516-recap)
   - [5.2. GUI Elements](#52-gui-elements)
     - [5.2.1. Introduction](#521-introduction)
+      - [Gui Elements and the Dashboard](#gui-elements-and-the-dashboard)
+      - [Kubectl proxy](#kubectl-proxy)
+      - [Kubectl port-forward](#kubectl-port-forward)
+      - [Ingress](#ingress)
     - [5.2.2. Install Dashboard](#522-install-dashboard)
       - [Deploy Dashboard](#deploy-dashboard)
       - [Get objects](#get-objects)
@@ -85,39 +85,51 @@
       - [Expose insecure Dashboard](#expose-insecure-dashboard)
     - [5.2.4. RBAC for the dashboard](#524-rbac-for-the-dashboard)
     - [5.2.5. Recap](#525-recap)
+      - [Interesting dashboard security arguments](#interesting-dashboard-security-arguments)
   - [5.3. Secure Ingress](#53-secure-ingress)
-    - [5.3.1. K8S docs in correct version](#531-k8s-docs-in-correct-version)
-    - [5.3.2. Introduction](#532-introduction)
     - [5.3.3. Create an Ingress](#533-create-an-ingress)
+      - [Setup an example Ingress](#setup-an-example-ingress)
     - [5.3.4. Secure an Ingress](#534-secure-an-ingress)
     - [5.3.5. Recap](#535-recap)
   - [5.4. Node metadata protection](#54-node-metadata-protection)
     - [5.4.1. Introduction](#541-introduction)
+      - [Cloud Platform Node Metadata](#cloud-platform-node-metadata)
+      - [Limit permissions for instance credentials](#limit-permissions-for-instance-credentials)
     - [5.4.2. Access Node Metadata](#542-access-node-metadata)
     - [5.4.3. Protect Node Metadata via Network Policy](#543-protect-node-metadata-via-network-policy)
+      - [All pods in namespace cannot access metadata endpoint](#all-pods-in-namespace-cannot-access-metadata-endpoint)
+      - [Only pods with label are allowed to access metadata endpoint](#only-pods-with-label-are-allowed-to-access-metadata-endpoint)
+      - [Labeled Pod](#labeled-pod)
   - [5.5. CIS Bechmarck](#55-cis-bechmarck)
     - [5.5.1. Introduction](#551-introduction)
+      - [CIS - Center for Internet Security](#cis---center-for-internet-security)
     - [5.5.2. CIS in action](#552-cis-in-action)
     - [5.5.3. kube-bench](#553-kube-bench)
+      - [How to run](#how-to-run)
     - [5.5.4. Recap](#554-recap)
   - [5.6. Verify Platform Binaries](#56-verify-platform-binaries)
-    - [5.6.1. Introduction](#561-introduction)
-    - [5.6.2. Download and verify k8s release](#562-download-and-verify-k8s-release)
-    - [5.6.3. Verify apiserver binary running in our cluster](#563-verify-apiserver-binary-running-in-our-cluster)
+    - [5.6.1. Verify apiserver binary running in our cluster](#561-verify-apiserver-binary-running-in-our-cluster)
     - [5.6.4. Recap](#564-recap)
 - [6. Cluster Hardening](#6-cluster-hardening)
   - [6.1. RBAC](#61-rbac)
     - [6.1.1. Intro](#611-intro)
+      - [RBAC](#rbac)
+      - [POLP (Principle Of Least Privilege)](#polp-principle-of-least-privilege)
+      - [RBAC- Namespaced Resources vs Cluster Resources](#rbac--namespaced-resources-vs-cluster-resources)
+      - [RoleBinding](#rolebinding)
+      - [ClusterRoleBinding](#clusterrolebinding)
     - [6.1.2. Role and Rolebinding](#612-role-and-rolebinding)
     - [6.1.3. ClusterRole and ClusterRoleBinding](#613-clusterrole-and-clusterrolebinding)
     - [6.1.4. Accounts and Users](#614-accounts-and-users)
     - [6.1.5. CertificateSingingRequets](#615-certificatesingingrequets)
+      - [Users and Certificates](#users-and-certificates)
     - [6.1.6. Recap](#616-recap)
-  - [6.2. Exercise caution in using ...](#62-exercise-caution-in-using-)
+  - [6.2. Exercise caution in using ServiceAccounts](#62-exercise-caution-in-using-serviceaccounts)
     - [6.2.1. Intro](#621-intro)
-    - [6.2.2. Disable SA Mounting](#622-disable-sa-mounting)
-    - [6.2.3. Limits SA using RBAC](#623-limits-sa-using-rbac)
-    - [6.2.4. Recap](#624-recap)
+    - [6.2.2. Pods uses custom ServiceAccount](#622-pods-uses-custom-serviceaccount)
+    - [6.2.3. Disable ServiceAccount Mounting](#623-disable-serviceaccount-mounting)
+    - [6.2.4. Limits ServiceAccounts using RBAC](#624-limits-serviceaccounts-using-rbac)
+    - [6.2.5. Recap](#625-recap)
   - [6.3. Restrict API Access](#63-restrict-api-access)
     - [6.3.1. Intro](#631-intro)
     - [6.3.2. Anonymous Access](#632-anonymous-access)
@@ -247,11 +259,11 @@
 
 # 1. Introduction
 ## 1.1. Welcome
-## 1.2. Best Video Quality
-## 1.3. K8s Security Best Practices
-### Security Principles
+This are my notes to prepare CKS exam.
+
+## 1.2. K8s Security Best Practices
 ### K8s Security Categories
-**Host Operating System Security (Ex. Linux)**
+#### Host Operating System Security (Ex. Linux)
 * Kubernetes Nodes should only do one thing: Kubernetes
 * Reduce Attack Surface
   * Remove unnecessary applications
@@ -260,7 +272,7 @@
 * Find and identify malicious processes
 * Restrict IAM/SSH access
 
-**Kubernetes Cluster Security (Ex. Kubernetes)**
+#### Kubernetes Cluster Security (Ex. Kubernetes)
 * Kubernetes componentes are running secure and up-to-date:
   * Apiserver
   * Kubelet
@@ -272,7 +284,7 @@
 * Enable Audit Logging
 * Security Benchmarking
 
-**Application Security (Ex. Container)**
+#### Application Security (Ex. Container)
 * Use Secrets/no hardcoded credentials
 * RBAC
 * Container Sandboxing
@@ -283,46 +295,40 @@
 * Vulnerability Scanning
 * mTLS/ServiceMeshes
 
-### K8s Best Practices
-### Links
-https://www.youtube.com/watch?v=wqsUfvRyYpw
+
+> https://www.youtube.com/watch?v=wqsUfvRyYpw
 
 
 
 # 2. Create your course K8S cluster
 ## 2.1. Cluster Specification
 ```sh
-# cks-master
+# Install Kubernetes master
 sudo -i
 bash <(curl -s https://raw.githubusercontent.com/killer-sh/cks-course-environment/master/cluster-setup/latest/install_master.sh)
 
 
-# cks-worker
+# Install Kubernetes Worker
 sudo -i
 bash <(curl -s https://raw.githubusercontent.com/killer-sh/cks-course-environment/master/cluster-setup/latest/install_worker.sh)
-
-
-# run the printed kubeadm-join-command from the master on the worker
-
 ```
-## 2.2. Create GCP Account
-## 2.3. Configure gcloud command
+## 2.2. Configure gcloud command
 ```sh
 # install gcloud sdk from
 https://cloud.google.com/sdk/auth_success
 
 # then run locally
-gcloud auth login
-gcloud projects list
-gcloud config set project YOUR-PROJECT-ID
-gcloud compute instances list # should be empty right now
+$ gcloud auth login
+$ gcloud projects list
+$ gcloud config set project YOUR-PROJECT-ID
+$ gcloud compute instances list # should be empty right now
 ```
 
-## 2.4. Create Kubeadm Cluster in GCP
+## 2.3. Create Kubeadm Cluster in GCP
 ```sh
 # CREATE cks-master VM using gcloud command
 # not necessary if created using the browser interface
-gcloud compute instances create cks-master --zone=europe-west3-c \
+$ gcloud compute instances create cks-master --zone=europe-west3-c \
 --machine-type=e2-medium \
 --image=ubuntu-2004-focal-v20220419 \
 --image-project=ubuntu-os-cloud \
@@ -330,7 +336,7 @@ gcloud compute instances create cks-master --zone=europe-west3-c \
 
 # CREATE cks-worker VM using gcloud command
 # not necessary if created using the browser interface
-gcloud compute instances create cks-worker --zone=europe-west3-c \
+$ gcloud compute instances create cks-worker --zone=europe-west3-c \
 --machine-type=e2-medium \
 --image=ubuntu-2004-focal-v20220419 \
 --image-project=ubuntu-os-cloud \
@@ -339,12 +345,10 @@ gcloud compute instances create cks-worker --zone=europe-west3-c \
 # you can use a region near you
 https://cloud.google.com/compute/docs/regions-zones
 
-
 # INSTALL cks-master
 gcloud compute ssh cks-master
 sudo -i
 bash <(curl -s https://raw.githubusercontent.com/killer-sh/cks-course-environment/master/cluster-setup/latest/install_master.sh)
-
 
 # INSTALL cks-worker
 gcloud compute ssh cks-worker
@@ -352,28 +356,23 @@ sudo -i
 bash <(curl -s https://raw.githubusercontent.com/killer-sh/cks-course-environment/master/cluster-setup/latest/install_worker.sh)
 ```
 
-## 2.5. Firewall rules for NodePorts
+## 2.4. Firewall rules for NodePorts
 ```sh
-gcloud compute firewall-rules create nodeports --allow tcp:30000-40000
+$ gcloud compute firewall-rules create nodeports --allow tcp:30000-40000
 ```
 
-## 2.6. Always stop your instances
-## 2.7. Containerd Course Upgrade
+## 2.5. Containerd Course Upgrade
 docker --> containerd
-## 2.8. Recap
+
+## 2.6. Recap
 minikube start --network-plugin=cni --cni=calico -p cks
 
 
-# 3. Killercoda Access
-## 3.1. How to get access
-## 3.2. Your Access Code
 
-
-
-# 4. Foundation
-## 4.1. Kubernetes Secure Arquitecture
-### 4.1.1. Intro
-### 4.1.2. Find various k8s certificates
+# 3. Foundation
+## 3.1. Kubernetes Secure Arquitecture
+### 3.1.1. Intro
+### 3.1.2. Find various k8s certificates
 
 | Default CN                   | recommended key path         | recommended cert path       | command        | key argument                 | cert argument                             |
 |------------------------------|------------------------------|-----------------------------|----------------|------------------------------|-------------------------------------------|
@@ -398,11 +397,9 @@ minikube start --network-plugin=cni --cni=calico -p cks
 
 > https://kubernetes.io/docs/setup/best-practices/certificates
 
-
-### 4.1.3. Recap
-## 4.2. Containers under the hood
-### 4.2.1. Intro
-#### 4.2.1.1. Container and Image
+## 3.2. Containers under the hood
+### 3.2.1. Intro
+#### 3.2.1.1. Container and Image
 * **Dockerfile**: Script/text defines how to build an image
 * **Image** (docker build): Multi layer binary representation of state
 * **Container** (docker run): "running" instnace of an image
@@ -410,12 +407,13 @@ minikube start --network-plugin=cni --cni=calico -p cks
   * Includes all its dependencies.
   * Just a process which runs on the Linux Kernel (but which cannot see everything).
 
-### 4.2.2. Test Tools Introduction
-#### 4.2.2.1. Container tools
-**Docker**: Container Runtime + Tool for managing containers and images
-**Containerd**: Container Runtime
-**Crictl**: CLI for CRI-compatible Container Runtimes
-**Podman**: Tool for managing containers and images
+### 3.2.2. Test Tools Introduction
+#### Container tools
+
+**Docker**: Container Runtime + Tool for managing containers and images.
+**Containerd**: Container Runtime.
+**Crictl**: CLI for CRI-compatible Container Runtimes.
+**Podman**: Tool for managing containers and images.
 
 ##### Dockerfile
 ```sh
@@ -505,7 +503,7 @@ PING killer.sh (35.227.196.29): 56 data bytes
 round-trip min/avg/max = 13.569/13.691/13.926 ms
 ```
 
-### 4.2.3. The PID Namespace
+### 3.2.3. The PID Namespace
 Create two containers and check they cannot see each other.
 
 #### Run c1 container
@@ -595,26 +593,25 @@ root          20  0.0  0.0   2788  1028 ?        S    16:30   0:00 sleep 999d
 root          35  1.0  0.0   7060  1584 ?        Rs   16:32   0:00 ps aux
 ```
 
-### 4.2.4. Recap
-https://www.youtube.com/watch?v=MHv6cWjvQjM
+### 3.2.4. Recap
+> https://www.youtube.com/watch?v=MHv6cWjvQjM
 
 
 
 # 5. Cluster setup
 ## 5.1. Network Policies
-### 5.1.1. Cluster Reset
-### 5.1.2. Introduction 1
-**NetworkPolicies**
+### 5.1.1. Introduction 1
+#### NetworkPolicies
 * Firewall rules in Kubernetes
 * Implemented by the Network Plugins CNI (Calico/Weave)
 * Namespace level
 * Restrict the Ingress and/or Egress for a group of Pods based on certain rules and conditions
 
-**Without NetworkPolicies**
+#### Without NetworkPolicies
 * By default every pod can access every pod
 * Pods are **NOT** isolated.
 
-### 5.1.3. Introduction 2
+### 5.1.2. Introduction 2
 #### NetworkPolicy example
 ```yaml
 apiVersion: networking.k8s.io/v1
@@ -646,13 +643,13 @@ spec:
             id: backend
 ```
 
-**Multiple NetworkPolicies**
+#### Multiple NetworkPolicies
 * Possible to have multiple NPs selecting the same pods
 * If a pod has more than one NP
   * Then the union of all NPs is applied
   * order doesnt affect policy result
 
-Merge example2a + example2b
+##### Merge example2a + example2b
 ```yaml
 apiVersion: networking.k8s.io/v1
 kind: NetworkPolicy
@@ -694,8 +691,7 @@ spec:
             id: backend
 ```
 
-
-### 5.1.4. Default Deny
+### 5.1.3. Default Deny
 #### Create a frontend and backend applications and expose.
 ```sh
 $ kubectl run frontend --image=nginx
@@ -816,7 +812,7 @@ command terminated with exit code 6
 ```
 
 
-### 5.1.5. Frontend to Backend traffic
+### 5.1.4. Frontend to Backend traffic
 ```yaml
 # allows frontend pods to communicate with backend pods
 apiVersion: networking.k8s.io/v1
@@ -919,7 +915,7 @@ spec:
       protocol: UDP
 ```
 
-### 5.1.6. Backend to database traffic
+### 5.1.5. Backend to database traffic
 #### Create a namespace
 ```sh
 $ kubectl create ns cassandra
@@ -1075,29 +1071,30 @@ Commercial support is available at
 </html>
 ```
 
-### 5.1.7. Recap
+### 5.1.6. Recap
 > https://kubernetes.io/docs/concepts/services-networking/network-policies
+
 ## 5.2. GUI Elements
 ### 5.2.1. Introduction
-**Gui Elements and the Dashboard**
+#### Gui Elements and the Dashboard
 * only expose services externally if needed
 * cluster internal services/dashboards can also be accessed using `kubectl port-forward`
 
-**Kubectl proxy**
+#### Kubectl proxy
 * Creates a proxy server between localhost and the Kubernetes API Server
 * Uses connection as configured in the kubeconfig
 * Allows to access API locally just over http and without authentication
 
 ![cks](images/07_intro_kubectl_proxy.png)
 
-**Kubectl port-forward**
+#### Kubectl port-forward
 * Forwards connections from a localhost-por to a pod-port
 * More generic than kubectl proxy
 * Can be used for all TCP traffic not just HTTP
 
 ![cks](images/07_intro_kubectl_port-forward.png)
 
-**Ingress**
+#### Ingress
 ![cks](images/07_intro_ingress.png)
 
 ### 5.2.2. Install Dashboard
@@ -1189,7 +1186,7 @@ $ kubectl -n kubernetes-dashboard create clusterrolebinding insecure --serviceac
 ```
 
 ### 5.2.5. Recap
-**Interesting dashboard security arguments**
+#### Interesting dashboard security arguments
 ```sh
 --authentication-mode=basic
 --enable-skip=true
@@ -1199,10 +1196,8 @@ $ kubectl -n kubernetes-dashboard create clusterrolebinding insecure --serviceac
 >https://github.com/kubernetes/dashboard/blob/master/docs/user/access-control/README.md
 
 ## 5.3. Secure Ingress
-### 5.3.1. K8S docs in correct version
-### 5.3.2. Introduction
 ### 5.3.3. Create an Ingress
-**Setup an example Ingress**
+#### Setup an example Ingress
 ![cks](images/08_create_an_ingress.png)
 
 ```yaml
@@ -1243,7 +1238,6 @@ https://github.com/killer-sh/cks-course-environment/tree/master/course-content/c
 ```
 
 > https://kubernetes.io/docs/concepts/services-networking/ingress
-
 
 ### 5.3.4. Secure an Ingress
 ![cks](images/08_secure_an_ingress.png)
@@ -1312,12 +1306,12 @@ https://kubernetes.io/docs/concepts/services-networking/ingress/#tls
 ### 5.3.5. Recap
 ## 5.4. Node metadata protection
 ### 5.4.1. Introduction
-**Cloud Platform Node Metadata**
+#### Cloud Platform Node Metadata
 * Metadata service API by default reachable from VMs
 * Can contain cloud credentials for VMs/Nodes
 * Can contain provisioning dat like kubelet credentials
 
-**Limit permissions for instance credentials**
+#### Limit permissions for instance credentials
 * Ensure that the cloud-instance-account has only the necessary permissions
 * Each cloud provider has a set of recommendations to follow
 * Not in the hands of Kubernetes
@@ -1335,7 +1329,7 @@ curl "http://metadata.google.internal/computeMetadata/v1/instance/disks/" -H "Me
 
 ### 5.4.3. Protect Node Metadata via Network Policy
 
-**All pods in namespace cannot access metadata endpoint**
+#### All pods in namespace cannot access metadata endpoint
 ```yaml
 apiVersion: networking.k8s.io/v1
 kind: NetworkPolicy
@@ -1354,7 +1348,7 @@ spec:
         - 169.254.169.254/32
 ```
 
-**Only pods with label are allowed to access metadata endpoint**
+#### Only pods with label are allowed to access metadata endpoint
 ```yaml
 apiVersion: networking.k8s.io/v1
 kind: NetworkPolicy
@@ -1373,14 +1367,14 @@ spec:
         cidr: 169.254.169.254/32
 ```
 
-**Labeled Pod**
+#### Labeled Pod
 ```sh
 $ kubectl label pod nginx role=metadata-accessor 
 ```
 
 ## 5.5. CIS Bechmarck
 ### 5.5.1. Introduction
-**CIS - Center for Internet Security**
+#### CIS - Center for Internet Security
 * Best practices for the secure configuration of a target system
 * Covering more than 14 technology groups
 * Developed through a unique consensus-based process comprised of cybersecurity professionals and subject matter experts around the world
@@ -1394,7 +1388,7 @@ $ kubectl label pod nginx role=metadata-accessor
 > https://ettayeb.fr/content/files/2022/03/CIS_Kubernetes_Benchmark_v1.6.0.pdf
 
 ### 5.5.3. kube-bench
-**How to run**
+#### How to run
 > https://github.com/aquasecurity/kube-bench/blob/main/docs/running.md
 
 ```sh
@@ -1413,9 +1407,7 @@ docker run --pid=host -v /etc:/etc:ro -v /var:/var:ro -t aquasec/kube-bench:late
 
 
 ## 5.6. Verify Platform Binaries
-### 5.6.1. Introduction
-### 5.6.2. Download and verify k8s release
-### 5.6.3. Verify apiserver binary running in our cluster
+### 5.6.1. Verify apiserver binary running in our cluster
 ```sh
 # Get version
 $ kubectl get nodes
@@ -1444,22 +1436,224 @@ c0826f1dbb94c224b888e7caba035a187e0dbd1bf23a57042eca99633fdf7aa9f0f1663745307b09
 # 6. Cluster Hardening
 ## 6.1. RBAC
 ### 6.1.1. Intro
+#### RBAC
+* "Role-based access control (RBAC) is a method of regulating access to computer or network resources based on the roles of individual users within your organization."
+
+```sh
+# kube-apiserver
+`--authorization-mode` stringSlice Default: [AlwaysAllow]
+
+Ordered list of plugins to do authorization on secure port. Comma-delimited list of: AlwaysAllow,AlwaysDeny,ABAC,Webhook,RBAC,Node.
+```
+
+* Restrict access to Kubernetes resources when accessed by Users and ServiceAccounts.
+* Works with Roles and Bindings
+* Specify what is ALLOWED, everything else is DENIED
+  * whitelisting
+
+#### POLP (Principle Of Least Privilege)
+* Only access to data or information that is necessary for the legitimate purpose.
+
+#### RBAC- Namespaced Resources vs Cluster Resources
+![cks](images/12_intro_rbac.png)
+
+```sh
+# Print the supported namespaced resources
+$ kubectl api-resources --namespaced=true
+
+# Print the supported non-namespaced resources
+$ kubectl api-resources --namespaced=false
+```
+
+![cks](images/12_intro_rbac_01.png)
+
+* Same Role name behaves different in different namespaces
+* User X can be secret-manager in multiple namespaces, but the permissions are different.
+![cks](images/12_intro_rbac_role.png)
+
+* ClusterRole is the same across all namespaaces (cluster wide).
+* User X can be secret-m,anager in multiple namespaces, permissions are the same in each.
+![cks](images/12_intro_rbac_clusterrole.png)
+
+#### RoleBinding
+![cks](images/12_intro_rbac_rolebinding.png)
+![cks](images/12_intro_rbac_role_02.png)
+
+#### ClusterRoleBinding
+![cks](images/12_intro_rbac_clusterrolebinding.png)
+![cks](images/12_intro_rbac_clusterrole_01.png)
+
 ### 6.1.2. Role and Rolebinding
+```sh
+# Create namespaces
+$ kubectl create ns red
+$ kubectl create ns blue
+
+# Create Roles
+$ kubectl -n red create role secret-manager --verb=get --resource=secrets
+$ kubectl -n blue create role secret-manager --verb=get --verb=list --resource=secrets
+
+# Create RoleBindings
+$ kubectl -n red create rolebinding secret-manager --role=secret-manager --user=jane
+$ kubectl -n blue create rolebinding secret-manager --role=secret-manager --user=jane
+
+# Check Permissions
+$ kubectl -n red auth can-i create pods --as jane # no
+$ kubectl -n red auth can-i get secrets --as jane # yes
+$ kubectl -n red auth can-i list secrets --as jane # no
+$ kubectl -n blue auth can-i list secrets --as jane # yes
+$ kubectl -n blue auth can-i get secrets --as jane # yes
+$ kubectl -n default auth can-i get secrets --as jane #no
+```
+
 ### 6.1.3. ClusterRole and ClusterRoleBinding
+```sh
+$ kubectl create clusterrole deploy-deleter --verb=delete --resource=deployment
+$ kubectl create clusterrolebinding deploy-deleter --clusterrole=deploy-deleter --user=jane
+$ kubectl -n red create rolebinding deploy-deleter --clusterrole=deploy-deleter --user=jim
+
+
+# Test jane
+$ kubectl auth can-i delete deploy --as jane # yes
+$ kubectl auth can-i delete deploy --as jane -n red # yes
+$ kubectl auth can-i delete deploy --as jane -n blue # yes
+$ kubectl auth can-i delete deploy --as jane -A # yes
+$ kubectl auth can-i create deploy --as jane --all-namespaces # no
+
+
+
+# Test jim
+$ kubectl auth can-i delete deploy --as jim # no
+$ kubectl auth can-i delete deploy --as jim -A # no
+$ kubectl auth can-i delete deploy --as jim -n red # yes
+$ kubectl auth can-i delete deploy --as jim -n blue # no
+
+```
 ### 6.1.4. Accounts and Users
+![cks](images/12_accounts_users.png)
+
+**ServiceAccount** is a resource managed by the k8s api
+**Normal User** is no k8s User resource. It is assumed that a cluster-indepedent service manages normal users.
+
+
 ### 6.1.5. CertificateSingingRequets
+#### Users and Certificates
+Create a certificate+key and authenticate as user jane
+* Create CSR
+* Sign CSR using kubernetes API
+* Usercert+key to connecto to k8s API
+
+```sh
+# Create key
+$ openssl genrsa -out jane.key 2048
+
+# Create CSR (only set Common Name = jane)
+$ openssl req -new -key jane.key -out jane.csr 
+```
+
+```yaml
+apiVersion: certificates.k8s.io/v1
+kind: CertificateSigningRequest
+metadata:
+  name: myuser
+spec:
+  groups:
+  - system:authenticated
+  request: <cat jane.csr | base64 -w 0>
+  signerName: kubernetes.io/kube-apiserver-client
+  expirationSeconds: 86400  # one day
+  usages:
+  - client auth
+```
+
+> https://kubernetes.io/docs/reference/access-authn-authz/certificate-signing-requests
+
+```sh
+# Apply file
+$ kubectl apply -f csr.yaml
+
+# Get csr objects
+$ kubectl get csr
+NAME   AGE   SIGNERNAME                            REQUESTOR       REQUESTEDDURATION   CONDITION
+jane   4s    kubernetes.io/kube-apiserver-client   minikube-user   <none>              Pending
+
+# Approve cert
+$ kubectl certificate approve jane
+certificatesigningrequest.certificates.k8s.io/jane approved
+
+# Export cert
+$ kubectl get csr jane -ojsonpath='{.status.certificate}' | base64 -d > jane.crt
+
+# Set credentials on kubeconfig
+$ kubectl config set-credentials jane --client-key jane.key --client-certificate jane.crt --embed-certs
+
+# Set context
+$ kubectl config set-context jane --user jane --cluster cks 
+Context "jane" created.
+
+# Get context
+$ kubectl config get-contexts 
+CURRENT   NAME                  CLUSTER               AUTHINFO              NAMESPACE
+*         cks                   cks                   cks                   default
+          jane                  cks                   jane                  
+
+# Use context
+$ kubectl config use-context jane                          
+Switched to context "jane".
+
+# Get secrets
+$ kubectl -n blue get secrets
+NAME                  TYPE                                  DATA   AGE
+default-token-cjklb   kubernetes.io/service-account-token   3      42m
+
+# Delete secrets
+$ kubectl -n blue delete secrets default-token-cjklb 
+Error from server (Forbidden): secrets "default-token-cjklb" is forbidden: User "jane" cannot delete resource "secrets" in API group "" in the namespace "blue"
+
+# check permissions
+$ kubectl auth can-i delete pods # no
+$ kubectl auth can-i delete pods -A # no
+$ kubectl auth can-i get secrets -A # no
+$ kubectl auth can-i get secrets -n red # yes
+```
 ### 6.1.6. Recap
-## 6.2. Exercise caution in using ...
+## 6.2. Exercise caution in using ServiceAccounts
 ### 6.2.1. Intro
-### 6.2.2. Disable SA Mounting
-### 6.2.3. Limits SA using RBAC
-### 6.2.4. Recap
+### 6.2.2. Pods uses custom ServiceAccount
+```sh
+# from inside a Pod we can do:
+cat /run/secrets/kubernetes.io/serviceaccount/token
+
+curl https://kubernetes.default -k -H "Authorization: Bearer SA_TOKEN"
+
+https://kubernetes.io/docs/tasks/run-application/access-api-from-pod
+
+# Bound Service Account Tokens
+https://github.com/kubernetes/enhancements/blob/master/keps/sig-auth/1205-bound-service-account-tokens/README.md
+```
+### 6.2.3. Disable ServiceAccount Mounting
+```sh
+https://kubernetes.io/docs/tasks/configure-pod-container/configure-service-account
+
+```
+### 6.2.4. Limits ServiceAccounts using RBAC
+### 6.2.5. Recap
+```sh
+https://kubernetes.io/docs/concepts/security/controlling-access
+```
+
 ## 6.3. Restrict API Access
 ### 6.3.1. Intro
 ### 6.3.2. Anonymous Access
 ### 6.3.3. Insecure Access
 ### 6.3.4. Manual API Requests
 ### 6.3.5. External Apiserver Access
+```sh
+# inspect apiserver cert
+cd /etc/kubernetes/pki
+openssl x509 -in apiserver.crt -text
+
+```
 ### 6.3.6. NodeRestriction AdmissionController
 ### 6.3.7. Verify NodeRestriction
 ### 6.3.8. Recap
@@ -1467,11 +1661,88 @@ c0826f1dbb94c224b888e7caba035a187e0dbd1bf23a57042eca99633fdf7aa9f0f1663745307b09
 ### 6.4.1. Intro
 ### 6.4.2. Ubuntu 20.04 Update
 ### 6.4.3. Create outdated cluster
+```
+# master
+bash <(curl -s https://raw.githubusercontent.com/killer-sh/cks-course-environment/master/cluster-setup/previous/install_master.sh)
+
+# worker
+bash <(curl -s https://raw.githubusercontent.com/killer-sh/cks-course-environment/master/cluster-setup/previous/install_worker.sh)
+
+```
 ### 6.4.4. Upgrade controlplane node
+```
+# drain
+kubectl drain cks-controlplane
+
+# upgrade kubeadm
+apt-get update
+apt-cache show kubeadm | grep 1.22
+apt-mark unhold kubeadm
+apt-mark hold kubectl kubelet
+apt-get install kubeadm=1.22.5-00
+apt-mark hold kubeadm
+
+# kubeadm upgrade
+kubeadm version # correct version?
+kubeadm upgrade plan
+kubeadm upgrade apply 1.22.5
+
+# kubelet and kubectl
+apt-mark unhold kubelet kubectl
+apt-get install kubelet=1.22.5-00 kubectl=1.22.5-00
+apt-mark hold kubelet kubectl
+
+# restart kubelet
+service kubelet restart
+service kubelet status
+
+# show result
+kubeadm upgrade plan
+kubectl version
+
+# uncordon
+kubectl uncordon cks-controlplane
+```
 ### 6.4.5. Upgrade node
+```
+# drain
+kubectl drain cks-node
+
+# upgrade kubeadm
+apt-get update
+apt-cache show kubeadm | grep 1.22
+apt-mark unhold kubeadm
+apt-mark hold kubectl kubelet
+apt-get install kubeadm=1.22.5-00
+apt-mark hold kubeadm
+
+# kubeadm upgrade
+kubeadm version # correct version?
+kubeadm upgrade node
+
+# kubelet and kubectl
+apt-mark unhold kubelet kubectl
+apt-get install kubelet=1.22.5-00 kubectl=1.22.5-00
+apt-mark hold kubelet kubectl
+
+# restart kubelet
+service kubelet restart
+service kubelet status
+
+# uncordon
+kubectl uncordon cks-node
+
+
+```
 ### 6.4.6. Recap
+```
+# kubeadm upgrade
+https://kubernetes.io/docs/tasks/administer-cluster/kubeadm/kubeadm-upgrade
 
+# k8s versions
+https://kubernetes.io/docs/setup/release/version-skew-policy
 
+```
 
 # 7. Microservice Vulnerabilities
 ## 7.1. Manage Kubernetes
