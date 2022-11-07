@@ -183,6 +183,11 @@
     - [7.1.7. Recap](#717-recap)
   - [7.2. Container Runtime](#72-container-runtime)
     - [7.2.1. Intro](#721-intro)
+      - [Technical Overview](#technical-overview)
+      - [Technical Overview: Containers/Docker](#technical-overview-containersdocker)
+      - [Technical Overview: Sandbox](#technical-overview-sandbox)
+      - [Technical Overview: Containers and system calls](#technical-overview-containers-and-system-calls)
+      - [Technical Overview: Sandbox comes not for free](#technical-overview-sandbox-comes-not-for-free)
     - [7.2.2. Containers Calls Linux Kernel](#722-containers-calls-linux-kernel)
     - [7.2.3. Open Container Iniciative OCI](#723-open-container-iniciative-oci)
     - [7.2.4. Sandbox Runtime Katacontainer](#724-sandbox-runtime-katacontainer)
@@ -2289,13 +2294,56 @@ k8s:enc:aesgcm:v1:key1:Li&?ųw!lSV2      ~(n4h͊ЗwyP"`;yQZ2=Jtet`%=qĕ@qӦss
 
 ## 7.2. Container Runtime
 ### 7.2.1. Intro
+#### Technical Overview
+**Containers are not contained**
+Just because it runs in a container doesnt mean its more protected.
+
+#### Technical Overview: Containers/Docker
+![cks](images/17_container_runtime_intro.png)
+
+#### Technical Overview: Sandbox
+
+**Sandbox?**
+* Playground when implement an API
+* Simulated testing environment
+* Development server
+* **Security layer to reduce attack surface**
+
+#### Technical Overview: Containers and system calls
+![cks](images/17_container_runtime_intro_01.png)
+
+#### Technical Overview: Sandbox comes not for free
+* More resources needed
+* Might be better for smaller containers
+* Not good for syscall heavy workloads
+* No direct access to hardware
+
 ### 7.2.2. Containers Calls Linux Kernel
 ### 7.2.3. Open Container Iniciative OCI
 ### 7.2.4. Sandbox Runtime Katacontainer
 ### 7.2.5. Sandbox Runtime gVisor
 ### 7.2.6. Create and use RuntimeClasses
+```sh
+# Example of Pod+RuntimeClass:
+https://github.com/killer-sh/cks-course-environment/blob/master/course-content/microservice-vulnerabilities/container-runtimes/gvisor/example.yaml
+```
 ### 7.2.7. Install and use gVisor
+```sh
+# IF THE INSTALL SCRIPT FAILS then you can try to change the URL= further down in the script from latest to a specific release
+
+bash <(curl -s https://raw.githubusercontent.com/killer-sh/cks-course-environment/master/course-content/microservice-vulnerabilities/container-runtimes/gvisor/install_gvisor.sh)
+
+
+# Example of Pod+RuntimeClass:
+https://github.com/killer-sh/cks-course-environment/blob/master/course-content/microservice-vulnerabilities/container-runtimes/gvisor/example.yaml
+```
 ### 7.2.8. Recap
+> https://www.youtube.com/watch?v=RyXL1zOa8Bw
+
+> https://www.youtube.com/watch?v=kxUZ4lVFuVo
+
+> https://www.youtube.com/watch?v=4gmLXyMeYWI
+
 ## 7.3. OS Level Security
 ### 7.3.1. Intro and Security Context
 ### 7.3.2. Set container User and Group
