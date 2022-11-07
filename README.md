@@ -164,10 +164,22 @@
   - [7.1. Manage Kubernetes](#71-manage-kubernetes)
     - [7.1.1. Intro](#711-intro)
     - [7.1.2. Create Simple Secret Scenario](#712-create-simple-secret-scenario)
+      - [Create a generic secret](#create-a-generic-secret)
+      - [Mount secret in a Pod](#mount-secret-in-a-pod)
     - [7.1.3. Hacks Secret in Container Runtime](#713-hacks-secret-in-container-runtime)
+      - [Search "mypod"](#search-mypod)
+      - [Inspect container and show "envs" and "mounts"](#inspect-container-and-show-envs-and-mounts)
     - [7.1.4. Hacks Secret in ETCD](#714-hacks-secret-in-etcd)
+      - [Access secret int etcd](#access-secret-int-etcd)
+      - [Show secret](#show-secret)
     - [7.1.5. ETCD Encryption](#715-etcd-encryption)
-    - [7.1.6. Encrypt ETCD](#716-encrypt-etcd)
+      - [Encrypt](#encrypt)
+      - [Encrypt (all Secrets) in ETCD](#encrypt-all-secrets-in-etcd)
+      - [Decrypt all Secrets in ETCD](#decrypt-all-secrets-in-etcd)
+    - [7.1.6. Encrypt ETCD (example)](#716-encrypt-etcd-example)
+      - [/etc/kubernetes/etcd/ec.yaml](#etckubernetesetcdecyaml)
+      - [Edit API Server](#edit-api-server)
+      - [Encrypt existing Secrets](#encrypt-existing-secrets)
     - [7.1.7. Recap](#717-recap)
   - [7.2. Container Runtime](#72-container-runtime)
     - [7.2.1. Intro](#721-intro)
@@ -2036,11 +2048,245 @@ $ kubectl uncordon cks-node
 ## 7.1. Manage Kubernetes
 ### 7.1.1. Intro
 ### 7.1.2. Create Simple Secret Scenario
+#### Create a generic secret
+```sh
+$ kubectl create secret generic secret1 --from-literal pass=12345678
+secret/secret1 created
+```
+
+#### Mount secret in a Pod
+```yaml
+apiVersion: v1
+kind: Pod
+metadata:
+  name: mypod
+spec:
+  containers:
+  - name: mypod
+    image: redis
+    env:
+      - name: SECRET_PASSWORD
+        valueFrom:
+          # Mount secret as variables
+          secretKeyRef:
+            name: secret1
+            key: pass
+    # Mount secret as volume
+    volumeMounts:
+    - name: my-secret
+      mountPath: "/etc/foo"
+      readOnly: true
+  volumes:
+  - name: my-secret
+    secret:
+      secretName: secret1
+``` 
+
+```sh
+$ kubectl exec -it mypod -- env | grep -i secret
+SECRET_PASSWORD=12345678
+
+$ kubectl exec -it mypod -- cat /etc/foo/pass
+12345678
+```
+
 ### 7.1.3. Hacks Secret in Container Runtime
+#### Search "mypod"
+```sh
+$ crictl ps | grep mypod
+a7f2d581cf409       redis@sha256:aeed51f49a6331df0cb2c1039ae3d1d70d882be3f48bde75cd240452a2348e88   8 minutes ago       Running             mypod                     0                   af04a70423e9d
+```
+
+#### Inspect container and show "envs" and "mounts"
+```sh
+$ crictl inspect a7f2d581cf409
+{
+  ...
+    "env": [
+      ...
+      "SECRET_PASSWORD=12345678"
+      ...
+    ]
+  ...
+    "mounts": [
+      {
+        "containerPath": "/etc/foo",
+        "hostPath": "/var/lib/kubelet/pods/89dffbe8-cf37-4ae3-b777-aa8091513c83/volumes/kubernetes.io~secret/my-secret",
+        "propagation": "PROPAGATION_PRIVATE",
+        "readonly": true,
+        "selinuxRelabel": false
+      }
+  ...
+}
+
+```
 ### 7.1.4. Hacks Secret in ETCD
+#### Access secret int etcd
+```sh
+$ ETCDCTL_API=3 etcdctl --cert /etc/kubernetes/pki/apiserver-etcd-client.crt --key /etc/kubernetes/pki/apiserver-etcd-client.key --cacert /etc/kubernetes/pki/etcd/ca.crt endpoint health
+127.0.0.1:2379 is healthy: successfully committed proposal: took = 1.34553ms
+```
+> --endpoints "https://127.0.0.1:2379" not necessary because we’re on same node
+
+#### Show secret
+```sh
+$ ETCDCTL_API=3 etcdctl --cert /etc/kubernetes/pki/apiserver-etcd-client.crt --key /etc/kubernetes/pki/apiserver-etcd-client.key --cacert /etc/kubernetes/pki/etcd/ca.crt get /registry/secrets/default/secret1
+
+k8s
+
+
+v1Secret
+
+secret1"*$9b83951b-e49c-4490-903d-46676d885fa12餛za
+kubectl-createUpdatev餛FieldsV1:-
++{"f:data":{".":{},"f:data":{}},"f:type":{}}B
+datasecretOpaque"
+```
+
 ### 7.1.5. ETCD Encryption
-### 7.1.6. Encrypt ETCD
+#### Encrypt
+```yaml
+apiVersion: apiserver.config.k8s.io/v1
+kind: EncryptionConfiguration
+resources:
+  - resources:
+      - secrets
+    # https://kubernetes.io/docs/tasks/administer-cluster/encrypt-data/#providers
+    providers:
+      - identity: {}
+      - aesgcm:
+          keys:
+            - name: key1
+              secret: c2VjcmV0IGlzIHNlY3VyZQ==
+            - name: key2
+              secret: dGhpcyBpcyBwYXNzd29yZA==
+      - aescbc:
+          keys:
+            - name: key1
+              secret: c2VjcmV0IGlzIHNlY3VyZQ==
+            - name: key2
+              secret: dGhpcyBpcyBwYXNzd29yZA==
+      - secretbox:
+          keys:
+            - name: key1
+              secret: YWJjZGVmZ2hpamtsbW5vcHFyc3R1dnd4eXoxMjM0NTY=
+```
+
+> `--encryption-provider-config=<file>` in API Server
+
+#### Encrypt (all Secrets) in ETCD
+```yaml
+apiVersion: apiserver.config.k8s.io/v1
+kind: EncryptionConfiguration
+resources:
+  - resources:
+      - secrets
+    providers:
+      - aesgcm:
+          keys:
+            - name: key1
+              secret: c2VjcmV0IGlzIHNlY3VyZQ==
+            - name: key2
+              secret: c2VjcmV0IGlzIHNlY3VyZQ==
+      - identity: {}
+```
+```sh
+$ kubectl get secrets -A -ojson | kubectl replace -f -
+```
+
+#### Decrypt all Secrets in ETCD
+```yaml
+apiVersion: apiserver.config.k8s.io/v1
+kind: EncryptionConfiguration
+resources:
+  - resources:
+      - secrets
+    providers:
+      - identity: {}
+      - aescbc:
+          keys:
+            - name: key1
+              secret: <BASE 64 ENCODED SECRET>
+      
+```
+```sh
+$ kubectl get secrets -A -ojson | kubectl replace -f -
+```
+
+### 7.1.6. Encrypt ETCD (example)
+
+#### /etc/kubernetes/etcd/ec.yaml
+```yaml
+apiVersion: apiserver.config.k8s.io/v1
+kind: EncryptionConfiguration
+resources:
+  - resources:
+    - secrets
+    providers:
+    - aesgcm:
+        keys:
+        - name: key1
+          # echo -n this-is-very-sec | base64
+          secret: dGhpcy1pcy12ZXJ5LXNlYw==
+    - identity: {}
+```
+
+#### Edit API Server
+```yaml
+spec:
+  containers:
+  - command:
+    - kube-apiserver
+...
+    - --encryption-provider-config=/etc/kubernetes/etcd/ec.yaml
+...
+    volumeMounts:
+    - mountPath: /etc/kubernetes/etcd
+      name: etcd
+      readOnly: true
+...
+  hostNetwork: true
+  priorityClassName: system-cluster-critical
+  volumes:
+  - hostPath:
+      path: /etc/kubernetes/etcd
+      type: DirectoryOrCreate
+    name: etcd
+...
+```
+
+#### Encrypt existing Secrets
+```sh
+$ ETCDCTL_API=3 etcdctl --cert /etc/kubernetes/pki/apiserver-etcd-client.crt --key /etc/kubernetes/pki/apiserver-etcd-client.key --cacert /etc/kubernetes/pki/etcd/ca.crt get /registry/secrets/one/s1
+/registry/secrets/one/s1
+k8s
+
+
+v1Secret
+
+s1one"*$9b83951b-e49c-4490-903d-46676d885fa12餛za
+kubectl-createUpdatev餛FieldsV1:-
++{"f:data":{".":{},"f:data":{}},"f:type":{}}B
+datasecretOpaque"
+```
+
+```sh
+kubectl get secrets -A -o json | kubectl replace -f -
+
+$ ETCDCTL_API=3 etcdctl --cert /etc/kubernetes/pki/apiserver-etcd-client.crt --key /etc/kubernetes/pki/apiserver-etcd-client.key --cacert /etc/kubernetes/pki/etcd/ca.crt get /registry/secrets/one/s1
+/registry/secrets/one/s1
+k8s:enc:aesgcm:v1:key1:Li&?ųw!lSV2      ~(n4h͊ЗwyP"`;yQZ2=Jtet`%=qĕ@qӦss
+                                                                       -^V*Yp\V|N3P+J@p.Dr$j]St/7e <ȏbUf"kh_?SyTV- v.Idr7(n&Pգo
+```
+> https://kubernetes.io/docs/tasks/administer-cluster/encrypt-data
 ### 7.1.7. Recap
+> https://v1-22.docs.kubernetes.io/docs/concepts/configuration/secret/#risks
+
+> https://www.youtube.com/watch?v=f4Ru6CPG1z4
+
+> https://www.cncf.io/webinars/kubernetes-secrets-management-build-secure-apps-faster-without-secrets
+
+
 ## 7.2. Container Runtime
 ### 7.2.1. Intro
 ### 7.2.2. Containers Calls Linux Kernel
