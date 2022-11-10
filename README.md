@@ -205,28 +205,36 @@
     - [7.2.8. Recap](#728-recap)
   - [7.3. OS Level Security](#73-os-level-security)
     - [7.3.1. Intro and Security Context](#731-intro-and-security-context)
+      - [Security Context](#security-context)
     - [7.3.2. Set container User and Group](#732-set-container-user-and-group)
+      - [security Contexts & UID GID](#security-contexts--uid-gid)
     - [7.3.3. Force container non-root](#733-force-container-non-root)
     - [7.3.4. Privileged Containers](#734-privileged-containers)
+      - [Privileged Containers in Kubernetes](#privileged-containers-in-kubernetes)
     - [7.3.5. Created Privileged Containers](#735-created-privileged-containers)
     - [7.3.6. PrivilegeScalation](#736-privilegescalation)
     - [7.3.7. Disable PrivilegeScalation](#737-disable-privilegescalation)
     - [7.3.8. PodSecurityPolicies](#738-podsecuritypolicies)
+      - [Pod Security Policies](#pod-security-policies)
     - [7.3.9. Create and enable PodSecurityPolicies](#739-create-and-enable-podsecuritypolicies)
     - [7.3.10. Recap](#7310-recap)
   - [7.4. mTLS](#74-mtls)
     - [7.4.1. Intro](#741-intro)
+      - [mTLS - Mutual TLS](#mtls---mutual-tls)
     - [7.4.2. Create sidecar proxy](#742-create-sidecar-proxy)
+      - [Without Capabilities](#without-capabilities)
+      - [With Capabilities](#with-capabilities)
     - [7.4.3. Recap](#743-recap)
 - [8. Open Policy Agent (OPA)](#8-open-policy-agent-opa)
-  - [8.1. Cluster Reset](#81-cluster-reset)
-  - [8.2. Introduction](#82-introduction)
-  - [8.3. Install OPA](#83-install-opa)
-  - [8.4. Deny All Policy](#84-deny-all-policy)
-  - [8.5. Enforce Namespace Labels](#85-enforce-namespace-labels)
-  - [8.6. Enforce Deployment Replica](#86-enforce-deployment-replica)
-  - [8.7. The Rego Playground and more examples](#87-the-rego-playground-and-more-examples)
-  - [8.8. Recap](#88-recap)
+  - [8.1. Introduction](#81-introduction)
+    - [OPA - Open Policy Agent](#opa---open-policy-agent)
+    - [OPA - Gatekeeper](#opa---gatekeeper)
+  - [8.2. Install OPA](#82-install-opa)
+  - [8.3. Deny All Policy](#83-deny-all-policy)
+  - [8.4. Enforce Namespace Labels](#84-enforce-namespace-labels)
+  - [8.5. Enforce Deployment Replica](#85-enforce-deployment-replica)
+  - [8.6. The Rego Playground and more examples](#86-the-rego-playground-and-more-examples)
+  - [8.7. Recap](#87-recap)
 - [9. Supply Chain Security](#9-supply-chain-security)
   - [9.1. Image footprint](#91-image-footprint)
     - [9.1.1. Introduction](#911-introduction)
@@ -2533,32 +2541,743 @@ node01         Ready    <none>          22d   v1.24.0   172.30.2.2    <none>    
 
 ## 7.3. OS Level Security
 ### 7.3.1. Intro and Security Context
+#### Security Context
+**Define privilege and access control for Pod/Container**
+* userID and groupID
+* Run privileged or unprivileged
+* Linux Capabilities
+* ...
+
+```yaml
+spec:
+  # Pod Level (all containers)
+  # $ id
+  # uid=1000 gid=3000 groups=2000
+  securityContext:
+    runAsUser: 1000
+    runAsGroup: 3000
+    fsGroup: 2000
+  containers:
+  - name: sec-ctx-demo
+    image: busybox:1.28
+    command: [ "sh", "-c", "sleep 1h" ]
+    # Container Level (pod-level override)
+    securityContext:
+      runAsUser: {}
+```
+
+> https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.25/#podsecuritycontext-v1-core
+
 ### 7.3.2. Set container User and Group
+#### security Contexts & UID GID
+**Change the user and group under which the container processes are running**
+
+```yaml
+apiVersion: v1
+kind: Pod
+metadata:
+  creationTimestamp: null
+  labels:
+    run: pod
+  name: pod
+spec:
+  containers:
+  - args:
+    - sh
+    - -c
+    - sleep 1d
+    image: busybox
+    name: pod
+    resources: {}
+  dnsPolicy: ClusterFirst
+  restartPolicy: Always
+status: {}
+```
+
+```sh
+$ kubectl exec -it pod -- sh
+
+/ # id
+uid=0(root) gid=0(root) groups=10(wheel)
+
+/ # touch test
+
+/ # ls -lh test
+-rw-r--r--    1 root     root           0 Nov 10 12:59 test
+```
+
+```yaml
+apiVersion: v1
+kind: Pod
+metadata:
+  creationTimestamp: null
+  labels:
+    run: pod
+  name: pod
+spec:
+  securityContext:
+    runAsUser: 1000
+    runAsGroup: 3000
+  containers:
+  - args:
+    - sh
+    - -c
+    - sleep 1d
+    image: busybox
+    name: pod
+    resources: {}
+  dnsPolicy: ClusterFirst
+  restartPolicy: Always
+status: {}
+```
+
+```sh
+$ kubectl exec -it pod -- sh
+/ $ id
+uid=1000 gid=3000
+
+/ $ touch test
+touch: test: Permission denied
+
+/ $ pwd
+/
+
+/ $ cd /tmp/
+
+/tmp $ touch test
+
+/tmp $ ls -lh test 
+-rw-r--r--    1 1000     3000           0 Nov 10 13:00 test
+```
+
 ### 7.3.3. Force container non-root
+```yaml
+apiVersion: v1
+kind: Pod
+metadata:
+  creationTimestamp: null
+  labels:
+    run: pod
+  name: pod
+spec:
+  containers:
+  #securityContext:
+  #  runAsUser: 1000
+  #  runAsGroup: 3000
+  - args:
+    - sh
+    - -c
+    - sleep 1d
+    image: busybox
+    name: pod
+    resources: {}
+    securityContext:
+      runAsNonRoot: true
+  dnsPolicy: ClusterFirst
+  restartPolicy: Always
+status: {}
+```
+
+```sh
+# Describe Pod
+Events:
+  Type     Reason     Age              From               Message
+  ----     ------     ----             ----               -------
+  Normal   Scheduled  9s               default-scheduler  Successfully assigned default/pod to cks
+  Normal   Pulled     7s               kubelet            Successfully pulled image "busybox" in 1.512467061s
+  Normal   Pulling    6s (x2 over 9s)  kubelet            Pulling image "busybox"
+  Warning  Failed     5s (x2 over 7s)  kubelet            Error: container has runAsNonRoot and image will run as root (pod: "pod_default(acdd0e9e-e7eb-483d-abdc-586db8c5dafe)", container: pod)
+```
+
 ### 7.3.4. Privileged Containers
+* By default Docker containers run "unprivileged"
+* Possible to run as privileged to
+  * Access all devices
+  * Run Docker daemon inside container. `docker run --privileged`
+
+**Privileged means that container user 0 (root is directly mapped to host user 0 (root)**
+
+#### Privileged Containers in Kubernetes
+By default in Kubernetes containers ar not running privileged
+
+```yaml
+spec:
+  containers:
+  - args:
+    - sh
+    - -c
+    - sleep 1d
+    image: busybox
+    name: pod
+    resources: {}
+    securityContext:
+      privileged: true
+```
+
 ### 7.3.5. Created Privileged Containers
+**Enabled privileged and test using sysctl**
+```yaml
+apiVersion: v1
+kind: Pod
+metadata:
+  creationTimestamp: null
+  labels:
+    run: pod
+  name: pod
+spec:
+  securityContext:
+    runAsUser: 1000
+    runAsGroup: 3000
+  containers:
+  - args:
+    - sh
+    - -c
+    - sleep 1d
+    image: busybox
+    name: pod
+    resources: {}
+    securityContext:
+      runAsNonRoot: true
+  dnsPolicy: ClusterFirst
+  restartPolicy: Always
+status: {}
+```
+
+```sh
+$ kubectl exec -it pod -- sh
+/ $ sysctl kernel.hostname=attacker
+sysctl: error setting key 'kernel.hostname': Read-only file system
+```
+
+```yaml
+apiVersion: v1
+kind: Pod
+metadata:
+  creationTimestamp: null
+  labels:
+    run: pod
+  name: pod
+spec:
+  containers:
+  - args:
+    - sh
+    - -c
+    - sleep 1d
+    image: busybox
+    name: pod
+    resources: {}
+    securityContext:
+      privileged: true
+  dnsPolicy: ClusterFirst
+  restartPolicy: Always
+status: {}
+```
+
+```sh
+$ kubectl exec -it pod -- sh
+/ # sysctl kernel.hostname=attacker
+kernel.hostname = attacker
+```
+
 ### 7.3.6. PrivilegeScalation
+```yaml
+spec:
+  securityContext:
+    runAsUser: 1000
+    runAsGroup: 3000
+    fsGroup: 2000
+  containers:
+  - args:
+    - sh
+    - -c
+    - sleep 1d
+    image: busybox
+    name: pod
+    securityContext:
+      # By default Kubernetes allows PrivilegeEscalation
+      allowPrivilegeEscalation: false
+```
+
+* **PrivilegeEscalation** controls whether a process can gain more privileges than its parent process.
+* **Privileged** means that container user 0 (root) is directly mapped to host user 0 (root).
+
 ### 7.3.7. Disable PrivilegeScalation
+```yaml
+apiVersion: v1
+kind: Pod
+metadata:
+  creationTimestamp: null
+  labels:
+    run: pod
+  name: pod
+spec:
+  containers:
+  - args:
+    - sh
+    - -c
+    - sleep 1d
+    image: busybox
+    name: pod
+    resources: {}
+    securityContext:
+      allowPrivilegeEscalation: true
+  dnsPolicy: ClusterFirst
+  restartPolicy: Always
+```
+
+```sh
+$ kubectl exec -it pod -- sh
+# cat /proc/1/status
+
+Name:	sleep
+...
+NoNewPrivs:	0
+...
+```
+
+```yaml
+apiVersion: v1
+kind: Pod
+metadata:
+  creationTimestamp: null
+  labels:
+    run: pod
+  name: pod
+spec:
+  containers:
+  - args:
+    - sh
+    - -c
+    - sleep 1d
+    image: busybox
+    name: pod
+    resources: {}
+    securityContext:
+      allowPrivilegeEscalation: false
+  dnsPolicy: ClusterFirst
+  restartPolicy: Always
+```
+
+```sh
+$ kubectl exec -it pod -- sh
+# cat /proc/1/status
+
+Name:	sleep
+...
+NoNewPrivs:	1
+...
+```
+
 ### 7.3.8. PodSecurityPolicies
+#### Pod Security Policies
+* Cluster-level resource
+* Constrols under which security conditions a Pod has to run
+
+```yaml
+containers:
+  - command:
+      - kube-apiserver
+      - --enable-admission-plugins=PodSecurity
+
+```
+
+> PodSecurityPolicy was deprecated in Kubernetes v1.21, and removed from Kubernetes in v1.25.
+
+> https://kubernetes.io/docs/concepts/security/pod-security-admission/
+
 ### 7.3.9. Create and enable PodSecurityPolicies
 ### 7.3.10. Recap
+
 ## 7.4. mTLS
 ### 7.4.1. Intro
+#### mTLS - Mutual TLS
+* Mutual authentication
+* Two-way (bilateral) authentication
+* Two parties authenticating each other at the same time
+
 ### 7.4.2. Create sidecar proxy
+```yaml
+apiVersion: v1
+kind: Pod
+metadata:
+  creationTimestamp: null
+  labels:
+    run: app
+  name: app
+spec:
+  containers:
+  - command:
+    - sh
+    - -c
+    - ping google.com
+    image: bash
+    name: app
+    resources: {}
+  dnsPolicy: ClusterFirst
+  restartPolicy: Always
+status: {}
+```
+
+```sh
+$ kubectl logs -f app
+kubectl logs app -f
+PING google.com (142.250.185.14): 56 data bytes
+64 bytes from 142.250.185.14: seq=0 ttl=113 time=15.487 ms
+64 bytes from 142.250.185.14: seq=1 ttl=113 time=17.122 ms
+64 bytes from 142.250.185.14: seq=2 ttl=113 time=15.773 ms
+64 bytes from 142.250.185.14: seq=3 ttl=113 time=18.471 ms
+64 bytes from 142.250.185.14: seq=4 ttl=113 time=16.169 ms
+64 bytes from 142.250.185.14: seq=5 ttl=113 time=16.307 ms
+64 bytes from 142.250.185.14: seq=6 ttl=113 time=19.109 ms
+64 bytes from 142.250.185.14: seq=7 ttl=113 time=15.561 ms
+^C
+```
+#### Without Capabilities
+```yaml
+apiVersion: v1
+kind: Pod
+metadata:
+  creationTimestamp: null
+  labels:
+    run: app
+  name: app
+spec:
+  containers:
+  - command:
+    - sh
+    - -c
+    - ping google.com
+    image: bash
+    name: app
+    resources: {}
+  - name: proxy
+    image: ubuntu
+    command:
+    - sh
+    - -c
+    - 'apt-get update && apt-get install iptables -y && iptables -L && sleep 1d'
+  dnsPolicy: ClusterFirst
+  restartPolicy: Always
+status: {}
+```
+
+```sh
+$ kubectl logs app proxy -f
+....
+update-alternatives: using /usr/sbin/ebtables-nft to provide /usr/sbin/ebtables (ebtables) in auto mode
+Processing triggers for libc-bin (2.35-0ubuntu3.1) ...
+iptables v1.8.7 (nf_tables): Could not fetch rule set generation id: Permission denied (you must be root)
+```
+
+#### With Capabilities
+```yaml
+apiVersion: v1
+kind: Pod
+metadata:
+  creationTimestamp: null
+  labels:
+    run: app
+  name: app
+spec:
+  containers:
+  - command:
+    - sh
+    - -c
+    - ping google.com
+    image: bash
+    name: app
+    resources: {}
+  - name: proxy
+    image: ubuntu
+    command:
+    - sh
+    - -c
+    - 'apt-get update && apt-get install iptables -y && iptables -L && sleep 1d'
+    securityContext:
+      capabilities:
+        add: ["NET_ADMIN"]
+  dnsPolicy: ClusterFirst
+  restartPolicy: Always
+status: {}
+```
+
+```sh
+$ kubectl logs app proxy -f
+...
+update-alternatives: using /usr/sbin/ebtables-nft to provide /usr/sbin/ebtables (ebtables) in auto mode
+Processing triggers for libc-bin (2.35-0ubuntu3.1) ...
+Chain INPUT (policy ACCEPT)
+target     prot opt source               destination         
+
+Chain FORWARD (policy ACCEPT)
+target     prot opt source               destination         
+
+Chain OUTPUT (policy ACCEPT)
+target     prot opt source               destination 
+```
+
 ### 7.4.3. Recap
 
 
 
 # 8. Open Policy Agent (OPA)
-## 8.1. Cluster Reset
-## 8.2. Introduction
-## 8.3. Install OPA
-## 8.4. Deny All Policy
-## 8.5. Enforce Namespace Labels
-## 8.6. Enforce Deployment Replica
-## 8.7. The Rego Playground and more examples
-## 8.8. Recap
+## 8.1. Introduction
+### OPA - Open Policy Agent
+"The Open Policy Agent (OPA) is an open source, general-purpose policy engine that enables unified, context-aware policy enforcement across the entire stack."
+* Not Kubernetes specific
+* Easy implementation of policies (Rego lenguage)
+* Work with JSON/YAML
+* In k8s it uses Admission Controllers
+* Does not know concepts like pods or deployments
 
+### OPA - Gatekeeper
+Compared to using OPA with its sidecar kube-mgmt (aka Gatekeeper v1.0), Gatekeeper introduces the following functionality:
+
+* An extensible, parameterized policy library
+* Native Kubernetes CRDs for instantiating the policy library (aka "constraints")
+* Native Kubernetes CRDs for extending the policy library (aka "constraint templates")
+* Audit functionality
+
+```yaml
+apiVersion: templates.gatekeeper.sh/v1beta1
+kind: ConstraintTemplate
+metadata:
+  name: k8srequiredlabels
+spec:
+...
+---
+apiVersion: constraints.gatekeeper.sh/v1beta1
+kind: K8sRequiredLabels
+metadata:
+  name: ns-must-have-hr
+spec:
+...
+```
+
+## 8.2. Install OPA
+## 8.3. Deny All Policy
+```sh
+$ kubectl get crd
+NAME                                                 CREATED AT
+configs.config.gatekeeper.sh                         2022-11-10T17:50:42Z
+constraintpodstatuses.status.gatekeeper.sh           2022-11-10T17:50:42Z
+constrainttemplatepodstatuses.status.gatekeeper.sh   2022-11-10T17:50:42Z
+constrainttemplates.templates.gatekeeper.sh          2022-11-10T17:50:42Z
+```
+
+```yaml
+apiVersion: templates.gatekeeper.sh/v1beta1
+kind: ConstraintTemplate
+metadata:
+  name: k8salwaysdeny
+spec:
+  crd:
+    spec:
+      names:
+        kind: K8sAlwaysDeny
+      validation:
+        # Schema for the `parameters` field
+        openAPIV3Schema:
+          properties:
+            message:
+              type: string
+  targets:
+    - target: admission.k8s.gatekeeper.sh
+      rego: |
+        package k8salwaysdeny
+        violation[{"msg": msg}] {
+          1 > 0
+          msg := input.parameters.message
+        }
+---
+apiVersion: constraints.gatekeeper.sh/v1beta1
+kind: K8sAlwaysDeny
+metadata:
+  name: pod-always-deny
+spec:
+  match:
+    kinds:
+      - apiGroups: [""]
+        kinds: ["Pod"]
+  parameters:
+    message: "ACCESS DENIED!"
+```
+
+```sh
+$ kubectl run pod --image nginx
+Error from server ([pod-always-deny] ACCESS DENIED!): admission webhook "validation.gatekeeper.sh" denied the request: [pod-always-deny] ACCESS DENIED!
+
+$ kubectl get k8salwaysdeny.constraints.gatekeeper.sh
+...
+  Total Violations:  11
+...
+```
+
+## 8.4. Enforce Namespace Labels
+```yaml
+apiVersion: templates.gatekeeper.sh/v1beta1
+kind: ConstraintTemplate
+metadata:
+  name: k8srequiredlabels
+spec:
+  crd:
+    spec:
+      names:
+        kind: K8sRequiredLabels
+      validation:
+        # Schema for the `parameters` field
+        openAPIV3Schema:
+          properties:
+            labels:
+              type: array
+              items: string
+  targets:
+    - target: admission.k8s.gatekeeper.sh
+      rego: |
+        package k8srequiredlabels
+        violation[{"msg": msg, "details": {"missing_labels": missing}}] {
+          provided := {label | input.review.object.metadata.labels[label]}
+          required := {label | label := input.parameters.labels[_]}
+          missing := required - provided
+          count(missing) > 0
+          msg := sprintf("you must provide labels: %v", [missing])
+        }
+---
+apiVersion: constraints.gatekeeper.sh/v1beta1
+kind: K8sRequiredLabels
+metadata:
+  name: ns-must-have-cks
+spec:
+  match:
+    kinds:
+      - apiGroups: [""]
+        kinds: ["Namespace"]
+  parameters:
+    labels: ["cks"]
+---
+apiVersion: constraints.gatekeeper.sh/v1beta1
+kind: K8sRequiredLabels
+metadata:
+  name: pod-must-have-cks
+spec:
+  match:
+    kinds:
+      - apiGroups: [""]
+        kinds: ["Pod"]
+  parameters:
+    labels: ["cks"]
+```
+
+```sh
+$ kubectl describe k8srequiredlabels ns-must-have-cks
+...
+  Total Violations:  5
+  Violations:
+    Enforcement Action:  deny
+    Kind:                Namespace
+    Message:             you must provide labels: {"cks"}
+    Name:                default
+    Enforcement Action:  deny
+    Kind:                Namespace
+    Message:             you must provide labels: {"cks"}
+    Name:                gatekeeper-system
+    Enforcement Action:  deny
+    Kind:                Namespace
+    Message:             you must provide labels: {"cks"}
+    Name:                kube-node-lease
+    Enforcement Action:  deny
+    Kind:                Namespace
+    Message:             you must provide labels: {"cks"}
+    Name:                kube-public
+    Enforcement Action:  deny
+    Kind:                Namespace
+    Message:             you must provide labels: {"cks"}
+    Name:                kube-system
+```
+
+```sh
+$ kubectl edit ns default
+...
+  labels:
+    cks: amazing
+...
+```
+
+```sh
+$ kubectl describe k8srequiredlabels ns-must-have-cks
+...
+  Total Violations:  4
+  Violations:
+    Enforcement Action:  deny
+    Kind:                Namespace
+    Message:             you must provide labels: {"cks"}
+    Name:                gatekeeper-system
+    Enforcement Action:  deny
+    Kind:                Namespace
+    Message:             you must provide labels: {"cks"}
+    Name:                kube-node-lease
+    Enforcement Action:  deny
+    Kind:                Namespace
+    Message:             you must provide labels: {"cks"}
+    Name:                kube-public
+    Enforcement Action:  deny
+    Kind:                Namespace
+    Message:             you must provide labels: {"cks"}
+    Name:                kube-system
+```
+
+## 8.5. Enforce Deployment Replica
+```yaml
+apiVersion: templates.gatekeeper.sh/v1beta1
+kind: ConstraintTemplate
+metadata:
+  name: k8sminreplicacount
+spec:
+  crd:
+    spec:
+      names:
+        kind: K8sMinReplicaCount
+      validation:
+        # Schema for the `parameters` field
+        openAPIV3Schema:
+          properties:
+            min:
+              type: integer
+  targets:
+    - target: admission.k8s.gatekeeper.sh
+      rego: |
+        package k8sminreplicacount
+        violation[{"msg": msg, "details": {"missing_replicas": missing}}] {
+          provided := input.review.object.spec.replicas
+          required := input.parameters.min
+          missing := required - provided
+          missing > 0
+          msg := sprintf("you must provide %v more replicas", [missing])
+        }
+---
+apiVersion: constraints.gatekeeper.sh/v1beta1
+kind: K8sMinReplicaCount
+metadata:
+  name: deployment-must-have-min-replicas
+spec:
+  match:
+    kinds:
+      - apiGroups: ["apps"]
+        kinds: ["Deployment"]
+  parameters:
+    min: 2
+```
+
+```sh
+$ kubectl create deploy test --image nginx 
+error: failed to create deployment: admission webhook "validation.gatekeeper.sh" denied the request: [deployment-must-have-min-replicas] you must provide 1 more replicas
+```
+## 8.6. The Rego Playground and more examples
+> https://play.openpolicyagent.org
+
+> https://github.com/BouweCeunen/gatekeeper-policies
+## 8.7. Recap
+> https://www.youtube.com/watch?v=RDWndems-sk
 
 
 # 9. Supply Chain Security
