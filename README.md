@@ -2518,7 +2518,8 @@ gvisor    1/1     Running   0          10s
 
 $ kubectl exec gvisor -- uname -r
 4.4.0
-controlplane $ kubectl get node -owide
+
+$ kubectl get node -owide
 NAME           STATUS   ROLES           AGE   VERSION   INTERNAL-IP   EXTERNAL-IP   OS-IMAGE             KERNEL-VERSION     CONTAINER-RUNTIME
 controlplane   Ready    control-plane   22d   v1.24.0   172.30.1.2    <none>        Ubuntu 20.04.3 LTS   5.4.0-88-generic   containerd://1.5.9
 node01         Ready    <none>          22d   v1.24.0   172.30.2.2    <none>        Ubuntu 20.04.3 LTS   5.4.0-88-generic   containerd://1.5.9
