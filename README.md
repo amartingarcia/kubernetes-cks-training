@@ -189,13 +189,19 @@
       - [Technical Overview: Containers and system calls](#technical-overview-containers-and-system-calls)
       - [Technical Overview: Sandbox comes not for free](#technical-overview-sandbox-comes-not-for-free)
     - [7.2.2. Containers Calls Linux Kernel](#722-containers-calls-linux-kernel)
+      - [Why even sandbox?](#why-even-sandbox)
     - [7.2.3. Open Container Iniciative OCI](#723-open-container-iniciative-oci)
       - [OCI - Open Container Initiative](#oci---open-container-initiative)
-      - [Kubernetes rutnimes and CRI (Container Runtime Interface)](#kubernetes-rutnimes-and-cri-container-runtime-interface)
-    - [7.2.4. Sandbox Runtime Katacontainer](#724-sandbox-runtime-katacontainer)
-    - [7.2.5. Sandbox Runtime gVisor](#725-sandbox-runtime-gvisor)
+      - [Kubernetes runtimes and CRI (Container Runtime Interface)](#kubernetes-runtimes-and-cri-container-runtime-interface)
+    - [7.2.4. Sandbox Runtime Katacontainers](#724-sandbox-runtime-katacontainers)
+      - [kata containers](#kata-containers)
+    - [7.2.5. Sandbox Runtime gVisor (Google)](#725-sandbox-runtime-gvisor-google)
     - [7.2.6. Create and use RuntimeClasses](#726-create-and-use-runtimeclasses)
+      - [RuntimeClassess](#runtimeclassess)
+      - [Create Pod](#create-pod)
+      - [Describe pod](#describe-pod)
     - [7.2.7. Install and use gVisor](#727-install-and-use-gvisor)
+      - [Install](#install)
     - [7.2.8. Recap](#728-recap)
   - [7.3. OS Level Security](#73-os-level-security)
     - [7.3.1. Intro and Security Context](#731-intro-and-security-context)
@@ -2310,7 +2316,7 @@ Just because it runs in a container doesnt mean its more protected.
 * Playground when implement an API
 * Simulated testing environment
 * Development server
-* **Security layer to reduce attack surface**
+* When we talk about sandbox means **Security layer to reduce attack surface**
 
 #### Technical Overview: Containers and system calls
 ![cks](images/17_container_runtime_intro_01.png)
@@ -2322,6 +2328,9 @@ Just because it runs in a container doesnt mean its more protected.
 * No direct access to hardware
 
 ### 7.2.2. Containers Calls Linux Kernel
+#### Why even sandbox?
+**Contact the Linux Kernel from inside a container**
+
 ```sh
 # Create a Pod
 $ kubectl run pod --image nginx
@@ -2330,51 +2339,17 @@ pod/pod created
 # Exec Pod
 $ kubectl exec -it pod -- bash
 
-# uname -r on pod
+# Get Kernel Version inside pod
 root@pod:/# uname -r
 5.14.0-1054-oem
 
-# uname -r on host
+# Get Kernel Version on host
 $ uname -r
 5.14.0-1054-oem
 
 # strace uname -r on host
 $ strace uname -r
-execve("/usr/bin/uname", ["uname", "-r"], 0x7ffc5b7fba68 /* 66 vars */) = 0
-brk(NULL)                               = 0x555741ee8000
-arch_prctl(0x3001 /* ARCH_??? */, 0x7ffc291868b0) = -1 EINVAL (Invalid argument)
-access("/etc/ld.so.preload", R_OK)      = -1 ENOENT (No such file or directory)
-openat(AT_FDCWD, "/etc/ld.so.cache", O_RDONLY|O_CLOEXEC) = 3
-fstat(3, {st_mode=S_IFREG|0644, st_size=73965, ...}) = 0
-mmap(NULL, 73965, PROT_READ, MAP_PRIVATE, 3, 0) = 0x7fb76fbe8000
-close(3)                                = 0
-openat(AT_FDCWD, "/lib/x86_64-linux-gnu/libc.so.6", O_RDONLY|O_CLOEXEC) = 3
-read(3, "\177ELF\2\1\1\3\0\0\0\0\0\0\0\0\3\0>\0\1\0\0\0\300A\2\0\0\0\0\0"..., 832) = 832
-pread64(3, "\6\0\0\0\4\0\0\0@\0\0\0\0\0\0\0@\0\0\0\0\0\0\0@\0\0\0\0\0\0\0"..., 784, 64) = 784
-pread64(3, "\4\0\0\0\20\0\0\0\5\0\0\0GNU\0\2\0\0\300\4\0\0\0\3\0\0\0\0\0\0\0", 32, 848) = 32
-pread64(3, "\4\0\0\0\24\0\0\0\3\0\0\0GNU\0\30x\346\264ur\f|Q\226\236i\253-'o"..., 68, 880) = 68
-fstat(3, {st_mode=S_IFREG|0755, st_size=2029592, ...}) = 0
-mmap(NULL, 8192, PROT_READ|PROT_WRITE, MAP_PRIVATE|MAP_ANONYMOUS, -1, 0) = 0x7fb76fbe6000
-pread64(3, "\6\0\0\0\4\0\0\0@\0\0\0\0\0\0\0@\0\0\0\0\0\0\0@\0\0\0\0\0\0\0"..., 784, 64) = 784
-pread64(3, "\4\0\0\0\20\0\0\0\5\0\0\0GNU\0\2\0\0\300\4\0\0\0\3\0\0\0\0\0\0\0", 32, 848) = 32
-pread64(3, "\4\0\0\0\24\0\0\0\3\0\0\0GNU\0\30x\346\264ur\f|Q\226\236i\253-'o"..., 68, 880) = 68
-mmap(NULL, 2037344, PROT_READ, MAP_PRIVATE|MAP_DENYWRITE, 3, 0) = 0x7fb76f9f4000
-mmap(0x7fb76fa16000, 1540096, PROT_READ|PROT_EXEC, MAP_PRIVATE|MAP_FIXED|MAP_DENYWRITE, 3, 0x22000) = 0x7fb76fa16000
-mmap(0x7fb76fb8e000, 319488, PROT_READ, MAP_PRIVATE|MAP_FIXED|MAP_DENYWRITE, 3, 0x19a000) = 0x7fb76fb8e000
-mmap(0x7fb76fbdc000, 24576, PROT_READ|PROT_WRITE, MAP_PRIVATE|MAP_FIXED|MAP_DENYWRITE, 3, 0x1e7000) = 0x7fb76fbdc000
-mmap(0x7fb76fbe2000, 13920, PROT_READ|PROT_WRITE, MAP_PRIVATE|MAP_FIXED|MAP_ANONYMOUS, -1, 0) = 0x7fb76fbe2000
-close(3)                                = 0
-arch_prctl(ARCH_SET_FS, 0x7fb76fbe7580) = 0
-mprotect(0x7fb76fbdc000, 16384, PROT_READ) = 0
-mprotect(0x55574157b000, 4096, PROT_READ) = 0
-mprotect(0x7fb76fc28000, 4096, PROT_READ) = 0
-munmap(0x7fb76fbe8000, 73965)           = 0
-brk(NULL)                               = 0x555741ee8000
-brk(0x555741f09000)                     = 0x555741f09000
-openat(AT_FDCWD, "/usr/lib/locale/locale-archive", O_RDONLY|O_CLOEXEC) = 3
-fstat(3, {st_mode=S_IFREG|0644, st_size=8378608, ...}) = 0
-mmap(NULL, 8378608, PROT_READ, MAP_PRIVATE, 3, 0) = 0x7fb76f1f6000
-close(3)                                = 0
+...
 uname({sysname="Linux", nodename="adrianmartin", ...}) = 0
 fstat(1, {st_mode=S_IFCHR|0620, st_rdev=makedev(0x88, 0), ...}) = 0
 write(1, "5.14.0-1054-oem\n", 165.14.0-1054-oem
@@ -2384,6 +2359,8 @@ close(2)                                = 0
 exit_group(0)                           = ?
 +++ exited with 0 +++
 ```
+
+[See Dirty Cow](https://dirtycow.ninja/)
 
 ### 7.2.3. Open Container Iniciative OCI
 #### OCI - Open Container Initiative
@@ -2396,27 +2373,155 @@ exit_group(0)                           = ?
 
 ![cks](images/17_container_runtime_oci.png)
 
-#### Kubernetes rutnimes and CRI (Container Runtime Interface)
+#### Kubernetes runtimes and CRI (Container Runtime Interface)
 ![cks](images/17_container_runtime_oci_01.png)
 
 ![cks](images/17_container_runtime_oci_02.png)
 
-### 7.2.4. Sandbox Runtime Katacontainer
-### 7.2.5. Sandbox Runtime gVisor
+### 7.2.4. Sandbox Runtime Katacontainers
+#### kata containers
+![cks](images/17_container_runtime_katacontainers.png)
+
+* Strong separation layer
+* Runs every container in its own private VM (Hypervisor based)
+* QEMU as default
+  * needs virtualization ,like nested virtualization in cloud
+
+### 7.2.5. Sandbox Runtime gVisor (Google)
+**user-space kernel for containers**
+* Another layer of separation
+* NOT hypervisor/VM based
+* Simulates kernel syscalls with limited functionality
+* Runs in userspace separated from linux kernel
+* Runtime called **runsc**
+
+![cks](images/17_container_runtime_gvisor.png)
+
 ### 7.2.6. Create and use RuntimeClasses
-```sh
-# Example of Pod+RuntimeClass:
-https://github.com/killer-sh/cks-course-environment/blob/master/course-content/microservice-vulnerabilities/container-runtimes/gvisor/example.yaml
+#### RuntimeClassess
+**Create and use RuntimeClasses form runtime runsc (gvisor)**
+
+```yaml
+apiVersion: node.k8s.io/v1
+kind: RuntimeClass
+metadata:
+  name: gvisor
+handler: runsc
 ```
-### 7.2.7. Install and use gVisor
+
+> https://kubernetes.io/docs/concepts/containers/runtime-class/
+
+#### Create Pod
+```yaml
+apiVersion: v1
+kind: Pod
+metadata:
+  labels:
+    run: gvisor
+  name: gvisor
+spec:
+  runtimeClassName: gvisor
+  containers:
+    - image: nginx
+      name: gvisor
+      resources: {}
+  dnsPolicy: ClusterFirst
+  restartPolicy: Always
+```
+
+#### Describe pod
 ```sh
-# IF THE INSTALL SCRIPT FAILS then you can try to change the URL= further down in the script from latest to a specific release
+Events:
+  Type     Reason                  Age   From               Message
+  ----     ------                  ----  ----               -------
+  Normal   Scheduled               10s   default-scheduler  Successfully assigned default/gvisor to cks
+  Warning  FailedCreatePodSandBox  10s   kubelet            Failed to create pod sandbox: rpc error: code = Unknown desc = RuntimeHandler "runsc" not supported
+```
 
-bash <(curl -s https://raw.githubusercontent.com/killer-sh/cks-course-environment/master/course-content/microservice-vulnerabilities/container-runtimes/gvisor/install_gvisor.sh)
+### 7.2.7. Install and use gVisor
+#### Install
+```sh
+#!/usr/bin/env bash
+# IF THIS FAILS then you can try to change the URL= further down from specific to the latest release
+# https://gvisor.dev/docs/user_guide/install
 
+# gvisor
+sudo apt-get update && \
+sudo apt-get install -y \
+    apt-transport-https \
+    ca-certificates \
+    curl \
+    gnupg-agent \
+    software-properties-common
 
-# Example of Pod+RuntimeClass:
-https://github.com/killer-sh/cks-course-environment/blob/master/course-content/microservice-vulnerabilities/container-runtimes/gvisor/example.yaml
+# install from web
+(
+  set -e
+  ARCH=$(uname -m)
+  URL=https://storage.googleapis.com/gvisor/releases/release/20210806/${ARCH}
+  # URL=https://storage.googleapis.com/gvisor/releases/release/latest/${ARCH} # TRY THIS URL INSTEAD IF THE SCRIPT DOESNT WORK FOR YOU
+  wget ${URL}/runsc ${URL}/runsc.sha512 \
+    ${URL}/containerd-shim-runsc-v1 ${URL}/containerd-shim-runsc-v1.sha512
+  sha512sum -c runsc.sha512 \
+    -c containerd-shim-runsc-v1.sha512
+  rm -f *.sha512
+  chmod a+rx runsc containerd-shim-runsc-v1
+  sudo mv runsc containerd-shim-runsc-v1 /usr/local/bin
+)
+
+# containerd enable runsc
+cat > /etc/containerd/config.toml <<EOF
+disabled_plugins = []
+imports = []
+oom_score = 0
+plugin_dir = ""
+required_plugins = []
+root = "/var/lib/containerd"
+state = "/run/containerd"
+version = 2
+
+[plugins]
+  [plugins."io.containerd.grpc.v1.cri".containerd.runtimes.runsc]
+    runtime_type = "io.containerd.runsc.v1"
+
+  [plugins."io.containerd.grpc.v1.cri".containerd.runtimes]
+    [plugins."io.containerd.grpc.v1.cri".containerd.runtimes.runc]
+      base_runtime_spec = ""
+      container_annotations = []
+      pod_annotations = []
+      privileged_without_host_devices = false
+      runtime_engine = ""
+      runtime_root = ""
+      runtime_type = "io.containerd.runc.v2"
+
+      [plugins."io.containerd.grpc.v1.cri".containerd.runtimes.runc.options]
+        BinaryName = ""
+        CriuImagePath = ""
+        CriuPath = ""
+        CriuWorkPath = ""
+        IoGid = 0
+        IoUid = 0
+        NoNewKeyring = false
+        NoPivotRoot = false
+        Root = ""
+        ShimCgroup = ""
+        SystemdCgroup = true
+EOF
+
+systemctl restart containerd
+```
+
+```sh
+$ kubectl get po
+NAME   READY   STATUS    RESTARTS   AGE
+gvisor    1/1     Running   0          10s
+
+$ kubectl exec gvisor -- uname -r
+4.4.0
+controlplane $ kubectl get node -owide
+NAME           STATUS   ROLES           AGE   VERSION   INTERNAL-IP   EXTERNAL-IP   OS-IMAGE             KERNEL-VERSION     CONTAINER-RUNTIME
+controlplane   Ready    control-plane   22d   v1.24.0   172.30.1.2    <none>        Ubuntu 20.04.3 LTS   5.4.0-88-generic   containerd://1.5.9
+node01         Ready    <none>          22d   v1.24.0   172.30.2.2    <none>        Ubuntu 20.04.3 LTS   5.4.0-88-generic   containerd://1.5.9
 ```
 ### 7.2.8. Recap
 > https://www.youtube.com/watch?v=RyXL1zOa8Bw
@@ -2487,6 +2592,7 @@ https://github.com/killer-sh/cks-course-environment/blob/master/course-content/m
 # 10. Runtime Security
 ## 10.1. Behavioral Analytics at host and ...
 ### 10.1.1. Introduction
+
 ### 10.1.2. Strace
 ### 10.1.3. Strace and /proc on ETCD
 ### 10.1.4. /proc and env variables
