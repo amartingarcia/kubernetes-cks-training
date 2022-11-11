@@ -238,24 +238,44 @@
 - [9. Supply Chain Security](#9-supply-chain-security)
   - [9.1. Image footprint](#91-image-footprint)
     - [9.1.1. Introduction](#911-introduction)
+      - [Containers and Docker - Layers](#containers-and-docker---layers)
     - [9.1.2. Reduce image Footprint with Multi-Stage](#912-reduce-image-footprint-with-multi-stage)
+      - [Build image with app code](#build-image-with-app-code)
+      - [Show size](#show-size)
+      - [Rebuild](#rebuild)
+      - [Show size](#show-size-1)
     - [9.1.3. Secure and Harden images](#913-secure-and-harden-images)
+      - [Use specifig package version](#use-specifig-package-version)
+      - [Dont run as root](#dont-run-as-root)
+      - [Make filesystem read only](#make-filesystem-read-only)
+      - [Remove shell access](#remove-shell-access)
     - [9.1.4. Recap](#914-recap)
   - [9.2. Static Analysis](#92-static-analysis)
     - [9.2.1. Introduction](#921-introduction)
+      - [Static Analysis](#static-analysis)
+      - [Static Analysis Rules](#static-analysis-rules)
+      - [Static Analysis in CI/CD](#static-analysis-in-cicd)
+      - [Manual Check](#manual-check)
+        - [Insecure](#insecure)
+        - [Secure](#secure)
     - [9.2.2. Kubesec](#922-kubesec)
     - [9.2.3. Practice Kubesec](#923-practice-kubesec)
     - [9.2.4. OPA Conftest](#924-opa-conftest)
     - [9.2.5. OPA Conftest for K8s YAML](#925-opa-conftest-for-k8s-yaml)
+      - [Fixed](#fixed)
     - [9.2.6. OPA Conftest for Dockerfile](#926-opa-conftest-for-dockerfile)
     - [9.2.7. Recap](#927-recap)
   - [9.3. Image Vulnerability Scanning](#93-image-vulnerability-scanning)
     - [9.3.1. Introduction](#931-introduction)
+      - [Known Image Vulnerabilities](#known-image-vulnerabilities)
     - [9.3.2. Clair and Trivy](#932-clair-and-trivy)
+      - [Clair](#clair)
+      - [Trivy](#trivy)
     - [9.3.3. Use Trivy to scan images](#933-use-trivy-to-scan-images)
     - [9.3.4. Recap](#934-recap)
   - [9.4. Secure Supply Chain](#94-secure-supply-chain)
     - [9.4.1. Introduction](#941-introduction)
+      - [K8s and Container Registries](#k8s-and-container-registries)
     - [9.4.2. Image Digest](#942-image-digest)
     - [9.4.3. Whitelist Registries with OPA](#943-whitelist-registries-with-opa)
     - [9.4.4. ImagePolicyWebhook](#944-imagepolicywebhook)
@@ -3283,24 +3303,572 @@ error: failed to create deployment: admission webhook "validation.gatekeeper.sh"
 # 9. Supply Chain Security
 ## 9.1. Image footprint
 ### 9.1.1. Introduction
+#### Containers and Docker - Layers
+```sh
+FROM ubuntu # Import layers
+RUN apt-get update && apt-get install -y golang-go # add new layer
+CMD ["sh"]
+```
+
+> Only the instructions RUN, COPY, ADD create layers. Other instrucctions create temporary intermediante images, and do not increase the size of the build.
+
 ### 9.1.2. Reduce image Footprint with Multi-Stage
+**We look at an example Golang Dockerfile and reduce the image footprint via Multi-Stage build**
+
+#### Build image with app code
+```sh
+FROM ubuntu
+ARG DEBIAN_FRONTEND=noninteractive
+RUN apt-get update && apt-get install -y golang-go
+COPY app.go .
+RUN CGO_ENABLED=0 go build app.go
+CMD ["./app"]
+```
+
+```go
+package main
+
+import (
+    "fmt"
+    "time"
+    "os/user"
+)
+
+func main () {
+    user, err := user.Current()
+    if err != nil {
+        panic(err)
+    }
+
+    for {
+        fmt.Println("user: " + user.Username + " id: " + user.Uid)
+        time.Sleep(1 * time.Second)
+    }
+}
+```
+
+```sh
+$ docker build -t app .
+Sending build context to Docker daemon  3.072kB
+Step 1/6 : FROM ubuntu
+ ---> cdb68b455a14
+Step 2/6 : ARG DEBIAN_FRONTEND=noninteractive
+ ---> Running in 857b06df4878
+Removing intermediate container 857b06df4878
+ ---> ba624f4e3449
+Step 3/6 : RUN apt-get update && apt-get install -y golang-go
+ ---> Running in 0be82ffee63a
+Get:1 http://archive.ubuntu.com/ubuntu jammy InRelease [270 kB]
+Get:2 http://security.ubuntu.com/ubuntu jammy-security InRelease [110 kB]
+Get:3 http://archive.ubuntu.com/ubuntu jammy-updates InRelease [114 kB]
+Get:4 http://security.ubuntu.com/ubuntu jammy-security/main amd64 Packages [580 kB]
+Get:5 http://archive.ubuntu.com/ubuntu jammy-backports InRelease [99.8 kB]
+Get:6 http://archive.ubuntu.com/ubuntu jammy/main amd64 Packages [1792 kB]
+Get:7 http://security.ubuntu.com/ubuntu jammy-security/multiverse amd64 Packages [4644 B]
+...
+```
+
+#### Show size
+```sh
+$ docker image ls | grep app
+app                                                                latest              d5126f532faa   43 seconds ago   860MB
+```
+
+#### Rebuild 
+```sh
+FROM ubuntu
+ARG DEBIAN_FRONTEND=noninteractive
+RUN apt-get update && apt-get install -y golang-go
+COPY app.go .
+RUN CGO_ENABLED=0 go build app.go
+
+FROM alpine
+COPY --from=0 /app .
+
+CMD ["./app"]
+```
+
+#### Show size
+```sh
+docker image ls | grep app
+app                                                                latest              399a853a78bc   9 seconds ago   7.41MB
+```
+
 ### 9.1.3. Secure and Harden images
+#### Use specifig package version
+```sh
+FROM ubuntu
+ARG DEBIAN_FRONTEND=noninteractive
+RUN apt-get update && apt-get install -y golang-go
+COPY app.go .
+RUN CGO_ENABLED=0 go build app.go
+
+FROM alpine:3.12.1:wq
+
+COPY --from=0 /app .
+
+CMD ["./app"]
+```
+
+#### Dont run as root
+```
+FROM ubuntu
+ARG DEBIAN_FRONTEND=noninteractive
+RUN apt-get update && apt-get install -y golang-go
+COPY app.go .
+RUN CGO_ENABLED=0 go build app.go
+
+FROM alpine:3.12.1
+RUN addgroup -S appgroup && adduser -S appuser -G appgroup -h /home/appuser
+COPY --from=0 /app .
+USER appuser
+CMD ["./app"]
+```
+
+#### Make filesystem read only
+```
+FROM ubuntu
+ARG DEBIAN_FRONTEND=noninteractive
+RUN apt-get update && apt-get install -y golang-go
+COPY app.go .
+RUN CGO_ENABLED=0 go build app.go
+
+FROM alpine:3.12.1
+RUN chmod a-w /etc
+RUN addgroup -S appgroup && adduser -S appuser -G appgroup -h /home/appuser
+COPY --from=0 /app .
+USER appuser
+CMD ["./app"]
+```
+
+#### Remove shell access
+```
+FROM ubuntu
+ARG DEBIAN_FRONTEND=noninteractive
+RUN apt-get update && apt-get install -y golang-go
+COPY app.go .
+RUN CGO_ENABLED=0 go build app.go
+
+FROM alpine:3.12.1
+RUN chmod a-w /etc
+RUN addgroup -S appgroup && adduser -S appuser -G appgroup -h /home/appuser
+RUN rm -rf /bin/*
+COPY --from=0 /app .
+USER appuser
+CMD ["./app"]
+```
+
 ### 9.1.4. Recap
+> https://docs.docker.com/develop/develop-images/dockerfile_best-practices
+
 ## 9.2. Static Analysis
 ### 9.2.1. Introduction
+#### Static Analysis
+* Looks at source code and text files
+* check against rules
+* Enforce rules
+
+#### Static Analysis Rules
+**Always define resource request and limits** (Depend on use case and company or project)
+**Pods should never use the default ServiceAccount** (Generally: dont store sensitive data plain in K8s/Docker files)
+
+#### Static Analysis in CI/CD
+![cks](images/22_static_analysis_intro.png)
+
+#### Manual Check
+##### Insecure
+```yaml
+apiVersion: v1
+kind: Pod
+metadata:
+  name: my-secure-pod
+spec:
+  containers:
+  - image: bash
+    command: ['sh', '-c', 'curl http://my-service/auth?token=123456789']
+    name: my-secure-pod
+    resources: {}
+  dnsPolicy: ClusterFirst
+  restartPolicy: Always
+---
+apiVersion: v1
+kind: Pod
+metadata:
+  name: my-secure-pod
+spec:
+  containers:
+  - image: bash
+    command: ['sh', '-c', 'curl http://my-service/auth?token=$TOKEN']
+    name: my-secure-pod
+    env:
+    - name: TOKEN
+      value: 123456789
+  dnsPolicy: ClusterFirst
+  restartPolicy: Always
+---
+apiVersion: v1
+kind: Pod
+metadata:
+  name: my-secure-pod
+spec:
+  containers:
+  - image: bash
+    command: ['sh', '-c', 'curl http://my-service/auth?token=$TOKEN']
+    name: my-secure-pod
+    env:
+    - name: TOKEN
+      valueFrom: 
+        configMapKeyRef:
+          name: my-secure-pod-token
+          key: token
+  dnsPolicy: ClusterFirst
+  restartPolicy: Always
+```
+
+##### Secure
+```yaml
+apiVersion: v1
+kind: Pod
+metadata:
+  name: my-secure-pod
+spec:
+  containers:
+  - image: bash
+    command: ['sh', '-c', 'curl http://my-service/auth?token=$TOKEN']
+    name: my-secure-pod
+    env:
+    - name: TOKEN
+      valueFrom: 
+        secretKeyRef:
+          name: my-secure-pod-token
+          key: token
+  dnsPolicy: ClusterFirst
+  restartPolicy: Always
+```
+
 ### 9.2.2. Kubesec
+* Security risk analysis for Kubernetes resources
+* Opensource
+* Opinionated! Fixed set of rules (Security Best Practices)
+* Run as:
+  * Binary
+  * Docker container
+  * Kubectl plugin
+  * Admission Controller (kubesec-webhook)
+
 ### 9.2.3. Practice Kubesec
+**We use Kubesec to perform static analysis**
+Using the kubesec public docker image
+
+```yaml
+apiVersion: v1
+kind: Pod
+metadata:
+  creationTimestamp: null
+  labels:
+    run: nginx
+  name: nginx
+spec:
+  containers:
+  - image: nginx
+    name: nginx
+    resources: {}
+  dnsPolicy: ClusterFirst
+  restartPolicy: Always
+status: {}
+```
+
+```sh
+docker run -i kubesec/kubesec:512c5e0 scan /dev/stdin < pod.yaml
+[
+  {
+    "object": "Pod/nginx.default",
+    "valid": true,
+    "message": "Passed with a score of 0 points",
+    "score": 0,
+    "scoring": {
+      "advise": [
+        {
+          "selector": ".metadata .annotations .\"container.apparmor.security.beta.kubernetes.io/nginx\"",
+          "reason": "Well defined AppArmor policies may provide greater protection from unknown threats. WARNING: NOT PRODUCTION READY"
+        },
+        {
+          "selector": "containers[] .resources .limits .cpu",
+          "reason": "Enforcing CPU limits prevents DOS via resource exhaustion"
+        },
+        {
+          "selector": "containers[] .resources .limits .memory",
+          "reason": "Enforcing memory limits prevents DOS via resource exhaustion"
+        },
+        {
+          "selector": ".metadata .annotations .\"container.seccomp.security.alpha.kubernetes.io/pod\"",
+          "reason": "Seccomp profiles set minimum privilege and secure against unknown threats"
+        },
+        {
+          "selector": "containers[] .resources .requests .cpu",
+          "reason": "Enforcing CPU requests aids a fair balancing of resources across the cluster"
+        },
+        {
+          "selector": "containers[] .securityContext .runAsUser -gt 10000",
+          "reason": "Run as a high-UID user to avoid conflicts with the host's user table"
+        },
+        {
+          "selector": "containers[] .securityContext .runAsNonRoot == true",
+          "reason": "Force the running image to run as a non-root user to ensure least privilege"
+        },
+        {
+          "selector": "containers[] .securityContext .capabilities .drop",
+          "reason": "Reducing kernel capabilities available to a container limits its attack surface"
+        },
+        {
+          "selector": "containers[] .securityContext .readOnlyRootFilesystem == true",
+          "reason": "An immutable root filesystem can prevent malicious binaries being added to PATH and increase attack cost"
+        },
+        {
+          "selector": "containers[] .securityContext .capabilities .drop | index(\"ALL\")",
+          "reason": "Drop all capabilities and add only those required to reduce syscall attack surface"
+        },
+        {
+          "selector": ".spec .serviceAccountName",
+          "reason": "Service accounts restrict Kubernetes API access and should be configured with least privilege"
+        },
+        {
+          "selector": "containers[] .resources .requests .memory",
+          "reason": "Enforcing memory requests aids a fair balancing of resources across the cluster"
+        }
+      ]
+    }
+  }
+]
+```
+
 ### 9.2.4. OPA Conftest
+* OPA = Open Policy Agent
+* Unit test framework for Kubernetes configurations
+* Uses Rego lenguage
+
+```
+package main
+deny[msg] {
+  input.kind = "Deployment"
+  not input.spec.template.spec.securityContext.runAsNonRoot = true
+  msg = "Containers must not run as root"
+}
+```
+
 ### 9.2.5. OPA Conftest for K8s YAML
+**Use conftest to check a k8s example**
+```
+# from https://www.conftest.dev
+package main
+
+deny[msg] {
+  input.kind = "Deployment"
+  not input.spec.template.spec.securityContext.runAsNonRoot = true
+  msg = "Containers must not run as root"
+}
+
+deny[msg] {
+  input.kind = "Deployment"
+  not input.spec.selector.matchLabels.app
+  msg = "Containers must provide app label for pod selectors"
+}
+```
+
+```yaml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  creationTimestamp: null
+  labels:
+    app: test
+  name: test
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: test
+  strategy: {}
+  template:
+    metadata:
+      creationTimestamp: null
+      labels:
+        app: test
+    spec:
+      containers:
+        - image: httpd
+          name: httpd
+          resources: {}
+status: {}
+```
+
+```sh
+$ docker run --rm -v $(pwd):/project openpolicyagent/conftest test deploy.yaml
+...
+
+FAIL - deploy.yaml - main - Containers must not run as root
+
+2 tests, 1 passed, 0 warnings, 1 failure, 0 exceptions
+```
+
+#### Fixed
+```yaml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  creationTimestamp: null
+  labels:
+    app: test
+  name: test
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: test
+  strategy: {}
+  template:
+    metadata:
+      creationTimestamp: null
+      labels:
+        app: test
+    spec:
+      securityContext:
+        runAsNonRoot: true
+      containers:
+        - image: httpd
+          name: httpd
+          resources: {}
+status: {}
+```
+
+```sh
+$ docker run --rm -v $(pwd):/project openpolicyagent/conftest test deploy.yaml
+
+2 tests, 2 passed, 0 warnings, 0 failures, 0 exceptions
+```
+
 ### 9.2.6. OPA Conftest for Dockerfile
+```sh
+FROM ubuntu
+ARG DEBIAN_FRONTEND=noninteractive
+RUN apt-get update && apt-get install -y golang-go
+COPY app.go .
+RUN go build app.go
+CMD ["./app"]
+```
+
+```
+# from https://www.conftest.dev
+package main
+
+denylist = [
+  "ubuntu"
+]
+
+deny[msg] {
+  input[i].Cmd == "from"
+  val := input[i].Value
+  contains(val[i], denylist[_])
+
+  msg = sprintf("unallowed image found %s", [val])
+}
+```
+
+```
+# from https://www.conftest.dev
+
+package commands
+
+denylist = [
+  "apk",
+  "apt",
+  "pip",
+  "curl",
+  "wget",
+]
+
+deny[msg] {
+  input[i].Cmd == "run"
+  val := input[i].Value
+  contains(val[_], denylist[_])
+
+  msg = sprintf("unallowed commands found %s", [val])
+}
+```
+
+```sh
+$ docker run --rm -v $(pwd):/project openpolicyagent/conftest test Dockerfile --all-namespaces
+FAIL - Dockerfile - main - unallowed image found ["ubuntu"]
+FAIL - Dockerfile - commands - unallowed commands found ["apt-get update && apt-get install -y golang-go"]
+
+2 tests, 0 passed, 0 warnings, 2 failures, 0 exceptions
+```
+
 ### 9.2.7. Recap
+
 ## 9.3. Image Vulnerability Scanning
 ### 9.3.1. Introduction
+**Webservers or other apps can contain vulnerabilities** (Buffer overflows)
+
+![cks](images/23_image_vulnerability_intro.png)
+
+#### Known Image Vulnerabilities
+**Databases**
+* https://cve.mitre.org
+* https://nvd.nist.gov
+
+**Vulnerabilities can be discovered in our own image and dependencies**
+* Check during build
+* Check at runtime
+
 ### 9.3.2. Clair and Trivy
+#### Clair
+* Open source project
+* Static analysis of vulnerabilities in application containers
+* Ingests vulnerability metadata from a configured set of courses
+* Provides API
+
+#### Trivy
+* Open source project
+* "A simple and Comprehensive Vulnerability Scanner for Containers and other Artifacts, Suitable for CI"
+* Simple, Easy and Fast
+
 ### 9.3.3. Use Trivy to scan images
+```sh
+$ docker run ghcr.io/aquasecurity/trivy:latest image nginx:latest
+Unable to find image 'ghcr.io/aquasecurity/trivy:latest' locally
+latest: Pulling from aquasecurity/trivy
+213ec9aee27d: Already exists 
+ad53b2e0219a: Pull complete 
+2399349afd31: Pull complete 
+dc0298aa2f10: Pull complete 
+Digest: sha256:a5544f44ca957135921410f4d3fa340d42b6ab56bbb6bf7406d783df9e84f95f
+Status: Downloaded newer image for ghcr.io/aquasecurity/trivy:latest
+2022-11-11T11:55:22.284Z	INFO	Need to update DB
+2022-11-11T11:55:22.285Z	INFO	DB Repository: ghcr.io/aquasecurity/trivy-db
+2022-11-11T11:55:22.285Z	INFO	Downloading DB...
+2022-11-11T11:55:45.709Z	INFO	Secret scanning is enabled
+2022-11-11T11:55:45.709Z	INFO	If your scanning is slow, please try '--security-checks vuln' to disable secret scanning
+2022-11-11T11:55:45.709Z	INFO	Please see also https://aquasecurity.github.io/trivy/v0.34/docs/secret/scanning/#recommendation for faster secret detection
+...
+├──────────────────┼──────────────────┤          ├─────────────────────────┼─────────────────────────┼──────────────────────────────────────────────────────────────┤
+│ tar              │ CVE-2005-2541    │          │ 1.34+dfsg-1             │                         │ tar: does not properly warn the user when extracting setuid  │
+│                  │                  │          │                         │                         │ or setgid...                                                 │
+│                  │                  │          │                         │                         │ https://avd.aquasec.com/nvd/cve-2005-2541                    │
+├──────────────────┼──────────────────┤          ├─────────────────────────┼─────────────────────────┼──────────────────────────────────────────────────────────────┤
+│ util-linux       │ CVE-2022-0563    │          │ 2.36.1-8+deb11u1        │                         │ util-linux: partial disclosure of arbitrary files in chfn    │
+│                  │                  │          │                         │                         │ and chsh when compiled...                                    │
+│                  │                  │          │                         │                         │ https://avd.aquasec.com/nvd/cve-2022-0563                    │
+└──────────────────┴──────────────────┴──────────┴─────────────────────────┴─────────────────────────┴──────────────────────────────────────────────────────────────┘
+```
+> https://github.com/aquasecurity/trivy#docker
+
 ### 9.3.4. Recap
+
 ## 9.4. Secure Supply Chain
 ### 9.4.1. Introduction
+#### K8s and Container Registries
+Private registry with Docker
 ### 9.4.2. Image Digest
 ### 9.4.3. Whitelist Registries with OPA
 ### 9.4.4. ImagePolicyWebhook
@@ -3312,7 +3880,6 @@ error: failed to create deployment: admission webhook "validation.gatekeeper.sh"
 # 10. Runtime Security
 ## 10.1. Behavioral Analytics at host and ...
 ### 10.1.1. Introduction
-
 ### 10.1.2. Strace
 ### 10.1.3. Strace and /proc on ETCD
 ### 10.1.4. /proc and env variables
@@ -3321,12 +3888,14 @@ error: failed to create deployment: admission webhook "validation.gatekeeper.sh"
 ### 10.1.7. Investigate Falco rules
 ### 10.1.8. Change Falco rule
 ### 10.1.9. Recap
+
 ## 10.2. Inmutability of containers at runtime
 ### 10.2.1. Introduction
 ### 10.2.2. Ways to enforce immutability
 ### 10.2.3. StartupProbe changes container
 ### 10.2.4. SecurityContext renders container immutable
 ### 10.2.5. Recap
+
 ## 10.3. Auditing
 ### 10.3.1. Introduction
 ### 10.3.2. Enable Auditing Logging in Apiserver
@@ -3347,6 +3916,7 @@ error: failed to create deployment: admission webhook "validation.gatekeeper.sh"
 ### 11.1.7. Seccomp for Docker Nginx
 ### 11.1.8. Seccomp for Kubernetes Nginx
 ### 11.1.9. Recap
+
 ## 11.2. Reduce Attack Surface
 ### 11.2.1. Introduction
 ### 11.2.2. Systemctl and Services
