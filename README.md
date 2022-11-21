@@ -284,7 +284,9 @@
 - [10. Runtime Security](#10-runtime-security)
   - [10.1. Behavioral Analytics at host and ...](#101-behavioral-analytics-at-host-and-)
     - [10.1.1. Introduction](#1011-introduction)
+      - [Kernel vs User Space](#kernel-vs-user-space)
     - [10.1.2. Strace](#1012-strace)
+      - [strace: show syscalls](#strace-show-syscalls)
     - [10.1.3. Strace and /proc on ETCD](#1013-strace-and-proc-on-etcd)
     - [10.1.4. /proc and env variables](#1014-proc-and-env-variables)
     - [10.1.5. Falco and Installation](#1015-falco-and-installation)
@@ -3868,11 +3870,304 @@ Status: Downloaded newer image for ghcr.io/aquasecurity/trivy:latest
 ## 9.4. Secure Supply Chain
 ### 9.4.1. Introduction
 #### K8s and Container Registries
-Private registry with Docker
+**Private registry with Docker**
+
+```sh
+$ docker pull wuestkamp/cks-hello-world
+Using default tag: latest
+Error response from daemon: pull access denied for wuestkamp/cks-hello-world, repository does not exist or may require 'docker login': denied: requested access to the resource is denied
+
+$ docker login
+Login Succeeded
+
+$ docker pull wuestkamp/cks-hello-world
+Using default tag: latest
+latest: pulling from wuestkamp/cks-hello-world
+...
+...
+Status: Downloaded newer image for wuestkamp/cks-hello-world
+```
+
+**Private registyry with Kubernetes**
+```sh
+$ kubectl create secret docker-registry my-private-registry \
+  --docker-server=my-private-registry-server \
+  --docker-username=username \
+  --docker-pasword=password \
+  --docker-email=email
+secret/my-private-registry created
+```
+
+```sh
+$ kubectl patch serviceaccount default -p '{"imagePullSecrets": [{"name": "my-private-registry"}]}'
+serviceaccount/default patched
+```
+
 ### 9.4.2. Image Digest
+**List all image registries used in the whole cluster**
+**Use Image digest for kube-apiserver**
+
+```sh
+$ kubectl get po -A -oyaml | grep "image:"
+      image: openpolicyagent/gatekeeper:v3.5.2
+      image: openpolicyagent/gatekeeper:v3.5.2
+      image: openpolicyagent/gatekeeper:v3.5.2
+      image: openpolicyagent/gatekeeper:v3.5.2
+      image: openpolicyagent/gatekeeper:v3.5.2
+      image: openpolicyagent/gatekeeper:v3.5.2
+      image: openpolicyagent/gatekeeper:v3.5.2
+      image: openpolicyagent/gatekeeper:v3.5.2
+      image: registry.k8s.io/coredns/coredns:v1.9.3
+      image: registry.k8s.io/coredns/coredns:v1.9.3
+      image: registry.k8s.io/etcd:3.5.4-0
+      image: registry.k8s.io/etcd:3.5.4-0
+      image: registry.k8s.io/kube-apiserver:v1.25.0
+      image: registry.k8s.io/kube-apiserver:v1.25.0
+      image: registry.k8s.io/kube-controller-manager:v1.25.0
+      image: registry.k8s.io/kube-controller-manager:v1.25.0
+      image: registry.k8s.io/kube-proxy:v1.25.0
+      image: registry.k8s.io/kube-proxy:v1.25.0
+      image: registry.k8s.io/kube-scheduler:v1.25.0
+      image: registry.k8s.io/kube-scheduler:v1.25.0
+      image: gcr.io/k8s-minikube/storage-provisioner:v5
+      image: gcr.io/k8s-minikube/storage-provisioner:v5
+```
+
+```sh
+kubectl -n kube-system get pod kube-apiserver-cks -oyaml
+...
+  containerStatuses:
+  - containerID: docker://7685bb38069b7d15312685fdb5dc2b60365b66c2c79cf14ed549116219702f44
+    image: registry.k8s.io/kube-apiserver:v1.25.0
+    imageID: docker-pullable://registry.k8s.io/kube-apiserver@sha256:f6902791fb9aa6e283ed7d1d743417b3c425eec73151517813bef1539a66aefa
+    lastState:
+...
+```
+
+```sh
+$ vim /etc/kubernetes/manifest/kube-apiserver.yaml
+# Set
+image: registry.k8s.io/kube-apiserver@sha256:f6902791fb9aa6e283ed7d1d743417b3c425eec73151517813bef1539a66aefa
+```
+```sh
+$ kubectl -n kube-system get pod | grep api
+kube-apiserver-cks   1/1   Running  0  1m
+```
+
 ### 9.4.3. Whitelist Registries with OPA
+**Whitelist some registries using OPA**
+Only images from docker.io and k8s.gcr.io can be used
+
+
+```sh
+# Install OPA
+kubectl create -f https://raw.githubusercontent.com/killer-sh/cks-course-environment/master/course-content/opa/gatekeeper.yaml
+```
+
+```yaml
+apiVersion: templates.gatekeeper.sh/v1beta1
+kind: ConstraintTemplate
+metadata:
+  name: k8strustedimages
+spec:
+  crd:
+    spec:
+      names:
+        kind: K8sTrustedImages
+  targets:
+    - target: admission.k8s.gatekeeper.sh
+      rego: |
+        package k8strustedimages
+        violation[{"msg": msg}] {
+          image := input.review.object.spec.containers[_].image
+          not startswith(image, "docker.io/")
+          not startswith(image, "k8s.gcr.io/")
+          msg := "not trusted image!"
+        }
+---
+
+apiVersion: constraints.gatekeeper.sh/v1beta1
+kind: K8sTrustedImages
+metadata:
+  name: pod-trusted-images
+spec:
+  match:
+    kinds:
+      - apiGroups: [""]
+        kinds: ["Pod"]
+```
+
+```sh
+$ kubectl get constrainttemplate
+NAME               AGE
+k8strustedimages   15s
+
+$ kubectl get k8strustedimages.constraints.gatekeeper.sh 
+NAME                 AGE
+pod-trusted-images   94s
+
+$ kubectl describe k8strustedimages.constraints.gatekeeper.sh
+...
+Total Violations:  11
+  Violations:
+    Enforcement Action:  deny
+    Kind:                Pod
+    Message:             not trusted image!
+    Name:                gatekeeper-audit-649cbfdc8f-mfvlg
+    Namespace:           gatekeeper-system
+    Enforcement Action:  deny
+    Kind:                Pod
+    Message:             not trusted image!
+    Name:                gatekeeper-controller-manager-57575f6fc7-26rjx
+    Namespace:           gatekeeper-system
+    Enforcement Action:  deny
+    Kind:                Pod
+    Message:             not trusted image!
+    Name:                gatekeeper-controller-manager-57575f6fc7-fbc92
+    Namespace:           gatekeeper-system
+    Enforcement Action:  deny
+    Kind:                Pod
+    Message:             not trusted image!
+    Name:                gatekeeper-controller-manager-57575f6fc7-ncvkj
+    Namespace:           gatekeeper-system
+    Enforcement Action:  deny
+    Kind:                Pod
+    Message:             not trusted image!
+    Name:                coredns-565d847f94-wmk2b
+    Namespace:           kube-system
+    Enforcement Action:  deny
+    Kind:                Pod
+    Message:             not trusted image!
+    Name:                etcd-cks
+    Namespace:           kube-system
+    Enforcement Action:  deny
+    Kind:                Pod
+    Message:             not trusted image!
+    Name:                kube-apiserver-cks
+    Namespace:           kube-system
+    Enforcement Action:  deny
+    Kind:                Pod
+    Message:             not trusted image!
+    Name:                kube-controller-manager-cks
+    Namespace:           kube-system
+    Enforcement Action:  deny
+    Kind:                Pod
+    Message:             not trusted image!
+    Name:                kube-proxy-9skqg
+    Namespace:           kube-system
+    Enforcement Action:  deny
+    Kind:                Pod
+    Message:             not trusted image!
+    Name:                kube-scheduler-cks
+    Namespace:           kube-system
+    Enforcement Action:  deny
+    Kind:                Pod
+    Message:             not trusted image!
+    Name:                storage-provisioner
+    Namespace:           kube-system
+...
+
+$ kubectl run nginx --image=nginx
+Error from server ([pod-trusted-images] not trusted image!): admission webhook "validation.gatekeeper.sh" denied the request: [pod-trusted-images] not trusted image!
+```
+
 ### 9.4.4. ImagePolicyWebhook
+![cks](images/24_secure_supply_chain_imagepolicy.png)
+
+```json
+{
+  "apiVersion":"imagepolicy.k8s.io/v1alpha1",
+  "kind":"ImageReview",
+  "spec":{
+    "containers":[
+      {
+        "image":"myrepo/myimage:v1"
+      },
+      {
+        "image":"myrepo/myimage@sha256:beb6bd6a68f114c1dc2ea4b28db81bdf91de202a9014972bec5e4d9171d90ed"
+      }
+    ],
+    "annotations":{
+      "mycluster.image-policy.k8s.io/ticket-1234": "break-glass"
+    },
+    "namespace":"mynamespace"
+  }
+}
+```
+
 ### 9.4.5. Practice ImagePolicyWebhook
+**Investigate ImagePolicyWebhook**
+And use it up to the point where it calls an external service
+
+```sh
+$ vi /etc/kubernetes/manifest/kube-apiserver.yaml
+...
+- --enable-admission-plugins=NodeRestriction,ImagePolicyWebhook
+- --admission-control-config-file=/etc/kubernetes/policywebhook/admission_config.json
+...
+```
+
+```json
+{
+   "apiVersion": "apiserver.config.k8s.io/v1",
+   "kind": "AdmissionConfiguration",
+   "plugins": [
+      {
+         "name": "ImagePolicyWebhook",
+         "configuration": {
+            "imagePolicy": {
+               "kubeConfigFile": "/etc/kubernetes/policywebhook/kubeconf",
+               "allowTTL": 100,
+               "denyTTL": 50,
+               "retryBackoff": 500,
+               "defaultAllow": false
+            }
+         }
+      }
+   ]
+}
+```
+
+```yaml
+apiVersion: v1
+kind: Config
+
+# clusters refers to the remote service.
+clusters:
+- cluster:
+    certificate-authority: /etc/kubernetes/policywebhook/external-cert.pem  # CA for verifying the remote service.
+    server: https://localhost:1234                   # URL of remote service to query. Must use 'https'.
+  name: image-checker
+
+contexts:
+- context:
+    cluster: image-checker
+    user: api-server
+  name: image-checker
+current-context: image-checker
+preferences: {}
+
+# users refers to the API server's webhook configuration.
+users:
+- name: api-server
+  user:
+    client-certificate: /etc/kubernetes/policywebhook/apiserver-client-cert.pem     # cert for the webhook admission controller to use
+    client-key:  /etc/kubernetes/policywebhook/apiserver-client-key.pem             # key matching the cert
+```
+
+```sh
+# get example
+git clone https://github.com/killer-sh/cks-course-environment.git
+cp -r cks-course-environment/course-content/supply-chain-security/secure-the-supply-chain/whitelist-registries/ImagePolicyWebhook/ /etc/kubernetes/admission
+
+
+# to debug the apiserver we check logs in:
+/var/log/pods/kube-system_kube-apiserver*
+
+
+# example of an external service which can be used
+https://github.com/flavio/kube-image-bouncer
+```
 ### 9.4.6. Recap
 
 
@@ -3880,7 +4175,143 @@ Private registry with Docker
 # 10. Runtime Security
 ## 10.1. Behavioral Analytics at host and ...
 ### 10.1.1. Introduction
+#### Kernel vs User Space
+![cks](images/25_behaviorial%20analytics_intro.png)
+
+> https://man7.org/linux/man-pages/man2/syscalls.2.html
+
+
 ### 10.1.2. Strace
+* Intercepts and logs system calls made by a process
+* Log and display signals received by a process
+* Diagnostic, Learning, Debugging
+
+#### strace: show syscalls
+**strace "ls"**
+Investigate what it does and find all syscalls
+
+```sh
+$ strace
+  -o filename
+  -v verbose
+  -f follow forks
+
+  -cw (counts and summarise)
+  -p pid
+  -P path
+```
+
+```
+$ strace ls /
+execve("/usr/bin/ls", ["ls", "/"], 0x7ffd6243ad38 /* 66 vars */) = 0
+brk(NULL)                               = 0x55bb5e13b000
+arch_prctl(0x3001 /* ARCH_??? */, 0x7fff18746440) = -1 EINVAL (Invalid argument)
+access("/etc/ld.so.preload", R_OK)      = -1 ENOENT (No such file or directory)
+openat(AT_FDCWD, "/etc/ld.so.cache", O_RDONLY|O_CLOEXEC) = 3
+fstat(3, {st_mode=S_IFREG|0644, st_size=73965, ...}) = 0
+mmap(NULL, 73965, PROT_READ, MAP_PRIVATE, 3, 0) = 0x7f785d146000
+close(3)                                = 0
+openat(AT_FDCWD, "/lib/x86_64-linux-gnu/libselinux.so.1", O_RDONLY|O_CLOEXEC) = 3
+read(3, "\177ELF\2\1\1\0\0\0\0\0\0\0\0\0\3\0>\0\1\0\0\0@p\0\0\0\0\0\0"..., 832) = 832
+fstat(3, {st_mode=S_IFREG|0644, st_size=163200, ...}) = 0
+mmap(NULL, 8192, PROT_READ|PROT_WRITE, MAP_PRIVATE|MAP_ANONYMOUS, -1, 0) = 0x7f785d144000
+mmap(NULL, 174600, PROT_READ, MAP_PRIVATE|MAP_DENYWRITE, 3, 0) = 0x7f785d119000
+mprotect(0x7f785d11f000, 135168, PROT_NONE) = 0
+mmap(0x7f785d11f000, 102400, PROT_READ|PROT_EXEC, MAP_PRIVATE|MAP_FIXED|MAP_DENYWRITE, 3, 0x6000) = 0x7f785d11f000
+mmap(0x7f785d138000, 28672, PROT_READ, MAP_PRIVATE|MAP_FIXED|MAP_DENYWRITE, 3, 0x1f000) = 0x7f785d138000
+mmap(0x7f785d140000, 8192, PROT_READ|PROT_WRITE, MAP_PRIVATE|MAP_FIXED|MAP_DENYWRITE, 3, 0x26000) = 0x7f785d140000
+mmap(0x7f785d142000, 6664, PROT_READ|PROT_WRITE, MAP_PRIVATE|MAP_FIXED|MAP_ANONYMOUS, -1, 0) = 0x7f785d142000
+close(3)                                = 0
+openat(AT_FDCWD, "/lib/x86_64-linux-gnu/libc.so.6", O_RDONLY|O_CLOEXEC) = 3
+read(3, "\177ELF\2\1\1\3\0\0\0\0\0\0\0\0\3\0>\0\1\0\0\0\300A\2\0\0\0\0\0"..., 832) = 832
+pread64(3, "\6\0\0\0\4\0\0\0@\0\0\0\0\0\0\0@\0\0\0\0\0\0\0@\0\0\0\0\0\0\0"..., 784, 64) = 784
+pread64(3, "\4\0\0\0\20\0\0\0\5\0\0\0GNU\0\2\0\0\300\4\0\0\0\3\0\0\0\0\0\0\0", 32, 848) = 32
+pread64(3, "\4\0\0\0\24\0\0\0\3\0\0\0GNU\0\30x\346\264ur\f|Q\226\236i\253-'o"..., 68, 880) = 68
+fstat(3, {st_mode=S_IFREG|0755, st_size=2029592, ...}) = 0
+pread64(3, "\6\0\0\0\4\0\0\0@\0\0\0\0\0\0\0@\0\0\0\0\0\0\0@\0\0\0\0\0\0\0"..., 784, 64) = 784
+pread64(3, "\4\0\0\0\20\0\0\0\5\0\0\0GNU\0\2\0\0\300\4\0\0\0\3\0\0\0\0\0\0\0", 32, 848) = 32
+pread64(3, "\4\0\0\0\24\0\0\0\3\0\0\0GNU\0\30x\346\264ur\f|Q\226\236i\253-'o"..., 68, 880) = 68
+mmap(NULL, 2037344, PROT_READ, MAP_PRIVATE|MAP_DENYWRITE, 3, 0) = 0x7f785cf27000
+mmap(0x7f785cf49000, 1540096, PROT_READ|PROT_EXEC, MAP_PRIVATE|MAP_FIXED|MAP_DENYWRITE, 3, 0x22000) = 0x7f785cf49000
+mmap(0x7f785d0c1000, 319488, PROT_READ, MAP_PRIVATE|MAP_FIXED|MAP_DENYWRITE, 3, 0x19a000) = 0x7f785d0c1000
+mmap(0x7f785d10f000, 24576, PROT_READ|PROT_WRITE, MAP_PRIVATE|MAP_FIXED|MAP_DENYWRITE, 3, 0x1e7000) = 0x7f785d10f000
+mmap(0x7f785d115000, 13920, PROT_READ|PROT_WRITE, MAP_PRIVATE|MAP_FIXED|MAP_ANONYMOUS, -1, 0) = 0x7f785d115000
+close(3)                                = 0
+openat(AT_FDCWD, "/lib/x86_64-linux-gnu/libpcre2-8.so.0", O_RDONLY|O_CLOEXEC) = 3
+read(3, "\177ELF\2\1\1\0\0\0\0\0\0\0\0\0\3\0>\0\1\0\0\0\340\"\0\0\0\0\0\0"..., 832) = 832
+fstat(3, {st_mode=S_IFREG|0644, st_size=588488, ...}) = 0
+mmap(NULL, 590632, PROT_READ, MAP_PRIVATE|MAP_DENYWRITE, 3, 0) = 0x7f785ce96000
+mmap(0x7f785ce98000, 413696, PROT_READ|PROT_EXEC, MAP_PRIVATE|MAP_FIXED|MAP_DENYWRITE, 3, 0x2000) = 0x7f785ce98000
+mmap(0x7f785cefd000, 163840, PROT_READ, MAP_PRIVATE|MAP_FIXED|MAP_DENYWRITE, 3, 0x67000) = 0x7f785cefd000
+mmap(0x7f785cf25000, 8192, PROT_READ|PROT_WRITE, MAP_PRIVATE|MAP_FIXED|MAP_DENYWRITE, 3, 0x8e000) = 0x7f785cf25000
+close(3)                                = 0
+openat(AT_FDCWD, "/lib/x86_64-linux-gnu/libdl.so.2", O_RDONLY|O_CLOEXEC) = 3
+read(3, "\177ELF\2\1\1\0\0\0\0\0\0\0\0\0\3\0>\0\1\0\0\0 \22\0\0\0\0\0\0"..., 832) = 832
+fstat(3, {st_mode=S_IFREG|0644, st_size=18848, ...}) = 0
+mmap(NULL, 20752, PROT_READ, MAP_PRIVATE|MAP_DENYWRITE, 3, 0) = 0x7f785ce90000
+mmap(0x7f785ce91000, 8192, PROT_READ|PROT_EXEC, MAP_PRIVATE|MAP_FIXED|MAP_DENYWRITE, 3, 0x1000) = 0x7f785ce91000
+mmap(0x7f785ce93000, 4096, PROT_READ, MAP_PRIVATE|MAP_FIXED|MAP_DENYWRITE, 3, 0x3000) = 0x7f785ce93000
+mmap(0x7f785ce94000, 8192, PROT_READ|PROT_WRITE, MAP_PRIVATE|MAP_FIXED|MAP_DENYWRITE, 3, 0x3000) = 0x7f785ce94000
+close(3)                                = 0
+openat(AT_FDCWD, "/lib/x86_64-linux-gnu/libpthread.so.0", O_RDONLY|O_CLOEXEC) = 3
+read(3, "\177ELF\2\1\1\0\0\0\0\0\0\0\0\0\3\0>\0\1\0\0\0\220q\0\0\0\0\0\0"..., 832) = 832
+pread64(3, "\4\0\0\0\24\0\0\0\3\0\0\0GNU\0{E6\364\34\332\245\210\204\10\350-\0106\343="..., 68, 824) = 68
+fstat(3, {st_mode=S_IFREG|0755, st_size=157224, ...}) = 0
+pread64(3, "\4\0\0\0\24\0\0\0\3\0\0\0GNU\0{E6\364\34\332\245\210\204\10\350-\0106\343="..., 68, 824) = 68
+mmap(NULL, 140408, PROT_READ, MAP_PRIVATE|MAP_DENYWRITE, 3, 0) = 0x7f785ce6d000
+mmap(0x7f785ce73000, 69632, PROT_READ|PROT_EXEC, MAP_PRIVATE|MAP_FIXED|MAP_DENYWRITE, 3, 0x6000) = 0x7f785ce73000
+mmap(0x7f785ce84000, 24576, PROT_READ, MAP_PRIVATE|MAP_FIXED|MAP_DENYWRITE, 3, 0x17000) = 0x7f785ce84000
+mmap(0x7f785ce8a000, 8192, PROT_READ|PROT_WRITE, MAP_PRIVATE|MAP_FIXED|MAP_DENYWRITE, 3, 0x1c000) = 0x7f785ce8a000
+mmap(0x7f785ce8c000, 13432, PROT_READ|PROT_WRITE, MAP_PRIVATE|MAP_FIXED|MAP_ANONYMOUS, -1, 0) = 0x7f785ce8c000
+close(3)                                = 0
+mmap(NULL, 8192, PROT_READ|PROT_WRITE, MAP_PRIVATE|MAP_ANONYMOUS, -1, 0) = 0x7f785ce6b000
+arch_prctl(ARCH_SET_FS, 0x7f785ce6c400) = 0
+mprotect(0x7f785d10f000, 16384, PROT_READ) = 0
+mprotect(0x7f785ce8a000, 4096, PROT_READ) = 0
+mprotect(0x7f785ce94000, 4096, PROT_READ) = 0
+mprotect(0x7f785cf25000, 4096, PROT_READ) = 0
+mprotect(0x7f785d140000, 4096, PROT_READ) = 0
+mprotect(0x55bb5c315000, 4096, PROT_READ) = 0
+mprotect(0x7f785d186000, 4096, PROT_READ) = 0
+munmap(0x7f785d146000, 73965)           = 0
+set_tid_address(0x7f785ce6c6d0)         = 128246
+set_robust_list(0x7f785ce6c6e0, 24)     = 0
+rt_sigaction(SIGRTMIN, {sa_handler=0x7f785ce73bf0, sa_mask=[], sa_flags=SA_RESTORER|SA_SIGINFO, sa_restorer=0x7f785ce81420}, NULL, 8) = 0
+rt_sigaction(SIGRT_1, {sa_handler=0x7f785ce73c90, sa_mask=[], sa_flags=SA_RESTORER|SA_RESTART|SA_SIGINFO, sa_restorer=0x7f785ce81420}, NULL, 8) = 0
+rt_sigprocmask(SIG_UNBLOCK, [RTMIN RT_1], NULL, 8) = 0
+prlimit64(0, RLIMIT_STACK, NULL, {rlim_cur=8192*1024, rlim_max=RLIM64_INFINITY}) = 0
+statfs("/sys/fs/selinux", 0x7fff18746390) = -1 ENOENT (No such file or directory)
+statfs("/selinux", 0x7fff18746390)      = -1 ENOENT (No such file or directory)
+brk(NULL)                               = 0x55bb5e13b000
+brk(0x55bb5e15c000)                     = 0x55bb5e15c000
+openat(AT_FDCWD, "/proc/filesystems", O_RDONLY|O_CLOEXEC) = 3
+fstat(3, {st_mode=S_IFREG|0444, st_size=0, ...}) = 0
+read(3, "nodev\tsysfs\nnodev\ttmpfs\nnodev\tbd"..., 1024) = 421
+read(3, "", 1024)                       = 0
+close(3)                                = 0
+access("/etc/selinux/config", F_OK)     = -1 ENOENT (No such file or directory)
+openat(AT_FDCWD, "/usr/lib/locale/locale-archive", O_RDONLY|O_CLOEXEC) = 3
+fstat(3, {st_mode=S_IFREG|0644, st_size=8378608, ...}) = 0
+mmap(NULL, 8378608, PROT_READ, MAP_PRIVATE, 3, 0) = 0x7f785c66d000
+close(3)                                = 0
+ioctl(1, TCGETS, {B38400 opost isig icanon echo ...}) = 0
+ioctl(1, TIOCGWINSZ, {ws_row=103, ws_col=118, ws_xpixel=0, ws_ypixel=0}) = 0
+stat("/", {st_mode=S_IFDIR|0755, st_size=4096, ...}) = 0
+openat(AT_FDCWD, "/", O_RDONLY|O_NONBLOCK|O_CLOEXEC|O_DIRECTORY) = 3
+fstat(3, {st_mode=S_IFDIR|0755, st_size=4096, ...}) = 0
+getdents64(3, /* 26 entries */, 32768)  = 672
+getdents64(3, /* 0 entries */, 32768)   = 0
+close(3)                                = 0
+fstat(1, {st_mode=S_IFCHR|0620, st_rdev=makedev(0x88, 0x1), ...}) = 0
+write(1, "bin   cdrom  etc   lib\t  lib64  "..., 77bin   cdrom  etc   lib	  lib64   lost+found  mnt  proc  run   snap  sys  usr
+) = 77
+write(1, "boot  dev    home  lib32  libx32"..., 78boot  dev    home  lib32  libx32  media       opt  root  sbin  srv   tmp  var
+) = 78
+close(1)                                = 0
+close(2)                                = 0
+exit_group(0)                           = ?
++++ exited with 0 +++
+```
 ### 10.1.3. Strace and /proc on ETCD
 ### 10.1.4. /proc and env variables
 ### 10.1.5. Falco and Installation
