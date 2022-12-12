@@ -1,7 +1,7 @@
 # training_k8s_cks
 
 # Table of Contents
-- [training_k8s_cks](#training_k8s_cks)
+- [training\_k8s\_cks](#training_k8s_cks)
 - [Table of Contents](#table-of-contents)
 - [1. Introduction](#1-introduction)
   - [1.1. Welcome](#11-welcome)
@@ -207,7 +207,7 @@
     - [7.3.1. Intro and Security Context](#731-intro-and-security-context)
       - [Security Context](#security-context)
     - [7.3.2. Set container User and Group](#732-set-container-user-and-group)
-      - [security Contexts & UID GID](#security-contexts--uid-gid)
+      - [security Contexts \& UID GID](#security-contexts--uid-gid)
     - [7.3.3. Force container non-root](#733-force-container-non-root)
     - [7.3.4. Privileged Containers](#734-privileged-containers)
       - [Privileged Containers in Kubernetes](#privileged-containers-in-kubernetes)
@@ -288,6 +288,8 @@
     - [10.1.2. Strace](#1012-strace)
       - [strace: show syscalls](#strace-show-syscalls)
     - [10.1.3. Strace and /proc on ETCD](#1013-strace-and-proc-on-etcd)
+      - [/prod directory](#prod-directory)
+      - [strace and /proc: etcd](#strace-and-proc-etcd)
     - [10.1.4. /proc and env variables](#1014-proc-and-env-variables)
     - [10.1.5. Falco and Installation](#1015-falco-and-installation)
     - [10.1.6. Use Falco to find malicious processes](#1016-use-falco-to-find-malicious-processes)
@@ -4201,7 +4203,7 @@ $ strace
   -P path
 ```
 
-```
+```sh
 $ strace ls /
 execve("/usr/bin/ls", ["ls", "/"], 0x7ffd6243ad38 /* 66 vars */) = 0
 brk(NULL)                               = 0x55bb5e13b000
@@ -4312,7 +4314,155 @@ close(2)                                = 0
 exit_group(0)                           = ?
 +++ exited with 0 +++
 ```
+
 ### 10.1.3. Strace and /proc on ETCD
+#### /prod directory
+* Information and connections to processes and kernel
+* Study it to learn how processes work
+* Configuration and administrative tasks
+* Contains files that dont exist, yet you can access these
+
+```sh
+root@cks:/home/docker# cd /proc/
+Display all 104 possibilities? (y or n)
+1/                 2266/              acpi/              ioports            pressure/
+1528/              2269/              asound/            irq/               schedstat
+1529/              2270/              bootconfig         kallsyms           scsi/
+1530/              2271/              buddyinfo          kcore              self/
+1581/              229/               bus/               key-users          slabinfo
+1595/              232/               cgroups            keys               softirqs
+1596/              2351/              cmdline            kmsg               stat
+1648/              2372/              consoles           kpagecgroup        swaps
+1673/              2384/              cpuinfo            kpagecount         sys/
+1695/              2412/              crypto             kpageflags         sysrq-trigger
+1708/              2431/              devices            loadavg            sysvipc/
+1714/              2456/              diskstats          locks              thread-self/
+1734/              247/               dma                mdstat             timer_list
+1747/              2478/              driver/            meminfo            tty/
+1782/              2479/              dynamic_debug/     misc               uptime
+1837/              2531/              execdomains        modules            version
+1857/              2589/              fb                 mounts             version_signature
+2045/              2665/              filesystems        mtrr               vmallocinfo
+217/               2686/              fs/                net/               vmstat
+2263/              722/               interrupts         pagetypeinfo       zoneinfo
+2265/              894/               iomem              partitions  
+```
+
+#### strace and /proc: etcd
+**strace Kubernetes etcd**
+1. List syscalls
+2. Find open files
+3. Read secret value
+
+```sh
+$ strace
+  -o filename
+  -v verbose
+  -f follow forks
+
+  -cw (count and summarise)
+  -p pid
+  -P path
+```
+
+```sh
+$ crictl ps | grep etcd
+e770e9ea66d8f       a8a176a5d5d69       2 minutes ago        Running             etcd                      0                   5a978da4fa432
+
+$ ps aux | grep etcd
+root        1734  6.9  2.2 1112316 361796 ?      Ssl  07:53   0:10 kube-apiserver --advertise-address=192.168.58.2 --allow-privileged=true --authorization-mode=Node,RBAC --client-ca-file=/var/lib/minikube/certs/ca.crt --enable-admission-plugins=NamespaceLifecycle,LimitRanger,ServiceAccount,DefaultStorageClass,DefaultTolerationSeconds,NodeRestriction,MutatingAdmissionWebhook,ValidatingAdmissionWebhook,ResourceQuota --enable-bootstrap-token-auth=true --etcd-cafile=/var/lib/minikube/certs/etcd/ca.crt --etcd-certfile=/var/lib/minikube/certs/apiserver-etcd-client.crt --etcd-keyfile=/var/lib/minikube/certs/apiserver-etcd-client.key --etcd-servers=https://127.0.0.1:2379 --kubelet-client-certificate=/var/lib/minikube/certs/apiserver-kubelet-client.crt --kubelet-client-key=/var/lib/minikube/certs/apiserver-kubelet-client.key --kubelet-preferred-address-types=InternalIP,ExternalIP,Hostname --proxy-client-cert-file=/var/lib/minikube/certs/front-proxy-client.crt --proxy-client-key-file=/var/lib/minikube/certs/front-proxy-client.key --requestheader-allowed-names=front-proxy-client --requestheader-client-ca-file=/var/lib/minikube/certs/front-proxy-ca.crt --requestheader-extra-headers-prefix=X-Remote-Extra- --requestheader-group-headers=X-Remote-Group --requestheader-username-headers=X-Remote-User --secure-port=8443 --service-account-issuer=https://kubernetes.default.svc.cluster.local --service-account-key-file=/var/lib/minikube/certs/sa.pub --service-account-signing-key-file=/var/lib/minikube/certs/sa.key --service-cluster-ip-range=10.96.0.0/12 --tls-cert-file=/var/lib/minikube/certs/apiserver.crt --tls-private-key-file=/var/lib/minikube/certs/apiserver.key
+root        1782  2.9  0.2 11215552 46036 ?      Ssl  07:53   0:04 etcd --advertise-client-urls=https://192.168.58.2:2379 --cert-file=/var/lib/minikube/certs/etcd/server.crt --client-cert-auth=true --data-dir=/var/lib/minikube/etcd --experimental-initial-corrupt-check=true --experimental-watch-progress-notify-interval=5s --initial-advertise-peer-urls=https://192.168.58.2:2380 --initial-cluster=cks=https://192.168.58.2:2380 --key-file=/var/lib/minikube/certs/etcd/server.key --listen-client-urls=https://127.0.0.1:2379,https://192.168.58.2:2379 --listen-metrics-urls=http://127.0.0.1:2381 --listen-peer-urls=https://192.168.58.2:2380 --name=cks --peer-cert-file=/var/lib/minikube/certs/etcd/peer.crt --peer-client-cert-auth=true --peer-key-file=/var/lib/minikube/certs/etcd/peer.key --peer-trusted-ca-file=/var/lib/minikube/certs/etcd/ca.crt --proxy-refresh-interval=70000 --snapshot-count=10000 --trusted-ca-file=/var/lib/minikube/certs/etcd/ca.crt
+root        4290  0.0  0.0   3312   660 pts/1    S+   07:55   0:00 grep --color=auto etcd
+```
+
+```sh
+strace -p 1782 -f -cw
+strace: Process 1782 attached with 14 threads
+
+^Cstrace: Process 1782 detached
+strace: Process 1812 detached
+strace: Process 1814 detached
+strace: Process 1816 detached
+strace: Process 1817 detached
+strace: Process 1818 detached
+strace: Process 1819 detached
+strace: Process 1820 detached
+strace: Process 1828 detached
+strace: Process 1829 detached
+strace: Process 1862 detached
+strace: Process 1863 detached
+strace: Process 1946 detached
+strace: Process 1984 detached
+% time     seconds  usecs/call     calls    errors syscall
+------ ----------- ----------- --------- --------- ----------------
+ 87.25  250.512304       27300      9176      1470 futex
+  9.95   28.581509        3404      8396        19 epoll_pwait
+  2.71    7.769630        1497      5188         2 nanosleep
+  0.05    0.144804        1930        75           fdatasync
+  0.02    0.070545          56      1245         1 write
+  0.01    0.021451          19      1098       544 read
+  0.01    0.019043       19043         1         1 restart_syscall
+  0.00    0.003629          31       115           pwrite64
+  0.00    0.002347          34        69           tgkill
+  0.00    0.001642          23        69           getpid
+  0.00    0.001360          19        69        21 rt_sigreturn
+  0.00    0.000404          14        27           lseek
+  0.00    0.000381          20        19           setsockopt
+  0.00    0.000341          18        18        10 epoll_ctl
+  0.00    0.000340          42         8         4 accept4
+  0.00    0.000266          29         9           close
+  0.00    0.000259          51         5           openat
+  0.00    0.000218          16        13           sched_yield
+  0.00    0.000161          26         6           getdents64
+  0.00    0.000073          14         5           getrandom
+  0.00    0.000058          14         4           getsockname
+  0.00    0.000030          14         2           fstat
+------ ----------- ----------- --------- --------- ----------------
+100.00  287.130796                 25617      2072 total
+```
+
+```sh
+$ cd /proc/1782/fd
+
+$ ls -la
+total 0
+dr-x------ 2 root root  0 Nov 23 07:53 .
+dr-xr-xr-x 9 root root  0 Nov 23 07:53 ..
+lrwx------ 1 root root 64 Nov 23 07:53 0 -> /dev/null
+l-wx------ 1 root root 64 Nov 23 07:53 1 -> 'pipe:[186895]'
+lrwx------ 1 root root 64 Nov 23 07:53 10 -> /var/lib/minikube/etcd/member/snap/db
+...
+```
+
+```sh
+$ tail -f 10 
+$/registry/leases/kube-node-lease/cks
+                                     � *�k8s
+
+coordination.k8s.io/v1Lease�
+�
+cks�kube-node-lease"*$5c2a50bb-1355-4e67-80b2-a476b43050a02����j5
+Node�cks"$fee7040f-a209-44dc-949c-bf1c57efcbfd*v1��
+kubeletUpdate�coordination.k8s.io/v����FieldsV1:�
+�{"f:metadata":{"f:ownerReferences":{".":{},"k:{\"uid\":\"fee7040f-a209-44dc-949c-bf1c57efcbfd\"}":{}}},"f:spec":{"f:holderIdentity":{},"f:leaseDurationSeconds":{},"f:renewTime":{}}}B
+cks("
+    �������5�"*1!��"&')��������� �!�"�#�$�%�&�'�(�)�*�+�,�-�.�/�0�1�2�3�4�5�6�7�8�9�:�;�<�=�>�?�@�j_n_p_r_~_�_,_3_7_9_;_@_E_J_P_U_Z___e_j_o_t_y_~_�_�_�_�_�_�_�_�_�_�_�_�_�_�_�_�_�_�_�_�_�_�_�_�__+  !*_j_,
+� �D�	 	 CY\���g �alarmauth
+:                                 authRevisionauthRolesauthUsersclusterclusterVersion3.5.0key+lease0
+,�z@���ҷ���,�,�z@����ҷ���,�,�z@%�ʀҷ���,membersQb2c6679ac05f2cf1{"id":12882097698489969905,"peerURLs":["https://192.168.58.2:2380"],"name":"cks"}members_removedmetaP	4��confState{"voters":[12882097698489969905],"auto_leave":false}consistent_index�finishedCompactRev0_scheduledCompactRev0_term
+```
+
+```sh
+$ kubectl create secret generic credit-card --from-literal cc=1111222233334444
+```
+
+```sh
+$ cat 10 | grep 1111222233334444
+Binary file (standard input) matches
+
+$ cat 10 | strings | grep 111122223333444
+111122223333444
+```
 ### 10.1.4. /proc and env variables
 ### 10.1.5. Falco and Installation
 ### 10.1.6. Use Falco to find malicious processes
