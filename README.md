@@ -351,7 +351,6 @@
     - [10.2.4. Disabled application listening on port](#1024-disabled-application-listening-on-port)
     - [10.2.5. Investigate Linux Users](#1025-investigate-linux-users)
     - [10.2.6. Recap](#1026-recap)
-- [12. Linux Foundation Simulator Sessions](#12-linux-foundation-simulator-sessions)
 
 # 1. Introduction
 ## 1.1. Welcome
@@ -5599,7 +5598,3 @@ $ test@cks:/root$ whoami
 test
 ```
 ### 10.2.6. Recap
-
-
-
-# 12. Linux Foundation Simulator Sessions
