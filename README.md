@@ -224,16 +224,16 @@
       - [Without Capabilities](#without-capabilities)
       - [With Capabilities](#with-capabilities)
     - [6.4.3. Recap](#643-recap)
-- [8. Open Policy Agent (OPA)](#8-open-policy-agent-opa)
-  - [8.1. Introduction](#81-introduction)
+- [7. Open Policy Agent (OPA)](#7-open-policy-agent-opa)
+  - [7.1. Introduction](#71-introduction)
     - [OPA - Open Policy Agent](#opa---open-policy-agent)
     - [OPA - Gatekeeper](#opa---gatekeeper)
-  - [8.2. Install OPA](#82-install-opa)
-  - [8.3. Deny All Policy](#83-deny-all-policy)
-  - [8.4. Enforce Namespace Labels](#84-enforce-namespace-labels)
-  - [8.5. Enforce Deployment Replica](#85-enforce-deployment-replica)
-  - [8.6. The Rego Playground and more examples](#86-the-rego-playground-and-more-examples)
-  - [8.7. Recap](#87-recap)
+  - [7.2. Install OPA](#72-install-opa)
+  - [7.3. Deny All Policy](#73-deny-all-policy)
+  - [7.4. Enforce Namespace Labels](#74-enforce-namespace-labels)
+  - [7.5. Enforce Deployment Replica](#75-enforce-deployment-replica)
+  - [7.6. The Rego Playground and more examples](#76-the-rego-playground-and-more-examples)
+  - [7.7. Recap](#77-recap)
 - [9. Supply Chain Security](#9-supply-chain-security)
   - [9.1. Image footprint](#91-image-footprint)
     - [9.1.1. Introduction](#911-introduction)
@@ -3069,8 +3069,8 @@ target     prot opt source               destination
 
 
 
-# 8. Open Policy Agent (OPA)
-## 8.1. Introduction
+# 7. Open Policy Agent (OPA)
+## 7.1. Introduction
 ### OPA - Open Policy Agent
 "The Open Policy Agent (OPA) is an open source, general-purpose policy engine that enables unified, context-aware policy enforcement across the entire stack."
 * Not Kubernetes specific
@@ -3103,8 +3103,8 @@ spec:
 ...
 ```
 
-## 8.2. Install OPA
-## 8.3. Deny All Policy
+## 7.2. Install OPA
+## 7.3. Deny All Policy
 ```sh
 $ kubectl get crd
 NAME                                                 CREATED AT
@@ -3162,7 +3162,7 @@ $ kubectl get k8salwaysdeny.constraints.gatekeeper.sh
 ...
 ```
 
-## 8.4. Enforce Namespace Labels
+## 7.4. Enforce Namespace Labels
 ```yaml
 apiVersion: templates.gatekeeper.sh/v1beta1
 kind: ConstraintTemplate
@@ -3275,7 +3275,7 @@ $ kubectl describe k8srequiredlabels ns-must-have-cks
     Name:                kube-system
 ```
 
-## 8.5. Enforce Deployment Replica
+## 7.5. Enforce Deployment Replica
 ```yaml
 apiVersion: templates.gatekeeper.sh/v1beta1
 kind: ConstraintTemplate
@@ -3321,11 +3321,11 @@ spec:
 $ kubectl create deploy test --image nginx 
 error: failed to create deployment: admission webhook "validation.gatekeeper.sh" denied the request: [deployment-must-have-min-replicas] you must provide 1 more replicas
 ```
-## 8.6. The Rego Playground and more examples
+## 7.6. The Rego Playground and more examples
 > https://play.openpolicyagent.org
 
 > https://github.com/BouweCeunen/gatekeeper-policies
-## 8.7. Recap
+## 7.7. Recap
 > https://www.youtube.com/watch?v=RDWndems-sk
 
 
