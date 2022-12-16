@@ -108,122 +108,122 @@
     - [4.5.4. Recap](#454-recap)
   - [4.6. Verify Platform Binaries](#46-verify-platform-binaries)
     - [4.6.1. Verify apiserver binary running in our cluster](#461-verify-apiserver-binary-running-in-our-cluster)
-    - [5.6.4. Recap](#564-recap)
-- [6. Cluster Hardening](#6-cluster-hardening)
-  - [6.1. RBAC](#61-rbac)
-    - [6.1.1. Intro](#611-intro)
+    - [4.6.4. Recap](#464-recap)
+- [5. Cluster Hardening](#5-cluster-hardening)
+  - [5.1. RBAC](#51-rbac)
+    - [5.1.1. Intro](#511-intro)
       - [RBAC](#rbac)
       - [POLP (Principle Of Least Privilege)](#polp-principle-of-least-privilege)
       - [RBAC- Namespaced Resources vs Cluster Resources](#rbac--namespaced-resources-vs-cluster-resources)
       - [RoleBinding](#rolebinding)
       - [ClusterRoleBinding](#clusterrolebinding)
-    - [6.1.2. Role and Rolebinding](#612-role-and-rolebinding)
-    - [6.1.3. ClusterRole and ClusterRoleBinding](#613-clusterrole-and-clusterrolebinding)
-    - [6.1.4. Accounts and Users](#614-accounts-and-users)
-    - [6.1.5. CertificateSingingRequets](#615-certificatesingingrequets)
+    - [5.1.2. Role and Rolebinding](#512-role-and-rolebinding)
+    - [5.1.3. ClusterRole and ClusterRoleBinding](#513-clusterrole-and-clusterrolebinding)
+    - [5.1.4. Accounts and Users](#514-accounts-and-users)
+    - [5.1.5. CertificateSingingRequets](#515-certificatesingingrequets)
       - [Users and Certificates](#users-and-certificates)
-    - [6.1.6. Recap](#616-recap)
-  - [6.2. Exercise caution in using ServiceAccounts](#62-exercise-caution-in-using-serviceaccounts)
-    - [6.2.1. Intro](#621-intro)
+    - [5.1.6. Recap](#516-recap)
+  - [5.2. Exercise caution in using ServiceAccounts](#52-exercise-caution-in-using-serviceaccounts)
+    - [5.2.1. Intro](#521-intro)
       - [Accounts](#accounts)
       - [ServiceAccounts and Pods](#serviceaccounts-and-pods)
-    - [6.2.2. Pods uses custom ServiceAccount](#622-pods-uses-custom-serviceaccount)
-    - [6.2.3. Disable ServiceAccount Mounting](#623-disable-serviceaccount-mounting)
-    - [6.2.4. Limits ServiceAccounts using RBAC](#624-limits-serviceaccounts-using-rbac)
-    - [6.2.5. Recap](#625-recap)
-  - [6.3. Restrict API Access](#63-restrict-api-access)
-    - [6.3.1. Intro](#631-intro)
+    - [5.2.2. Pods uses custom ServiceAccount](#522-pods-uses-custom-serviceaccount)
+    - [5.2.3. Disable ServiceAccount Mounting](#523-disable-serviceaccount-mounting)
+    - [5.2.4. Limits ServiceAccounts using RBAC](#524-limits-serviceaccounts-using-rbac)
+    - [5.2.5. Recap](#525-recap)
+  - [5.3. Restrict API Access](#53-restrict-api-access)
+    - [5.3.1. Intro](#531-intro)
       - [Request workflow](#request-workflow)
       - [Restrictions](#restrictions)
-    - [6.3.2. Anonymous Access](#632-anonymous-access)
+    - [5.3.2. Anonymous Access](#532-anonymous-access)
       - [Anonymous Access](#anonymous-access)
         - [Set anonymous-auth=false](#set-anonymous-authfalse)
-    - [6.3.3. Insecure Access](#633-insecure-access)
+    - [5.3.3. Insecure Access](#533-insecure-access)
       - [HTTP/HTTPS Access](#httphttps-access)
       - [Insecure Access](#insecure-access)
-    - [6.3.4. Manual API Requests](#634-manual-api-requests)
-    - [6.3.5. NodeRestriction AdmissionController](#635-noderestriction-admissioncontroller)
+    - [5.3.4. Manual API Requests](#534-manual-api-requests)
+    - [5.3.5. NodeRestriction AdmissionController](#535-noderestriction-admissioncontroller)
       - [NodeRestriction](#noderestriction)
-    - [6.3.6. Verify NodeRestriction](#636-verify-noderestriction)
-    - [6.3.7. Recap](#637-recap)
-  - [6.4. Upgrade Kubernetes](#64-upgrade-kubernetes)
-    - [6.4.1. Intro](#641-intro)
+    - [5.3.6. Verify NodeRestriction](#536-verify-noderestriction)
+    - [5.3.7. Recap](#537-recap)
+  - [5.4. Upgrade Kubernetes](#54-upgrade-kubernetes)
+    - [5.4.1. Intro](#541-intro)
       - [Why upgrade frequently?](#why-upgrade-frequently)
       - [Kubernetes Release Cycles](#kubernetes-release-cycles)
       - [Support](#support)
       - [How to upgrade a cluster](#how-to-upgrade-a-cluster)
       - [How to upgrade a node](#how-to-upgrade-a-node)
       - [How to make your application survive an upgrade](#how-to-make-your-application-survive-an-upgrade)
-    - [6.4.2. Ubuntu 20.04 Update](#642-ubuntu-2004-update)
-    - [6.4.3. Create outdated cluster](#643-create-outdated-cluster)
-    - [6.4.4. Upgrade controlplane node](#644-upgrade-controlplane-node)
-    - [6.4.5. Upgrade node](#645-upgrade-node)
-    - [6.4.6. Recap](#646-recap)
-- [7. Microservice Vulnerabilities](#7-microservice-vulnerabilities)
-  - [7.1. Manage Kubernetes](#71-manage-kubernetes)
-    - [7.1.1. Intro](#711-intro)
-    - [7.1.2. Create Simple Secret Scenario](#712-create-simple-secret-scenario)
+    - [5.4.2. Ubuntu 20.04 Update](#542-ubuntu-2004-update)
+    - [5.4.3. Create outdated cluster](#543-create-outdated-cluster)
+    - [5.4.4. Upgrade controlplane node](#544-upgrade-controlplane-node)
+    - [5.4.5. Upgrade node](#545-upgrade-node)
+    - [5.4.6. Recap](#546-recap)
+- [6. Microservice Vulnerabilities](#6-microservice-vulnerabilities)
+  - [6.1. Manage Kubernetes](#61-manage-kubernetes)
+    - [6.1.1. Intro](#611-intro)
+    - [6.1.2. Create Simple Secret Scenario](#612-create-simple-secret-scenario)
       - [Create a generic secret](#create-a-generic-secret)
       - [Mount secret in a Pod](#mount-secret-in-a-pod)
-    - [7.1.3. Hacks Secret in Container Runtime](#713-hacks-secret-in-container-runtime)
+    - [6.1.3. Hacks Secret in Container Runtime](#613-hacks-secret-in-container-runtime)
       - [Search "mypod"](#search-mypod)
       - [Inspect container and show "envs" and "mounts"](#inspect-container-and-show-envs-and-mounts)
-    - [7.1.4. Hacks Secret in ETCD](#714-hacks-secret-in-etcd)
+    - [6.1.4. Hacks Secret in ETCD](#614-hacks-secret-in-etcd)
       - [Access secret int etcd](#access-secret-int-etcd)
       - [Show secret](#show-secret)
-    - [7.1.5. ETCD Encryption](#715-etcd-encryption)
+    - [6.1.5. ETCD Encryption](#615-etcd-encryption)
       - [Encrypt](#encrypt)
       - [Encrypt (all Secrets) in ETCD](#encrypt-all-secrets-in-etcd)
       - [Decrypt all Secrets in ETCD](#decrypt-all-secrets-in-etcd)
-    - [7.1.6. Encrypt ETCD (example)](#716-encrypt-etcd-example)
+    - [6.1.6. Encrypt ETCD (example)](#616-encrypt-etcd-example)
       - [/etc/kubernetes/etcd/ec.yaml](#etckubernetesetcdecyaml)
       - [Edit API Server](#edit-api-server)
       - [Encrypt existing Secrets](#encrypt-existing-secrets)
-    - [7.1.7. Recap](#717-recap)
-  - [7.2. Container Runtime](#72-container-runtime)
-    - [7.2.1. Intro](#721-intro)
+    - [6.1.7. Recap](#617-recap)
+  - [6.2. Container Runtime](#62-container-runtime)
+    - [6.2.1. Intro](#621-intro)
       - [Technical Overview](#technical-overview)
       - [Technical Overview: Containers/Docker](#technical-overview-containersdocker)
       - [Technical Overview: Sandbox](#technical-overview-sandbox)
       - [Technical Overview: Containers and system calls](#technical-overview-containers-and-system-calls)
       - [Technical Overview: Sandbox comes not for free](#technical-overview-sandbox-comes-not-for-free)
-    - [7.2.2. Containers Calls Linux Kernel](#722-containers-calls-linux-kernel)
+    - [6.2.2. Containers Calls Linux Kernel](#622-containers-calls-linux-kernel)
       - [Why even sandbox?](#why-even-sandbox)
-    - [7.2.3. Open Container Iniciative OCI](#723-open-container-iniciative-oci)
+    - [6.2.3. Open Container Iniciative OCI](#623-open-container-iniciative-oci)
       - [OCI - Open Container Initiative](#oci---open-container-initiative)
       - [Kubernetes runtimes and CRI (Container Runtime Interface)](#kubernetes-runtimes-and-cri-container-runtime-interface)
-    - [7.2.4. Sandbox Runtime Katacontainers](#724-sandbox-runtime-katacontainers)
+    - [6.2.4. Sandbox Runtime Katacontainers](#624-sandbox-runtime-katacontainers)
       - [kata containers](#kata-containers)
-    - [7.2.5. Sandbox Runtime gVisor (Google)](#725-sandbox-runtime-gvisor-google)
-    - [7.2.6. Create and use RuntimeClasses](#726-create-and-use-runtimeclasses)
+    - [6.2.5. Sandbox Runtime gVisor (Google)](#625-sandbox-runtime-gvisor-google)
+    - [6.2.6. Create and use RuntimeClasses](#626-create-and-use-runtimeclasses)
       - [RuntimeClassess](#runtimeclassess)
       - [Create Pod](#create-pod)
       - [Describe pod](#describe-pod)
-    - [7.2.7. Install and use gVisor](#727-install-and-use-gvisor)
+    - [6.2.7. Install and use gVisor](#627-install-and-use-gvisor)
       - [Install](#install)
-    - [7.2.8. Recap](#728-recap)
-  - [7.3. OS Level Security](#73-os-level-security)
-    - [7.3.1. Intro and Security Context](#731-intro-and-security-context)
+    - [6.2.8. Recap](#628-recap)
+  - [6.3. OS Level Security](#63-os-level-security)
+    - [6.3.1. Intro and Security Context](#631-intro-and-security-context)
       - [Security Context](#security-context)
-    - [7.3.2. Set container User and Group](#732-set-container-user-and-group)
+    - [6.3.2. Set container User and Group](#632-set-container-user-and-group)
       - [security Contexts \& UID GID](#security-contexts--uid-gid)
-    - [7.3.3. Force container non-root](#733-force-container-non-root)
-    - [7.3.4. Privileged Containers](#734-privileged-containers)
+    - [6.3.3. Force container non-root](#633-force-container-non-root)
+    - [6.3.4. Privileged Containers](#634-privileged-containers)
       - [Privileged Containers in Kubernetes](#privileged-containers-in-kubernetes)
-    - [7.3.5. Created Privileged Containers](#735-created-privileged-containers)
-    - [7.3.6. PrivilegeScalation](#736-privilegescalation)
-    - [7.3.7. Disable PrivilegeScalation](#737-disable-privilegescalation)
-    - [7.3.8. PodSecurityPolicies](#738-podsecuritypolicies)
+    - [6.3.5. Created Privileged Containers](#635-created-privileged-containers)
+    - [6.3.6. PrivilegeScalation](#636-privilegescalation)
+    - [6.3.7. Disable PrivilegeScalation](#637-disable-privilegescalation)
+    - [6.3.8. PodSecurityPolicies](#638-podsecuritypolicies)
       - [Pod Security Policies](#pod-security-policies)
-    - [7.3.9. Create and enable PodSecurityPolicies](#739-create-and-enable-podsecuritypolicies)
-    - [7.3.10. Recap](#7310-recap)
-  - [7.4. mTLS](#74-mtls)
-    - [7.4.1. Intro](#741-intro)
+    - [6.3.9. Create and enable PodSecurityPolicies](#639-create-and-enable-podsecuritypolicies)
+    - [6.3.10. Recap](#6310-recap)
+  - [6.4. mTLS](#64-mtls)
+    - [6.4.1. Intro](#641-intro)
       - [mTLS - Mutual TLS](#mtls---mutual-tls)
-    - [7.4.2. Create sidecar proxy](#742-create-sidecar-proxy)
+    - [6.4.2. Create sidecar proxy](#642-create-sidecar-proxy)
       - [Without Capabilities](#without-capabilities)
       - [With Capabilities](#with-capabilities)
-    - [7.4.3. Recap](#743-recap)
+    - [6.4.3. Recap](#643-recap)
 - [8. Open Policy Agent (OPA)](#8-open-policy-agent-opa)
   - [8.1. Introduction](#81-introduction)
     - [OPA - Open Policy Agent](#opa---open-policy-agent)
@@ -1525,13 +1525,13 @@ c0826f1dbb94c224b888e7caba035a187e0dbd1bf23a57042eca99633fdf7aa9f0f1663745307b09
 $ sha512sum /proc/26579/root/usr/local/bin/kube-apiserver
 c0826f1dbb94c224b888e7caba035a187e0dbd1bf23a57042eca99633fdf7aa9f0f1663745307b096aada158c2421fadafdd480028291c21c0dca74876d2beaf  /proc/26579/root/usr/local/bin/kube-apiserver
 ```
-### 5.6.4. Recap
+### 4.6.4. Recap
 
 
 
-# 6. Cluster Hardening
-## 6.1. RBAC
-### 6.1.1. Intro
+# 5. Cluster Hardening
+## 5.1. RBAC
+### 5.1.1. Intro
 #### RBAC
 * "Role-based access control (RBAC) is a method of regulating access to computer or network resources based on the roles of individual users within your organization."
 
@@ -1579,7 +1579,7 @@ $ kubectl api-resources --namespaced=false
 ![cks](images/12_intro_rbac_clusterrolebinding.png)
 ![cks](images/12_intro_rbac_clusterrole_01.png)
 
-### 6.1.2. Role and Rolebinding
+### 5.1.2. Role and Rolebinding
 ```sh
 # Create namespaces
 $ kubectl create ns red
@@ -1602,7 +1602,7 @@ $ kubectl -n blue auth can-i get secrets --as jane # yes
 $ kubectl -n default auth can-i get secrets --as jane #no
 ```
 
-### 6.1.3. ClusterRole and ClusterRoleBinding
+### 5.1.3. ClusterRole and ClusterRoleBinding
 ```sh
 $ kubectl create clusterrole deploy-deleter --verb=delete --resource=deployment
 $ kubectl create clusterrolebinding deploy-deleter --clusterrole=deploy-deleter --user=jane
@@ -1625,14 +1625,14 @@ $ kubectl auth can-i delete deploy --as jim -n red # yes
 $ kubectl auth can-i delete deploy --as jim -n blue # no
 
 ```
-### 6.1.4. Accounts and Users
+### 5.1.4. Accounts and Users
 ![cks](images/12_accounts_users.png)
 
 **ServiceAccount** is a resource managed by the k8s api
 **Normal User** is no k8s User resource. It is assumed that a cluster-indepedent service manages normal users.
 
 
-### 6.1.5. CertificateSingingRequets
+### 5.1.5. CertificateSingingRequets
 #### Users and Certificates
 Create a certificate+key and authenticate as user jane
 * Create CSR
@@ -1713,17 +1713,17 @@ $ kubectl auth can-i get secrets -A # no
 $ kubectl auth can-i get secrets -n red # yes
 ```
 
-### 6.1.6. Recap
+### 5.1.6. Recap
 
-## 6.2. Exercise caution in using ServiceAccounts
-### 6.2.1. Intro
+## 5.2. Exercise caution in using ServiceAccounts
+### 5.2.1. Intro
 #### Accounts
 ![cks](images/13_sa_intro.png)
 
 #### ServiceAccounts and Pods
 ![cks](images/13_sa_intro_01.png)
 
-### 6.2.2. Pods uses custom ServiceAccount
+### 5.2.2. Pods uses custom ServiceAccount
 ```sh
 # Get SAs
 $ kubectl get sa
@@ -1806,7 +1806,7 @@ $ curl https://10.96.0.1 -k -H "Authorization: Bearer $(cat /run/secrets/kuberne
 }
 ```
 
-### 6.2.3. Disable ServiceAccount Mounting
+### 5.2.3. Disable ServiceAccount Mounting
 
 ```yaml
 apiVersion: v1
@@ -1831,7 +1831,7 @@ spec:
 > https://kubernetes.io/docs/tasks/configure-pod-container/configure-service-account
 
 
-### 6.2.4. Limits ServiceAccounts using RBAC
+### 5.2.4. Limits ServiceAccounts using RBAC
 ```sh
 # Check with can-i
 $ kubectl auth can-i delete secrets --as system:serviceaccount:default:accessor
@@ -1845,15 +1845,15 @@ $ kubectl auth can-i delete secrets --as system:serviceaccount:default:accessor
 yes
 ```
 
-### 6.2.5. Recap
+### 5.2.5. Recap
 > https://kubernetes.io/docs/reference/access-authn-authz/service-accounts-admin
 
 > https://kubernetes.io/docs/tasks/configure-pod-container/configure-service-account
 
 
 
-## 6.3. Restrict API Access
-### 6.3.1. Intro
+## 5.3. Restrict API Access
+### 5.3.1. Intro
 #### Request workflow
 ![cks](images/14_restrict_api_intro.png)
 
@@ -1873,7 +1873,7 @@ yes
 6. Prevent pods from accessing API
 7. ApiServer port behind firewall/allowed ip ranges (cloud provider)
 
-### 6.3.2. Anonymous Access
+### 5.3.2. Anonymous Access
 #### Anonymous Access
 * kube-apiserver --anonymous-auth=true|false
 * In 1.6+ anonymous access is enable by default
@@ -1909,7 +1909,7 @@ $ curl -k https://192.168.49.2:8443
 }
 ```
 
-### 6.3.3. Insecure Access
+### 5.3.3. Insecure Access
 > Since k8s 1.20 the insecure access is not longer posible. `kube-apiserver --insecure-port=8080`
 
 #### HTTP/HTTPS Access
@@ -1921,7 +1921,7 @@ $ curl -k https://192.168.49.2:8443
   * Request bypasses authentication and authorization modules
   * Admision controller still enforces
 
-### 6.3.4. Manual API Requests
+### 5.3.4. Manual API Requests
 ```sh
 $ curl -k https://192.168.49.2:8443 \
     --cert ~/.minikube/profiles/cksv1/client.crt \
@@ -1955,7 +1955,7 @@ $ curl -k https://192.168.49.2:8443 \
 }
 ```
 
-### 6.3.5. NodeRestriction AdmissionController
+### 5.3.5. NodeRestriction AdmissionController
 ![cks](images/14_restrict_api_adm_contr.png)
 
 #### NodeRestriction
@@ -1965,7 +1965,7 @@ $ curl -k https://192.168.49.2:8443 \
 * **Ensure secure workload isolation via labels**
   * No one can pretend to be a "secure" node and schedule secure pods
 
-### 6.3.6. Verify NodeRestriction
+### 5.3.6. Verify NodeRestriction
 On a worker node...
 
 ```sh
@@ -1988,11 +1988,11 @@ Error from server (Forbidden): nodes "cks-worker" is forbidden: is not allowed t
 > https://kubernetes.io/docs/reference/access-authn-authz/admission-controllers/#noderestriction
 
 
-### 6.3.7. Recap
+### 5.3.7. Recap
 > https://kubernetes.io/docs/concepts/security/controlling-access
 
-## 6.4. Upgrade Kubernetes
-### 6.4.1. Intro
+## 5.4. Upgrade Kubernetes
+### 5.4.1. Intro
 #### Why upgrade frequently?
 * Support
 * Security fixed
@@ -2034,8 +2034,8 @@ Applicable fixes, including security fixes, may be backported to those three rel
 * Pod Lifecycle Events
 * PodDisruptionBudget
 
-### 6.4.2. Ubuntu 20.04 Update
-### 6.4.3. Create outdated cluster
+### 5.4.2. Ubuntu 20.04 Update
+### 5.4.3. Create outdated cluster
 ```sh
 # master
 bash <(curl -s https://raw.githubusercontent.com/killer-sh/cks-course-environment/master/cluster-setup/previous/install_master.sh)
@@ -2044,7 +2044,7 @@ bash <(curl -s https://raw.githubusercontent.com/killer-sh/cks-course-environmen
 bash <(curl -s https://raw.githubusercontent.com/killer-sh/cks-course-environment/master/cluster-setup/previous/install_worker.sh)
 ```
 
-### 6.4.4. Upgrade controlplane node
+### 5.4.4. Upgrade controlplane node
 ```sh
 # drain
 $ kubectl drain cks-controlplane
@@ -2078,7 +2078,7 @@ $ kubectl version
 # uncordon
 $ kubectl uncordon cks-controlplane
 ```
-### 6.4.5. Upgrade node
+### 5.4.5. Upgrade node
 ```sh
 # drain
 $ kubectl drain cks-node
@@ -2108,16 +2108,16 @@ $ service kubelet status
 $ kubectl uncordon cks-node
 ```
 
-### 6.4.6. Recap
+### 5.4.6. Recap
 > https://kubernetes.io/docs/tasks/administer-cluster/kubeadm/kubeadm-upgrade
 
 > https://kubernetes.io/docs/setup/release/version-skew-policy
 
 
-# 7. Microservice Vulnerabilities
-## 7.1. Manage Kubernetes
-### 7.1.1. Intro
-### 7.1.2. Create Simple Secret Scenario
+# 6. Microservice Vulnerabilities
+## 6.1. Manage Kubernetes
+### 6.1.1. Intro
+### 6.1.2. Create Simple Secret Scenario
 #### Create a generic secret
 ```sh
 $ kubectl create secret generic secret1 --from-literal pass=12345678
@@ -2160,7 +2160,7 @@ $ kubectl exec -it mypod -- cat /etc/foo/pass
 12345678
 ```
 
-### 7.1.3. Hacks Secret in Container Runtime
+### 6.1.3. Hacks Secret in Container Runtime
 #### Search "mypod"
 ```sh
 $ crictl ps | grep mypod
@@ -2190,7 +2190,7 @@ $ crictl inspect a7f2d581cf409
 }
 
 ```
-### 7.1.4. Hacks Secret in ETCD
+### 6.1.4. Hacks Secret in ETCD
 #### Access secret int etcd
 ```sh
 $ ETCDCTL_API=3 etcdctl --cert /etc/kubernetes/pki/apiserver-etcd-client.crt --key /etc/kubernetes/pki/apiserver-etcd-client.key --cacert /etc/kubernetes/pki/etcd/ca.crt endpoint health
@@ -2213,7 +2213,7 @@ kubectl-createUpdatev餛FieldsV1:-
 datasecretOpaque"
 ```
 
-### 7.1.5. ETCD Encryption
+### 6.1.5. ETCD Encryption
 #### Encrypt
 ```yaml
 apiVersion: apiserver.config.k8s.io/v1
@@ -2283,7 +2283,7 @@ resources:
 $ kubectl get secrets -A -ojson | kubectl replace -f -
 ```
 
-### 7.1.6. Encrypt ETCD (example)
+### 6.1.6. Encrypt ETCD (example)
 
 #### /etc/kubernetes/etcd/ec.yaml
 ```yaml
@@ -2349,7 +2349,7 @@ k8s:enc:aesgcm:v1:key1:Li&?ųw!lSV2      ~(n4h͊ЗwyP"`;yQZ2=Jtet`%=qĕ@qӦss
                                                                        -^V*Yp\V|N3P+J@p.Dr$j]St/7e <ȏbUf"kh_?SyTV- v.Idr7(n&Pգo
 ```
 > https://kubernetes.io/docs/tasks/administer-cluster/encrypt-data
-### 7.1.7. Recap
+### 6.1.7. Recap
 > https://v1-22.docs.kubernetes.io/docs/concepts/configuration/secret/#risks
 
 > https://www.youtube.com/watch?v=f4Ru6CPG1z4
@@ -2357,8 +2357,8 @@ k8s:enc:aesgcm:v1:key1:Li&?ųw!lSV2      ~(n4h͊ЗwyP"`;yQZ2=Jtet`%=qĕ@qӦss
 > https://www.cncf.io/webinars/kubernetes-secrets-management-build-secure-apps-faster-without-secrets
 
 
-## 7.2. Container Runtime
-### 7.2.1. Intro
+## 6.2. Container Runtime
+### 6.2.1. Intro
 #### Technical Overview
 **Containers are not contained**
 
@@ -2384,7 +2384,7 @@ Just because it runs in a container doesnt mean its more protected.
 * Not good for syscall heavy workloads
 * No direct access to hardware
 
-### 7.2.2. Containers Calls Linux Kernel
+### 6.2.2. Containers Calls Linux Kernel
 #### Why even sandbox?
 **Contact the Linux Kernel from inside a container**
 
@@ -2419,7 +2419,7 @@ exit_group(0)                           = ?
 
 [See Dirty Cow](https://dirtycow.ninja/)
 
-### 7.2.3. Open Container Iniciative OCI
+### 6.2.3. Open Container Iniciative OCI
 #### OCI - Open Container Initiative
 * Open Container Initiative
 * Linux Foundation project to design open standards for virtualization
@@ -2435,7 +2435,7 @@ exit_group(0)                           = ?
 
 ![cks](images/17_container_runtime_oci_02.png)
 
-### 7.2.4. Sandbox Runtime Katacontainers
+### 6.2.4. Sandbox Runtime Katacontainers
 #### kata containers
 ![cks](images/17_container_runtime_katacontainers.png)
 
@@ -2444,7 +2444,7 @@ exit_group(0)                           = ?
 * QEMU as default
   * needs virtualization ,like nested virtualization in cloud
 
-### 7.2.5. Sandbox Runtime gVisor (Google)
+### 6.2.5. Sandbox Runtime gVisor (Google)
 **user-space kernel for containers**
 * Another layer of separation
 * NOT hypervisor/VM based
@@ -2454,7 +2454,7 @@ exit_group(0)                           = ?
 
 ![cks](images/17_container_runtime_gvisor.png)
 
-### 7.2.6. Create and use RuntimeClasses
+### 6.2.6. Create and use RuntimeClasses
 #### RuntimeClassess
 **Create and use RuntimeClasses form runtime runsc (gvisor)**
 
@@ -2495,7 +2495,7 @@ Events:
   Warning  FailedCreatePodSandBox  10s   kubelet            Failed to create pod sandbox: rpc error: code = Unknown desc = RuntimeHandler "runsc" not supported
 ```
 
-### 7.2.7. Install and use gVisor
+### 6.2.7. Install and use gVisor
 #### Install
 ```sh
 #!/usr/bin/env bash
@@ -2581,15 +2581,15 @@ NAME           STATUS   ROLES           AGE   VERSION   INTERNAL-IP   EXTERNAL-I
 controlplane   Ready    control-plane   22d   v1.24.0   172.30.1.2    <none>        Ubuntu 20.04.3 LTS   5.4.0-88-generic   containerd://1.5.9
 node01         Ready    <none>          22d   v1.24.0   172.30.2.2    <none>        Ubuntu 20.04.3 LTS   5.4.0-88-generic   containerd://1.5.9
 ```
-### 7.2.8. Recap
+### 6.2.8. Recap
 > https://www.youtube.com/watch?v=RyXL1zOa8Bw
 
 > https://www.youtube.com/watch?v=kxUZ4lVFuVo
 
 > https://www.youtube.com/watch?v=4gmLXyMeYWI
 
-## 7.3. OS Level Security
-### 7.3.1. Intro and Security Context
+## 6.3. OS Level Security
+### 6.3.1. Intro and Security Context
 #### Security Context
 **Define privilege and access control for Pod/Container**
 * userID and groupID
@@ -2617,7 +2617,7 @@ spec:
 
 > https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.25/#podsecuritycontext-v1-core
 
-### 7.3.2. Set container User and Group
+### 6.3.2. Set container User and Group
 #### security Contexts & UID GID
 **Change the user and group under which the container processes are running**
 
@@ -2699,7 +2699,7 @@ touch: test: Permission denied
 -rw-r--r--    1 1000     3000           0 Nov 10 13:00 test
 ```
 
-### 7.3.3. Force container non-root
+### 6.3.3. Force container non-root
 ```yaml
 apiVersion: v1
 kind: Pod
@@ -2738,7 +2738,7 @@ Events:
   Warning  Failed     5s (x2 over 7s)  kubelet            Error: container has runAsNonRoot and image will run as root (pod: "pod_default(acdd0e9e-e7eb-483d-abdc-586db8c5dafe)", container: pod)
 ```
 
-### 7.3.4. Privileged Containers
+### 6.3.4. Privileged Containers
 * By default Docker containers run "unprivileged"
 * Possible to run as privileged to
   * Access all devices
@@ -2763,7 +2763,7 @@ spec:
       privileged: true
 ```
 
-### 7.3.5. Created Privileged Containers
+### 6.3.5. Created Privileged Containers
 **Enabled privileged and test using sysctl**
 ```yaml
 apiVersion: v1
@@ -2828,7 +2828,7 @@ $ kubectl exec -it pod -- sh
 kernel.hostname = attacker
 ```
 
-### 7.3.6. PrivilegeScalation
+### 6.3.6. PrivilegeScalation
 ```yaml
 spec:
   securityContext:
@@ -2850,7 +2850,7 @@ spec:
 * **PrivilegeEscalation** controls whether a process can gain more privileges than its parent process.
 * **Privileged** means that container user 0 (root) is directly mapped to host user 0 (root).
 
-### 7.3.7. Disable PrivilegeScalation
+### 6.3.7. Disable PrivilegeScalation
 ```yaml
 apiVersion: v1
 kind: Pod
@@ -2917,7 +2917,7 @@ NoNewPrivs:	1
 ...
 ```
 
-### 7.3.8. PodSecurityPolicies
+### 6.3.8. PodSecurityPolicies
 #### Pod Security Policies
 * Cluster-level resource
 * Constrols under which security conditions a Pod has to run
@@ -2934,17 +2934,17 @@ containers:
 
 > https://kubernetes.io/docs/concepts/security/pod-security-admission/
 
-### 7.3.9. Create and enable PodSecurityPolicies
-### 7.3.10. Recap
+### 6.3.9. Create and enable PodSecurityPolicies
+### 6.3.10. Recap
 
-## 7.4. mTLS
-### 7.4.1. Intro
+## 6.4. mTLS
+### 6.4.1. Intro
 #### mTLS - Mutual TLS
 * Mutual authentication
 * Two-way (bilateral) authentication
 * Two parties authenticating each other at the same time
 
-### 7.4.2. Create sidecar proxy
+### 6.4.2. Create sidecar proxy
 ```yaml
 apiVersion: v1
 kind: Pod
@@ -3065,7 +3065,7 @@ Chain OUTPUT (policy ACCEPT)
 target     prot opt source               destination 
 ```
 
-### 7.4.3. Recap
+### 6.4.3. Recap
 
 
 
