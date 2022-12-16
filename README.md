@@ -2407,7 +2407,7 @@ exit_group(0)                           = ?
 +++ exited with 0 +++
 ```
 
-[See Dirty Cow](https://dirtycow.ninja/)
+> https://dirtycow.ninja/
 
 ### 6.2.3. Open Container Iniciative OCI
 #### OCI - Open Container Initiative
