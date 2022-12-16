@@ -108,7 +108,6 @@
     - [4.5.4. Recap](#454-recap)
   - [4.6. Verify Platform Binaries](#46-verify-platform-binaries)
     - [4.6.1. Verify apiserver binary running in our cluster](#461-verify-apiserver-binary-running-in-our-cluster)
-    - [4.6.4. Recap](#464-recap)
 - [5. Cluster Hardening](#5-cluster-hardening)
   - [5.1. RBAC](#51-rbac)
     - [5.1.1. Intro](#511-intro)
@@ -1524,9 +1523,6 @@ c0826f1dbb94c224b888e7caba035a187e0dbd1bf23a57042eca99633fdf7aa9f0f1663745307b09
 $ sha512sum /proc/26579/root/usr/local/bin/kube-apiserver
 c0826f1dbb94c224b888e7caba035a187e0dbd1bf23a57042eca99633fdf7aa9f0f1663745307b096aada158c2421fadafdd480028291c21c0dca74876d2beaf  /proc/26579/root/usr/local/bin/kube-apiserver
 ```
-### 4.6.4. Recap
-
-
 
 # 5. Cluster Hardening
 ## 5.1. RBAC
@@ -1571,11 +1567,11 @@ $ kubectl api-resources --namespaced=false
 ![cks](images/12_intro_rbac_clusterrole.png)
 
 #### RoleBinding
-![cks](images/12_intro_rbac_rolebinding.png)
+![cks](images/12_intro_rolebinding.png)
 ![cks](images/12_intro_rbac_role_02.png)
 
 #### ClusterRoleBinding
-![cks](images/12_intro_rbac_clusterrolebinding.png)
+![cks](images/12_intro_clusterrolebinding.png)
 ![cks](images/12_intro_rbac_clusterrole_01.png)
 
 ### 5.1.2. Role and Rolebinding
