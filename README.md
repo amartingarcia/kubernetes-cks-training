@@ -1170,17 +1170,17 @@ Commercial support is available at
 * Uses connection as configured in the kubeconfig
 * Allows to access API locally just over http and without authentication
 
-![cks](images/07_intro_kubectl_proxy.png)
+![cks](images/04_intro_kubectl_proxy.png)
 
 #### Kubectl port-forward
 * Forwards connections from a localhost-por to a pod-port
 * More generic than kubectl proxy
 * Can be used for all TCP traffic not just HTTP
 
-![cks](images/07_intro_kubectl_port-forward.png)
+![cks](images/04_intro_kubectl_port-forward.png)
 
 #### Ingress
-![cks](images/07_intro_ingress.png)
+![cks](images/04_intro_ingress.png)
 
 ### 4.2.2. Install Dashboard
 #### Deploy Dashboard
@@ -1283,7 +1283,7 @@ $ kubectl -n kubernetes-dashboard create clusterrolebinding insecure --serviceac
 ## 4.3. Secure Ingress
 ### 4.3.3. Create an Ingress
 #### Setup an example Ingress
-![cks](images/08_create_an_ingress.png)
+![cks](images/04_create_an_ingress.png)
 
 ```yaml
 apiVersion: networking.k8s.io/v1
@@ -1325,7 +1325,7 @@ https://github.com/killer-sh/cks-course-environment/tree/master/course-content/c
 > https://kubernetes.io/docs/concepts/services-networking/ingress
 
 ### 4.3.4. Secure an Ingress
-![cks](images/08_secure_an_ingress.png)
+![cks](images/04_secure_an_ingress.png)
 
 ```yaml
 apiVersion: networking.k8s.io/v1
@@ -1464,7 +1464,7 @@ $ kubectl label pod nginx role=metadata-accessor
 * Covering more than 14 technology groups
 * Developed through a unique consensus-based process comprised of cybersecurity professionals and subject matter experts around the world
 
-![cks](images/10_intro_cis.png)
+![cks](images/04_intro_cis.png)
 
 ### 4.5.2. CIS in action
 
@@ -1537,7 +1537,7 @@ Ordered list of plugins to do authorization on secure port. Comma-delimited list
 * Only access to data or information that is necessary for the legitimate purpose.
 
 #### RBAC- Namespaced Resources vs Cluster Resources
-![cks](images/12_intro_rbac.png)
+![cks](images/05_intro_rbac.png)
 
 ```sh
 # Print the supported namespaced resources
@@ -1547,23 +1547,23 @@ $ kubectl api-resources --namespaced=true
 $ kubectl api-resources --namespaced=false
 ```
 
-![cks](images/12_intro_rbac_01.png)
+![cks](images/05_intro_rbac_01.png)
 
 * Same Role name behaves different in different namespaces
 * User X can be secret-manager in multiple namespaces, but the permissions are different.
-![cks](images/12_intro_rbac_role.png)
+![cks](images/05_intro_rbac_role.png)
 
 * ClusterRole is the same across all namespaaces (cluster wide).
 * User X can be secret-m,anager in multiple namespaces, permissions are the same in each.
-![cks](images/12_intro_rbac_clusterrole.png)
+![cks](images/05_intro_rbac_clusterrole.png)
 
 #### RoleBinding
-![cks](images/12_intro_rolebinding.png)
-![cks](images/12_intro_rbac_role_02.png)
+![cks](images/05_intro_rolebinding.png)
+![cks](images/05_intro_rbac_role_02.png)
 
 #### ClusterRoleBinding
-![cks](images/12_intro_clusterrolebinding.png)
-![cks](images/12_intro_rbac_clusterrole_02.png)
+![cks](images/05_intro_clusterrolebinding.png)
+![cks](images/05_intro_rbac_clusterrole_02.png)
 
 ### 5.1.2. Role and Rolebinding
 ```sh
@@ -1612,7 +1612,7 @@ $ kubectl auth can-i delete deploy --as jim -n blue # no
 
 ```
 ### 5.1.4. Accounts and Users
-![cks](images/12_accounts_users.png)
+![cks](images/05_accounts_users.png)
 
 **ServiceAccount** is a resource managed by the k8s api
 **Normal User** is no k8s User resource. It is assumed that a cluster-indepedent service manages normal users.
@@ -1702,10 +1702,10 @@ $ kubectl auth can-i get secrets -n red # yes
 ## 5.2. Exercise caution in using ServiceAccounts
 ### 5.2.1. Intro
 #### Accounts
-![cks](images/13_sa_intro.png)
+![cks](images/05_sa_intro.png)
 
 #### ServiceAccounts and Pods
-![cks](images/13_sa_intro_01.png)
+![cks](images/05_sa_intro_01.png)
 
 ### 5.2.2. Pods uses custom ServiceAccount
 ```sh
@@ -1839,7 +1839,7 @@ yes
 ## 5.3. Restrict API Access
 ### 5.3.1. Intro
 #### Request workflow
-![cks](images/14_restrict_api_intro.png)
+![cks](images/05_restrict_api_intro.png)
 
 * API requests are always tied to
   * A normal user
@@ -1897,7 +1897,7 @@ $ curl -k https://192.168.49.2:8443
 > Since k8s 1.20 the insecure access is not longer posible. `kube-apiserver --insecure-port=8080`
 
 #### HTTP/HTTPS Access
-![cks](images/14_restrict_api_insecure_access.png)
+![cks](images/05_restrict_api_insecure_access.png)
 
 #### Insecure Access
 * kube-apiserver `--insecure-port=8080` (default: `--insecure-port=0`)
@@ -1940,7 +1940,7 @@ $ curl -k https://192.168.49.2:8443 \
 ```
 
 ### 5.3.5. NodeRestriction AdmissionController
-![cks](images/14_restrict_api_adm_contr.png)
+![cks](images/05_restrict_api_adm_contr.png)
 
 #### NodeRestriction
 * **Admision Controller**
@@ -2348,7 +2348,7 @@ k8s:enc:aesgcm:v1:key1:Li&?ųw!lSV2      ~(n4h͊ЗwyP"`;yQZ2=Jtet`%=qĕ@qӦss
 Just because it runs in a container doesnt mean its more protected.
 
 #### Technical Overview: Containers/Docker
-![cks](images/17_container_runtime_intro.png)
+![cks](images/06_container_runtime_intro.png)
 
 #### Technical Overview: Sandbox
 
@@ -2359,7 +2359,7 @@ Just because it runs in a container doesnt mean its more protected.
 * When we talk about sandbox means **Security layer to reduce attack surface**
 
 #### Technical Overview: Containers and system calls
-![cks](images/17_container_runtime_intro_01.png)
+![cks](images/06_container_runtime_intro_01.png)
 
 #### Technical Overview: Sandbox comes not for free
 * More resources needed
@@ -2411,16 +2411,16 @@ exit_group(0)                           = ?
 * **Runtime**
   * runc (container runtime that implements their specification)
 
-![cks](images/17_container_runtime_oci.png)
+![cks](images/06_container_runtime_oci.png)
 
 #### Kubernetes runtimes and CRI (Container Runtime Interface)
-![cks](images/17_container_runtime_oci_01.png)
+![cks](images/06_container_runtime_oci_01.png)
 
-![cks](images/17_container_runtime_oci_02.png)
+![cks](images/06_container_runtime_oci_02.png)
 
 ### 6.2.4. Sandbox Runtime Katacontainers
 #### kata containers
-![cks](images/17_container_runtime_katacontainers.png)
+![cks](images/06_container_runtime_katacontainers.png)
 
 * Strong separation layer
 * Runs every container in its own private VM (Hypervisor based)
@@ -2435,7 +2435,7 @@ exit_group(0)                           = ?
 * Runs in userspace separated from linux kernel
 * Runtime called **runsc**
 
-![cks](images/17_container_runtime_gvisor.png)
+![cks](images/06_container_runtime_gvisor.png)
 
 ### 6.2.6. Create and use RuntimeClasses
 #### RuntimeClassess
@@ -3480,7 +3480,7 @@ CMD ["./app"]
 **Pods should never use the default ServiceAccount** (Generally: dont store sensitive data plain in K8s/Docker files)
 
 #### Static Analysis in CI/CD
-![cks](images/22_static_analysis_intro.png)
+![cks](images/08_static_analysis_intro.png)
 
 #### Manual Check
 ##### Insecure
@@ -3815,7 +3815,7 @@ FAIL - Dockerfile - commands - unallowed commands found ["apt-get update && apt-
 ### 8.3.1. Introduction
 **Webservers or other apps can contain vulnerabilities** (Buffer overflows)
 
-![cks](images/23_image_vulnerability_intro.png)
+![cks](images/08_image_vulnerability_intro.png)
 
 #### Known Image Vulnerabilities
 **Databases**
@@ -4074,7 +4074,7 @@ Error from server ([pod-trusted-images] not trusted image!): admission webhook "
 ```
 
 ### 8.4.4. ImagePolicyWebhook
-![cks](images/24_secure_supply_chain_imagepolicy.png)
+![cks](images/08_secure_supply_chain_imagepolicy.png)
 
 ```json
 {
@@ -4176,7 +4176,7 @@ https://github.com/flavio/kube-image-bouncer
 ## 9.1. Behavioral Analytics at host and ...
 ### 9.1.1. Introduction
 #### Kernel vs User Space
-![cks](images/25_behaviorial%20analytics_intro.png)
+![cks](images/09_behaviorial%20analytics_intro.png)
 
 > https://man7.org/linux/man-pages/man2/syscalls.2.html
 
@@ -4620,23 +4620,23 @@ $ falco
 ## 9.2. Inmutability of containers at runtime
 ### 9.2.1. Introduction
 #### Inmutability
-![cks](images/26_immutability_intro.png)
+![cks](images/09_immutability_intro.png)
 
 ### 9.2.2. Ways to enforce immutability
 #### Enforce on Container Image Level
-![cks](images/26_immutability_enforce.png)
+![cks](images/09_immutability_enforce.png)
 
 #### Make manual changes to container - Command ?
-![cks](images/26_immutability_enforce_02.png)
+![cks](images/09_immutability_enforce_02.png)
 
 #### Make manual changes to container - StartupProbe ?
-![cks](images/26_immutability_enforce_03.png)
+![cks](images/09_immutability_enforce_03.png)
 
 #### Enforce Read-Only Root Filesystem
 Enforce Read-Only root filesystem using **SecurityContexts** and **PodSecurityPolicies**
 
 #### Move logic to InitContainer ?
-![cks](images/26_immutability_enforce_04.png)
+![cks](images/09_immutability_enforce_04.png)
 
 ### 9.2.3. StartupProbe changes container
 #### StartupProbe for Immutability
@@ -4825,13 +4825,13 @@ With RBAC it should be ensured that only certain people can even edit pod specs
 ## 9.3. Auditing
 ### 9.3.1. Introduction
 #### Audit Logs - Introduction
-![cks](images/27_auditing_intro.png)
+![cks](images/09_auditing_intro.png)
 
 * Did someone access an important secret while it was not protected?
 * When was the last time that user X did access cluster Y?
 * Does my CRD work properly?
 
-![cks](images/27_auditing_intro_02.png)
+![cks](images/09_auditing_intro_02.png)
 
 #### API Request Stages
 Each request can be recorded with an associated "stage". The known stages are:
@@ -4841,7 +4841,7 @@ Each request can be recorded with an associated "stage". The known stages are:
 * `Panic` - Events generated when a panic ocurred.
 
 #### Audit Policy - Waht data to store?
-![cks](images/27_auditing_intro_03.png)
+![cks](images/09_auditing_intro_03.png)
 
 **Wath events should be recorded and wath data should these contain?**
 
@@ -4880,10 +4880,10 @@ rules:
 ```
 
 #### Audit Backends - Where to store all that data?
-![cks](images/27_auditing_intro_04.png)
+![cks](images/09_auditing_intro_04.png)
 
 #### Audit Logs - Overview
-![cks](images/27_auditing_intro_05.png)
+![cks](images/09_auditing_intro_05.png)
 
 ### 9.3.2. Enable Auditing Logging in Apiserver
 #### Setup Audit Logs
@@ -4936,7 +4936,7 @@ $ tail -f audit.log
 $ kubectl create secret generic very-secure --from-literal=user=admin
 ```
 
-![cks](images/27_auditing_secret.png)
+![cks](images/09_auditing_secret.png)
 
 ### 9.3.4. Create advanced Audit Policy
 **We want to restrict logged data with an Audit Policy**
@@ -4969,7 +4969,7 @@ rules:
 - level: RequestResponse
 ```
 
-![cks](images/27_auditing_advanced.png)
+![cks](images/09_auditing_advanced.png)
 
 ### 9.3.5. Recap
 > https://www.youtube.com/watch?v=HXtLTxo30SY
@@ -4979,17 +4979,17 @@ rules:
 ## 10.1. Kernel Hardening Tools
 ### 10.1.1. Introduction
 #### Linux Kernel Isolation
-![cks](images/28_hardening_intro.png)
+![cks](images/10_hardening_intro.png)
 
 #### Kernel vs User Space
-![cks](images/28_hardening_intro_02.png)
+![cks](images/10_hardening_intro_02.png)
 #### Overview
-![cks](images/28_hardening_intro_03.png)
+![cks](images/10_hardening_intro_03.png)
 
 ### 10.1.2. AppArmor
 #### AppArmor
-![cks](images/28_hardening_apparmor.png)
-![cks](images/28_hardening_apparmor_02.png)
+![cks](images/10_hardening_apparmor.png)
+![cks](images/10_hardening_apparmor_02.png)
 
 #### Main Commands
 ```sh
@@ -5227,7 +5227,7 @@ sh: 3: sh: Permission denied
 * AppArmor profiles are **specified per container**
   * done using annotations
 
-![cks](images/28_hardening_apparmor_kubernetes.png)
+![cks](images/10_hardening_apparmor_kubernetes.png)
 
 ```yaml
 apiVersion: v1
@@ -5305,8 +5305,8 @@ bash: /bin/sh: Permission denied
 * Security facility in the Linux Kernel
 * Restricts execution of syscalls
 
-![cks](images/28_hardening_seccomp.png)
-![cks](images/28_hardening_seccomp_02.png)
+![cks](images/10_hardening_seccomp.png)
+![cks](images/10_hardening_seccomp_02.png)
 
 ### 10.1.7. Seccomp for Docker Nginx
 ### 10.1.8. Seccomp for Kubernetes Nginx
@@ -5343,7 +5343,7 @@ status: {}
 ## 10.2. Reduce Attack Surface
 ### 10.2.1. Introduction
 #### Overview
-![cks](images/29_reduce_attack_surface_intro.png)
+![cks](images/10_reduce_attack_surface_intro.png)
 
 #### Nodes that run Kubernetes
 * Only purpose: run Kubernetes components
@@ -5360,19 +5360,19 @@ status: {}
 
 #### Open Ports
 `netstat` (Red Hat: ssh command)
-![cks](images/29_reduce_attack_surface_intro_02.png)
+![cks](images/10_reduce_attack_surface_intro_02.png)
 
 #### Port used by which application?
 `netstat` or `lsfot`
-![cks](images/29_reduce_attack_surface_intro_03.png)
+![cks](images/10_reduce_attack_surface_intro_03.png)
 
 #### Running Services
 `systemctl`
-![cks](images/29_reduce_attack_surface_intro_04.png)
+![cks](images/10_reduce_attack_surface_intro_04.png)
 
 #### Processes and Users
 `ps`
-![cks](images/29_reduce_attack_surface_intro_05.png)
+![cks](images/10_reduce_attack_surface_intro_05.png)
 
 ### 10.2.2. Systemctl and Services
 **Disable Service Snapd via systemctl**
