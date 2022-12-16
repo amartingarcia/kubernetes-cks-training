@@ -234,111 +234,111 @@
   - [7.5. Enforce Deployment Replica](#75-enforce-deployment-replica)
   - [7.6. The Rego Playground and more examples](#76-the-rego-playground-and-more-examples)
   - [7.7. Recap](#77-recap)
-- [9. Supply Chain Security](#9-supply-chain-security)
-  - [9.1. Image footprint](#91-image-footprint)
-    - [9.1.1. Introduction](#911-introduction)
+- [8. Supply Chain Security](#8-supply-chain-security)
+  - [8.1. Image footprint](#81-image-footprint)
+    - [8.1.1. Introduction](#811-introduction)
       - [Containers and Docker - Layers](#containers-and-docker---layers)
-    - [9.1.2. Reduce image Footprint with Multi-Stage](#912-reduce-image-footprint-with-multi-stage)
+    - [8.1.2. Reduce image Footprint with Multi-Stage](#812-reduce-image-footprint-with-multi-stage)
       - [Build image with app code](#build-image-with-app-code)
       - [Show size](#show-size)
       - [Rebuild](#rebuild)
       - [Show size](#show-size-1)
-    - [9.1.3. Secure and Harden images](#913-secure-and-harden-images)
+    - [8.1.3. Secure and Harden images](#813-secure-and-harden-images)
       - [Use specifig package version](#use-specifig-package-version)
       - [Dont run as root](#dont-run-as-root)
       - [Make filesystem read only](#make-filesystem-read-only)
       - [Remove shell access](#remove-shell-access)
-    - [9.1.4. Recap](#914-recap)
-  - [9.2. Static Analysis](#92-static-analysis)
-    - [9.2.1. Introduction](#921-introduction)
+    - [8.1.4. Recap](#814-recap)
+  - [8.2. Static Analysis](#82-static-analysis)
+    - [8.2.1. Introduction](#821-introduction)
       - [Static Analysis](#static-analysis)
       - [Static Analysis Rules](#static-analysis-rules)
       - [Static Analysis in CI/CD](#static-analysis-in-cicd)
       - [Manual Check](#manual-check)
         - [Insecure](#insecure)
         - [Secure](#secure)
-    - [9.2.2. Kubesec](#922-kubesec)
-    - [9.2.3. Practice Kubesec](#923-practice-kubesec)
-    - [9.2.4. OPA Conftest](#924-opa-conftest)
-    - [9.2.5. OPA Conftest for K8s YAML](#925-opa-conftest-for-k8s-yaml)
+    - [8.2.2. Kubesec](#822-kubesec)
+    - [8.2.3. Practice Kubesec](#823-practice-kubesec)
+    - [8.2.4. OPA Conftest](#824-opa-conftest)
+    - [8.2.5. OPA Conftest for K8s YAML](#825-opa-conftest-for-k8s-yaml)
       - [Fixed](#fixed)
-    - [9.2.6. OPA Conftest for Dockerfile](#926-opa-conftest-for-dockerfile)
-    - [9.2.7. Recap](#927-recap)
-  - [9.3. Image Vulnerability Scanning](#93-image-vulnerability-scanning)
-    - [9.3.1. Introduction](#931-introduction)
+    - [8.2.6. OPA Conftest for Dockerfile](#826-opa-conftest-for-dockerfile)
+    - [8.2.7. Recap](#827-recap)
+  - [8.3. Image Vulnerability Scanning](#83-image-vulnerability-scanning)
+    - [8.3.1. Introduction](#831-introduction)
       - [Known Image Vulnerabilities](#known-image-vulnerabilities)
-    - [9.3.2. Clair and Trivy](#932-clair-and-trivy)
+    - [8.3.2. Clair and Trivy](#832-clair-and-trivy)
       - [Clair](#clair)
       - [Trivy](#trivy)
-    - [9.3.3. Use Trivy to scan images](#933-use-trivy-to-scan-images)
-    - [9.3.4. Recap](#934-recap)
-  - [9.4. Secure Supply Chain](#94-secure-supply-chain)
-    - [9.4.1. Introduction](#941-introduction)
+    - [8.3.3. Use Trivy to scan images](#833-use-trivy-to-scan-images)
+    - [8.3.4. Recap](#834-recap)
+  - [8.4. Secure Supply Chain](#84-secure-supply-chain)
+    - [8.4.1. Introduction](#841-introduction)
       - [K8s and Container Registries](#k8s-and-container-registries)
-    - [9.4.2. Image Digest](#942-image-digest)
-    - [9.4.3. Whitelist Registries with OPA](#943-whitelist-registries-with-opa)
-    - [9.4.4. ImagePolicyWebhook](#944-imagepolicywebhook)
-    - [9.4.5. Practice ImagePolicyWebhook](#945-practice-imagepolicywebhook)
-    - [9.4.6. Recap](#946-recap)
-- [10. Runtime Security](#10-runtime-security)
-  - [10.1. Behavioral Analytics at host and ...](#101-behavioral-analytics-at-host-and-)
-    - [10.1.1. Introduction](#1011-introduction)
+    - [8.4.2. Image Digest](#842-image-digest)
+    - [8.4.3. Whitelist Registries with OPA](#843-whitelist-registries-with-opa)
+    - [8.4.4. ImagePolicyWebhook](#844-imagepolicywebhook)
+    - [8.4.5. Practice ImagePolicyWebhook](#845-practice-imagepolicywebhook)
+    - [8.4.6. Recap](#846-recap)
+- [9. Runtime Security](#9-runtime-security)
+  - [9.1. Behavioral Analytics at host and ...](#91-behavioral-analytics-at-host-and-)
+    - [9.1.1. Introduction](#911-introduction)
       - [Kernel vs User Space](#kernel-vs-user-space)
-    - [10.1.2. Strace](#1012-strace)
+    - [9.1.2. Strace](#912-strace)
       - [strace: show syscalls](#strace-show-syscalls)
-    - [10.1.3. Strace and /proc on ETCD](#1013-strace-and-proc-on-etcd)
+    - [9.1.3. Strace and /proc on ETCD](#913-strace-and-proc-on-etcd)
       - [/prod directory](#prod-directory)
       - [strace and /proc: etcd](#strace-and-proc-etcd)
-    - [10.1.4. /proc and env variables](#1014-proc-and-env-variables)
-    - [10.1.5. Falco and Installation](#1015-falco-and-installation)
+    - [9.1.4. /proc and env variables](#914-proc-and-env-variables)
+    - [9.1.5. Falco and Installation](#915-falco-and-installation)
       - [Falco](#falco)
-    - [10.1.7. Investigate Falco rules](#1017-investigate-falco-rules)
-    - [10.1.8. Change Falco rule](#1018-change-falco-rule)
-    - [10.1.9. Recap](#1019-recap)
-  - [10.2. Inmutability of containers at runtime](#102-inmutability-of-containers-at-runtime)
-    - [10.2.1. Introduction](#1021-introduction)
+    - [9.1.7. Investigate Falco rules](#917-investigate-falco-rules)
+    - [9.1.8. Change Falco rule](#918-change-falco-rule)
+    - [9.1.9. Recap](#919-recap)
+  - [9.2. Inmutability of containers at runtime](#92-inmutability-of-containers-at-runtime)
+    - [9.2.1. Introduction](#921-introduction)
       - [Inmutability](#inmutability)
-    - [10.2.2. Ways to enforce immutability](#1022-ways-to-enforce-immutability)
+    - [9.2.2. Ways to enforce immutability](#922-ways-to-enforce-immutability)
       - [Enforce on Container Image Level](#enforce-on-container-image-level)
       - [Make manual changes to container - Command ?](#make-manual-changes-to-container---command-)
       - [Make manual changes to container - StartupProbe ?](#make-manual-changes-to-container---startupprobe-)
       - [Enforce Read-Only Root Filesystem](#enforce-read-only-root-filesystem)
       - [Move logic to InitContainer ?](#move-logic-to-initcontainer-)
-    - [10.2.3. StartupProbe changes container](#1023-startupprobe-changes-container)
+    - [9.2.3. StartupProbe changes container](#923-startupprobe-changes-container)
       - [StartupProbe for Immutability](#startupprobe-for-immutability)
-    - [10.2.4. SecurityContext renders container immutable](#1024-securitycontext-renders-container-immutable)
+    - [9.2.4. SecurityContext renders container immutable](#924-securitycontext-renders-container-immutable)
       - [Enforce RO-filesystem](#enforce-ro-filesystem)
-    - [10.2.5. Recap](#1025-recap)
-  - [10.3. Auditing](#103-auditing)
-    - [10.3.1. Introduction](#1031-introduction)
+    - [9.2.5. Recap](#925-recap)
+  - [9.3. Auditing](#93-auditing)
+    - [9.3.1. Introduction](#931-introduction)
       - [Audit Logs - Introduction](#audit-logs---introduction)
       - [API Request Stages](#api-request-stages)
       - [Audit Policy - Waht data to store?](#audit-policy---waht-data-to-store)
       - [Audit Backends - Where to store all that data?](#audit-backends---where-to-store-all-that-data)
       - [Audit Logs - Overview](#audit-logs---overview)
-    - [10.3.2. Enable Auditing Logging in Apiserver](#1032-enable-auditing-logging-in-apiserver)
+    - [9.3.2. Enable Auditing Logging in Apiserver](#932-enable-auditing-logging-in-apiserver)
       - [Setup Audit Logs](#setup-audit-logs)
-    - [10.3.3. Create Secret and check Audit Logs](#1033-create-secret-and-check-audit-logs)
-    - [10.3.4. Create advanced Audit Policy](#1034-create-advanced-audit-policy)
-    - [10.3.5. Recap](#1035-recap)
-- [11. System Hardening](#11-system-hardening)
-  - [11.1. Kernel Hardening Tools](#111-kernel-hardening-tools)
-    - [11.1.1. Introduction](#1111-introduction)
+    - [9.3.3. Create Secret and check Audit Logs](#933-create-secret-and-check-audit-logs)
+    - [9.3.4. Create advanced Audit Policy](#934-create-advanced-audit-policy)
+    - [9.3.5. Recap](#935-recap)
+- [10. System Hardening](#10-system-hardening)
+  - [10.1. Kernel Hardening Tools](#101-kernel-hardening-tools)
+    - [10.1.1. Introduction](#1011-introduction)
       - [Linux Kernel Isolation](#linux-kernel-isolation)
       - [Kernel vs User Space](#kernel-vs-user-space-1)
       - [Overview](#overview)
-    - [11.1.2. AppArmor](#1112-apparmor)
+    - [10.1.2. AppArmor](#1012-apparmor)
       - [AppArmor](#apparmor)
       - [Main Commands](#main-commands)
-    - [11.1.3. AppArmor for curl](#1113-apparmor-for-curl)
-    - [11.1.4. AppArmor for Docker Nginx](#1114-apparmor-for-docker-nginx)
-    - [11.1.5. AppArmor for Kubernetes Nginx](#1115-apparmor-for-kubernetes-nginx)
-    - [11.1.6. Seccomp](#1116-seccomp)
-    - [11.1.7. Seccomp for Docker Nginx](#1117-seccomp-for-docker-nginx)
-    - [11.1.8. Seccomp for Kubernetes Nginx](#1118-seccomp-for-kubernetes-nginx)
-    - [11.1.9. Recap](#1119-recap)
-  - [11.2. Reduce Attack Surface](#112-reduce-attack-surface)
-    - [11.2.1. Introduction](#1121-introduction)
+    - [10.1.3. AppArmor for curl](#1013-apparmor-for-curl)
+    - [10.1.4. AppArmor for Docker Nginx](#1014-apparmor-for-docker-nginx)
+    - [10.1.5. AppArmor for Kubernetes Nginx](#1015-apparmor-for-kubernetes-nginx)
+    - [10.1.6. Seccomp](#1016-seccomp)
+    - [10.1.7. Seccomp for Docker Nginx](#1017-seccomp-for-docker-nginx)
+    - [10.1.8. Seccomp for Kubernetes Nginx](#1018-seccomp-for-kubernetes-nginx)
+    - [10.1.9. Recap](#1019-recap)
+  - [10.2. Reduce Attack Surface](#102-reduce-attack-surface)
+    - [10.2.1. Introduction](#1021-introduction)
       - [Overview](#overview-1)
       - [Nodes that run Kubernetes](#nodes-that-run-kubernetes)
       - [Linux Distributions](#linux-distributions)
@@ -346,11 +346,11 @@
       - [Port used by which application?](#port-used-by-which-application)
       - [Running Services](#running-services)
       - [Processes and Users](#processes-and-users)
-    - [11.2.2. Systemctl and Services](#1122-systemctl-and-services)
-    - [11.2.3. Install and investigate Services](#1123-install-and-investigate-services)
-    - [11.2.4. Disabled application listening on port](#1124-disabled-application-listening-on-port)
-    - [11.2.5. Investigate Linux Users](#1125-investigate-linux-users)
-    - [11.2.6. Recap](#1126-recap)
+    - [10.2.2. Systemctl and Services](#1022-systemctl-and-services)
+    - [10.2.3. Install and investigate Services](#1023-install-and-investigate-services)
+    - [10.2.4. Disabled application listening on port](#1024-disabled-application-listening-on-port)
+    - [10.2.5. Investigate Linux Users](#1025-investigate-linux-users)
+    - [10.2.6. Recap](#1026-recap)
 - [12. Linux Foundation Simulator Sessions](#12-linux-foundation-simulator-sessions)
 
 # 1. Introduction
@@ -3329,9 +3329,9 @@ error: failed to create deployment: admission webhook "validation.gatekeeper.sh"
 > https://www.youtube.com/watch?v=RDWndems-sk
 
 
-# 9. Supply Chain Security
-## 9.1. Image footprint
-### 9.1.1. Introduction
+# 8. Supply Chain Security
+## 8.1. Image footprint
+### 8.1.1. Introduction
 #### Containers and Docker - Layers
 ```sh
 FROM ubuntu # Import layers
@@ -3341,7 +3341,7 @@ CMD ["sh"]
 
 > Only the instructions RUN, COPY, ADD create layers. Other instrucctions create temporary intermediante images, and do not increase the size of the build.
 
-### 9.1.2. Reduce image Footprint with Multi-Stage
+### 8.1.2. Reduce image Footprint with Multi-Stage
 **We look at an example Golang Dockerfile and reduce the image footprint via Multi-Stage build**
 
 #### Build image with app code
@@ -3423,7 +3423,7 @@ docker image ls | grep app
 app                                                                latest              399a853a78bc   9 seconds ago   7.41MB
 ```
 
-### 9.1.3. Secure and Harden images
+### 8.1.3. Secure and Harden images
 #### Use specifig package version
 ```sh
 FROM ubuntu
@@ -3487,11 +3487,11 @@ USER appuser
 CMD ["./app"]
 ```
 
-### 9.1.4. Recap
+### 8.1.4. Recap
 > https://docs.docker.com/develop/develop-images/dockerfile_best-practices
 
-## 9.2. Static Analysis
-### 9.2.1. Introduction
+## 8.2. Static Analysis
+### 8.2.1. Introduction
 #### Static Analysis
 * Looks at source code and text files
 * check against rules
@@ -3575,7 +3575,7 @@ spec:
   restartPolicy: Always
 ```
 
-### 9.2.2. Kubesec
+### 8.2.2. Kubesec
 * Security risk analysis for Kubernetes resources
 * Opensource
 * Opinionated! Fixed set of rules (Security Best Practices)
@@ -3585,7 +3585,7 @@ spec:
   * Kubectl plugin
   * Admission Controller (kubesec-webhook)
 
-### 9.2.3. Practice Kubesec
+### 8.2.3. Practice Kubesec
 **We use Kubesec to perform static analysis**
 Using the kubesec public docker image
 
@@ -3671,7 +3671,7 @@ docker run -i kubesec/kubesec:512c5e0 scan /dev/stdin < pod.yaml
 ]
 ```
 
-### 9.2.4. OPA Conftest
+### 8.2.4. OPA Conftest
 * OPA = Open Policy Agent
 * Unit test framework for Kubernetes configurations
 * Uses Rego lenguage
@@ -3685,7 +3685,7 @@ deny[msg] {
 }
 ```
 
-### 9.2.5. OPA Conftest for K8s YAML
+### 8.2.5. OPA Conftest for K8s YAML
 **Use conftest to check a k8s example**
 ```
 # from https://www.conftest.dev
@@ -3776,7 +3776,7 @@ $ docker run --rm -v $(pwd):/project openpolicyagent/conftest test deploy.yaml
 2 tests, 2 passed, 0 warnings, 0 failures, 0 exceptions
 ```
 
-### 9.2.6. OPA Conftest for Dockerfile
+### 8.2.6. OPA Conftest for Dockerfile
 ```sh
 FROM ubuntu
 ARG DEBIAN_FRONTEND=noninteractive
@@ -3833,10 +3833,10 @@ FAIL - Dockerfile - commands - unallowed commands found ["apt-get update && apt-
 2 tests, 0 passed, 0 warnings, 2 failures, 0 exceptions
 ```
 
-### 9.2.7. Recap
+### 8.2.7. Recap
 
-## 9.3. Image Vulnerability Scanning
-### 9.3.1. Introduction
+## 8.3. Image Vulnerability Scanning
+### 8.3.1. Introduction
 **Webservers or other apps can contain vulnerabilities** (Buffer overflows)
 
 ![cks](images/23_image_vulnerability_intro.png)
@@ -3850,7 +3850,7 @@ FAIL - Dockerfile - commands - unallowed commands found ["apt-get update && apt-
 * Check during build
 * Check at runtime
 
-### 9.3.2. Clair and Trivy
+### 8.3.2. Clair and Trivy
 #### Clair
 * Open source project
 * Static analysis of vulnerabilities in application containers
@@ -3862,7 +3862,7 @@ FAIL - Dockerfile - commands - unallowed commands found ["apt-get update && apt-
 * "A simple and Comprehensive Vulnerability Scanner for Containers and other Artifacts, Suitable for CI"
 * Simple, Easy and Fast
 
-### 9.3.3. Use Trivy to scan images
+### 8.3.3. Use Trivy to scan images
 ```sh
 $ docker run ghcr.io/aquasecurity/trivy:latest image nginx:latest
 Unable to find image 'ghcr.io/aquasecurity/trivy:latest' locally
@@ -3892,10 +3892,10 @@ Status: Downloaded newer image for ghcr.io/aquasecurity/trivy:latest
 ```
 > https://github.com/aquasecurity/trivy#docker
 
-### 9.3.4. Recap
+### 8.3.4. Recap
 
-## 9.4. Secure Supply Chain
-### 9.4.1. Introduction
+## 8.4. Secure Supply Chain
+### 8.4.1. Introduction
 #### K8s and Container Registries
 **Private registry with Docker**
 
@@ -3930,7 +3930,7 @@ $ kubectl patch serviceaccount default -p '{"imagePullSecrets": [{"name": "my-pr
 serviceaccount/default patched
 ```
 
-### 9.4.2. Image Digest
+### 8.4.2. Image Digest
 **List all image registries used in the whole cluster**
 **Use Image digest for kube-apiserver**
 
@@ -3981,7 +3981,7 @@ $ kubectl -n kube-system get pod | grep api
 kube-apiserver-cks   1/1   Running  0  1m
 ```
 
-### 9.4.3. Whitelist Registries with OPA
+### 8.4.3. Whitelist Registries with OPA
 **Whitelist some registries using OPA**
 Only images from docker.io and k8s.gcr.io can be used
 
@@ -4098,7 +4098,7 @@ $ kubectl run nginx --image=nginx
 Error from server ([pod-trusted-images] not trusted image!): admission webhook "validation.gatekeeper.sh" denied the request: [pod-trusted-images] not trusted image!
 ```
 
-### 9.4.4. ImagePolicyWebhook
+### 8.4.4. ImagePolicyWebhook
 ![cks](images/24_secure_supply_chain_imagepolicy.png)
 
 ```json
@@ -4122,7 +4122,7 @@ Error from server ([pod-trusted-images] not trusted image!): admission webhook "
 }
 ```
 
-### 9.4.5. Practice ImagePolicyWebhook
+### 8.4.5. Practice ImagePolicyWebhook
 **Investigate ImagePolicyWebhook**
 And use it up to the point where it calls an external service
 
@@ -4195,20 +4195,20 @@ cp -r cks-course-environment/course-content/supply-chain-security/secure-the-sup
 # example of an external service which can be used
 https://github.com/flavio/kube-image-bouncer
 ```
-### 9.4.6. Recap
+### 8.4.6. Recap
 
 
 
-# 10. Runtime Security
-## 10.1. Behavioral Analytics at host and ...
-### 10.1.1. Introduction
+# 9. Runtime Security
+## 9.1. Behavioral Analytics at host and ...
+### 9.1.1. Introduction
 #### Kernel vs User Space
 ![cks](images/25_behaviorial%20analytics_intro.png)
 
 > https://man7.org/linux/man-pages/man2/syscalls.2.html
 
 
-### 10.1.2. Strace
+### 9.1.2. Strace
 * Intercepts and logs system calls made by a process
 * Log and display signals received by a process
 * Diagnostic, Learning, Debugging
@@ -4340,7 +4340,7 @@ exit_group(0)                           = ?
 +++ exited with 0 +++
 ```
 
-### 10.1.3. Strace and /proc on ETCD
+### 9.1.3. Strace and /proc on ETCD
 #### /prod directory
 * Information and connections to processes and kernel
 * Study it to learn how processes work
@@ -4488,7 +4488,7 @@ Binary file (standard input) matches
 $ cat 10 | strings | grep 111122223333444
 111122223333444
 ```
-### 10.1.4. /proc and env variables
+### 9.1.4. /proc and env variables
 **Create Apache pod with a secret as environment variable**
 Read that secret from host filesystem
 
@@ -4535,7 +4535,7 @@ KUBERNETES_SERVICE_PORT=443KUBERNETES_PORT=tcp://10.96.0.1:443HTTPD_VERSION=2.4.
 
 **Secret as environment variables can be read from anyone who can access /proc on the host**
 
-### 10.1.5. Falco and Installation
+### 9.1.5. Falco and Installation
 #### Falco
 * Cloud-Native runtime security (CNCF)
 * **ACCESS**
@@ -4569,7 +4569,7 @@ drwxr-xr-x 2 root root   4096 Oct  1  2020 rules.d/
 > https://v1-16.docs.kubernetes.io/docs/tasks/debug-application-cluster/falco
 
 
-### 10.1.7. Investigate Falco rules
+### 9.1.7. Investigate Falco rules
 **Look at some existing Falco rules**
 ```sh
 $ cat /etc/falco/falco_rules.yaml
@@ -4602,7 +4602,7 @@ $ cat /etc/falco/k8s_audit_rules.yaml
 ...
 ```
 
-### 10.1.8. Change Falco rule
+### 9.1.8. Change Falco rule
 **Change Falco rule to get custom output format**
 Rule:             "A shell was spawned in a container with an attached terminal"
 Output Format:    TIME,USER-NAME,CONTAINER-NAME,CONTAINER-ID
@@ -4638,18 +4638,18 @@ $ falco
 
 >https://falco.org/docs/rules/supported-fields
 
-### 10.1.9. Recap
+### 9.1.9. Recap
 
 > https://www.youtube.com/watch?v=8g-NUUmCeGI
 > https://www.youtube.com/watch?v=8N8IpToYOGM
 
 
-## 10.2. Inmutability of containers at runtime
-### 10.2.1. Introduction
+## 9.2. Inmutability of containers at runtime
+### 9.2.1. Introduction
 #### Inmutability
 ![cks](images/26_immutability_intro.png)
 
-### 10.2.2. Ways to enforce immutability
+### 9.2.2. Ways to enforce immutability
 #### Enforce on Container Image Level
 ![cks](images/26_immutability_enforce.png)
 
@@ -4665,7 +4665,7 @@ Enforce Read-Only root filesystem using **SecurityContexts** and **PodSecurityPo
 #### Move logic to InitContainer ?
 ![cks](images/26_immutability_enforce_04.png)
 
-### 10.2.3. StartupProbe changes container
+### 9.2.3. StartupProbe changes container
 #### StartupProbe for Immutability
 **Use StartupProbe to remove** `touch` and `bash` **from container**
 
@@ -4761,7 +4761,7 @@ OCI runtime exec failed: exec failed: unable to start container process: exec: "
 command terminated with exit code 126
 ```
 
-### 10.2.4. SecurityContext renders container immutable
+### 9.2.4. SecurityContext renders container immutable
 #### Enforce RO-filesystem
 **Create Pod SecurityContext to make filesystem Read-Only**
 Ensure some directories are still writeable using emptyDir volume
@@ -4846,11 +4846,11 @@ httpd.pid  test
 docker run --read-only --tmpfs /run my-container
 ```
 
-### 10.2.5. Recap
+### 9.2.5. Recap
 With RBAC it should be ensured that only certain people can even edit pod specs
 
-## 10.3. Auditing
-### 10.3.1. Introduction
+## 9.3. Auditing
+### 9.3.1. Introduction
 #### Audit Logs - Introduction
 ![cks](images/27_auditing_intro.png)
 
@@ -4912,7 +4912,7 @@ rules:
 #### Audit Logs - Overview
 ![cks](images/27_auditing_intro_05.png)
 
-### 10.3.2. Enable Auditing Logging in Apiserver
+### 9.3.2. Enable Auditing Logging in Apiserver
 #### Setup Audit Logs
 **Configure apiserver to store Audit Logs in JSON format**
 ```sh
@@ -4957,7 +4957,7 @@ $ tail -f audit.log
 {"kind":"Event","apiVersion":"audit.k8s.io/v1","level":"Metadata","auditID":"158438ad-859c-43c7-8646-f33eb9dadbb1","stage":"ResponseComplete","requestURI":"/api/v1/namespaces/default/configmaps?fieldManager=kubectl-client-side-apply","verb":"create","user":{"username":"minikube-user","groups":["system:masters","system:authenticated"]},"sourceIPs":["192.168.59.1"],"userAgent":"kubectl/v1.23.5 (linux/amd64) kubernetes/c285e78","objectRef":{"resource":"configmaps","namespace":"default","name":"my-config","uid":"b4952dc3-d670-11e5-8cd0-68f728db1985","apiVersion":"v1"},"responseStatus":{"metadata":{},"code":201},"requestObject":{"kind":"ConfigMap","apiVersion":"v1","metadata":{"name":"my-config","namespace":"default","selfLink":"/api/v1/namespaces/default/configmaps/my-config","uid":"b4952dc3-d670-11e5-8cd0-68f728db1985","creationTimestamp":"2016-02-18T18:52:05Z","annotations":{"kubectl.kubernetes.io/last-applied-configuration":"{\"apiVersion\":\"v1\",\"data\":{\"access.properties\":\"aws_access_key_id = MY-ID\\naws_secret_access_key = MY-KEY\\n\",\"ui.properties\":\"color.good=purple\\ncolor.bad=yellow\\nallow.textmode=true\\n\"},\"kind\":\"ConfigMap\",\"metadata\":{\"annotations\":{},\"creationTimestamp\":\"2016-02-18T18:52:05Z\",\"name\":\"my-config\",\"namespace\":\"default\",\"resourceVersion\":\"516\",\"selfLink\":\"/api/v1/namespaces/default/configmaps/my-config\",\"uid\":\"b4952dc3-d670-11e5-8cd0-68f728db1985\"}}\n"}},"data":{"access.properties":"aws_access_key_id = MY-ID\naws_secret_access_key = MY-KEY\n","ui.properties":"color.good=purple\ncolor.bad=yellow\nallow.textmode=true\n"}},"responseObject":{"kind":"ConfigMap","apiVersion":"v1","metadata":{"name":"my-config","namespace":"default","uid":"8865fdb5-541d-4bc2-b6f7-dd1e6ff7db6b","resourceVersion":"4177","creationTimestamp":"2022-07-05T13:10:19Z","annotations":{"kubectl.kubernetes.io/last-applied-configuration":"{\"apiVersion\":\"v1\",\"data\":{\"access.properties\":\"aws_access_key_id = MY-ID\\naws_secret_access_key = MY-KEY\\n\",\"ui.properties\":\"color.good=purple\\ncolor.bad=yellow\\nallow.textmode=true\\n\"},\"kind\":\"ConfigMap\",\"metadata\":{\"annotations\":{},\"creationTimestamp\":\"2016-02-18T18:52:05Z\",\"name\":\"my-config\",\"namespace\":\"default\",\"resourceVersion\":\"516\",\"selfLink\":\"/api/v1/namespaces/default/configmaps/my-config\",\"uid\":\"b4952dc3-d670-11e5-8cd0-68f728db1985\"}}\n"},"managedFields":[{"manager":"kubectl-client-side-apply","operation":"Update","apiVersion":"v1","time":"2022-07-05T13:10:19Z","fieldsType":"FieldsV1","fieldsV1":{"f:data":{".":{},"f:access.properties":{},"f:ui.properties":{}},"f:metadata":{"f:annotations":{".":{},"f:kubectl.kubernetes.io/last-applied-configuration":{}}}}}]},"data":{"access.properties":"aws_access_key_id = MY-ID\naws_secret_access_key = MY-KEY\n","ui.properties":"color.good=purple\ncolor.bad=yellow\nallow.textmode=true\n"}},"requestReceivedTimestamp":"2022-07-05T13:10:19.960188Z","stageTimestamp":"2022-07-05T13:10:19.964977Z","annotations":{"authorization.k8s.io/decision":"allow","authorization.k8s.io/reason":""}}
 ```
 
-### 10.3.3. Create Secret and check Audit Logs
+### 9.3.3. Create Secret and check Audit Logs
 **Create a secret and investigate the JSON audit log**
 ```sh
 $ kubectl create secret generic very-secure --from-literal=user=admin
@@ -4965,7 +4965,7 @@ $ kubectl create secret generic very-secure --from-literal=user=admin
 
 ![cks](images/27_auditing_secret.png)
 
-### 10.3.4. Create advanced Audit Policy
+### 9.3.4. Create advanced Audit Policy
 **We want to restrict logged data with an Audit Policy**
 * Nothing from stage RequestReceived
 * Nothing from "get", "watch", "list"
@@ -4998,13 +4998,13 @@ rules:
 
 ![cks](images/27_auditing_advanced.png)
 
-### 10.3.5. Recap
+### 9.3.5. Recap
 > https://www.youtube.com/watch?v=HXtLTxo30SY
 
 
-# 11. System Hardening
-## 11.1. Kernel Hardening Tools
-### 11.1.1. Introduction
+# 10. System Hardening
+## 10.1. Kernel Hardening Tools
+### 10.1.1. Introduction
 #### Linux Kernel Isolation
 ![cks](images/28_hardening_intro.png)
 
@@ -5013,7 +5013,7 @@ rules:
 #### Overview
 ![cks](images/28_hardening_intro_03.png)
 
-### 11.1.2. AppArmor
+### 10.1.2. AppArmor
 #### AppArmor
 ![cks](images/28_hardening_apparmor.png)
 ![cks](images/28_hardening_apparmor_02.png)
@@ -5036,7 +5036,7 @@ aa-enforce
 aa-logprof
 ```
 
-### 11.1.3. AppArmor for curl
+### 10.1.3. AppArmor for curl
 **Setup simple AppArmor profile for curl**
 ```sh
 $ curl killer.sh -v
@@ -5157,7 +5157,7 @@ apparmor module is loaded.
 ```sh
 $ apt-get install apparmor-utils
 ```
-### 11.1.4. AppArmor for Docker Nginx
+### 10.1.4. AppArmor for Docker Nginx
 `/etc/apparmor.d/docker-nginx`
 ```sh
 #include <tunables/global>
@@ -5247,7 +5247,7 @@ sh: 3: sh: Permission denied
 
 > https://kubernetes.io/docs/tutorials/clusters/apparmor/#example
 
-### 11.1.5. AppArmor for Kubernetes Nginx
+### 10.1.5. AppArmor for Kubernetes Nginx
 * Container runtime needs to support AppArmor
 * AppArmor needs to be installed on every node
 * AppArmor profiles need to be available on every node
@@ -5327,7 +5327,7 @@ $ root@secure:/# sh
 bash: /bin/sh: Permission denied
 ```
 
-### 11.1.6. Seccomp
+### 10.1.6. Seccomp
 * "secure computing mode"
 * Security facility in the Linux Kernel
 * Restricts execution of syscalls
@@ -5335,8 +5335,8 @@ bash: /bin/sh: Permission denied
 ![cks](images/28_hardening_seccomp.png)
 ![cks](images/28_hardening_seccomp_02.png)
 
-### 11.1.7. Seccomp for Docker Nginx
-### 11.1.8. Seccomp for Kubernetes Nginx
+### 10.1.7. Seccomp for Docker Nginx
+### 10.1.8. Seccomp for Kubernetes Nginx
 **Create a Nginx Pod in Kubernetes and assign a seccomp profile to it**
 
 ```yaml
@@ -5361,14 +5361,14 @@ spec:
 status: {}
 ```
 
-### 11.1.9. Recap
+### 10.1.9. Recap
 > https://www.youtube.com/watch?v=8g-NUUmCeGI
 
 > https://www.youtube.com/watch?v=JFjXvIwAeVI
 
 
-## 11.2. Reduce Attack Surface
-### 11.2.1. Introduction
+## 10.2. Reduce Attack Surface
+### 10.2.1. Introduction
 #### Overview
 ![cks](images/29_reduce_attack_surface_intro.png)
 
@@ -5401,7 +5401,7 @@ status: {}
 `ps`
 ![cks](images/29_reduce_attack_surface_intro_05.png)
 
-### 11.2.2. Systemctl and Services
+### 10.2.2. Systemctl and Services
 **Disable Service Snapd via systemctl**
 ```
 $ sudo systemctl status snapd
@@ -5445,7 +5445,7 @@ $ systemctl disable snapd
 Removed /etc/systemd/system/multi-user.target.wants/snapd.service.
 ```
 
-### 11.2.3. Install and investigate Services
+### 10.2.3. Install and investigate Services
 ```sh
 $ ps aux | grep postgres
 postgres    2036  0.0  0.1 223612 30044 ?        Ss   08:39   0:00 /usr/lib/postgresql/15/bin/postgres -D /var/lib/postgresql/15/main -c config_file=/etc/postgresql/15/main/postgresql.conf
@@ -5474,8 +5474,8 @@ tcp        0      0 127.0.0.1:49157         0.0.0.0:*               LISTEN      
 tcp        0      0 127.0.0.1:39245         0.0.0.0:*               LISTEN      22976/code
 ```
 
-### 11.2.4. Disabled application listening on port
-### 11.2.5. Investigate Linux Users
+### 10.2.4. Disabled application listening on port
+### 10.2.5. Investigate Linux Users
 ```sh
 $ root@cks:~# whoami
 root
@@ -5598,7 +5598,7 @@ $ root@cks:~# su test
 $ test@cks:/root$ whoami
 test
 ```
-### 11.2.6. Recap
+### 10.2.6. Recap
 
 
 
