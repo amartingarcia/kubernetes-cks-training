@@ -19,8 +19,7 @@
   - [2.6. Recap](#26-recap)
 - [3. Foundation](#3-foundation)
   - [3.1. Kubernetes Secure Arquitecture](#31-kubernetes-secure-arquitecture)
-    - [3.1.1. Intro](#311-intro)
-    - [3.1.2. Find various k8s certificates](#312-find-various-k8s-certificates)
+    - [3.1.1. Find various k8s certificates](#311-find-various-k8s-certificates)
   - [3.2. Containers under the hood](#32-containers-under-the-hood)
     - [3.2.1. Intro](#321-intro)
       - [3.2.1.1. Container and Image](#3211-container-and-image)
@@ -43,25 +42,25 @@
       - [Show process on c2 container (you can see other container process).](#show-process-on-c2-container-you-can-see-other-container-process)
       - [Show process on c1 container (you can see other container process).](#show-process-on-c1-container-you-can-see-other-container-process)
     - [3.2.4. Recap](#324-recap)
-- [5. Cluster setup](#5-cluster-setup)
-  - [5.1. Network Policies](#51-network-policies)
-    - [5.1.1. Introduction 1](#511-introduction-1)
+- [4. Cluster setup](#4-cluster-setup)
+  - [4.1. Network Policies](#41-network-policies)
+    - [4.1.1. Introduction 1](#411-introduction-1)
       - [NetworkPolicies](#networkpolicies)
       - [Without NetworkPolicies](#without-networkpolicies)
-    - [5.1.2. Introduction 2](#512-introduction-2)
+    - [4.1.2. Introduction 2](#412-introduction-2)
       - [NetworkPolicy example](#networkpolicy-example)
       - [Multiple NetworkPolicies](#multiple-networkpolicies)
         - [Merge example2a + example2b](#merge-example2a--example2b)
-    - [5.1.3. Default Deny](#513-default-deny)
+    - [4.1.3. Default Deny](#413-default-deny)
       - [Create a frontend and backend applications and expose.](#create-a-frontend-and-backend-applications-and-expose)
       - [Test connection between applications](#test-connection-between-applications)
       - [Create the NetworkPolicy](#create-the-networkpolicy)
       - [Test connection between apps](#test-connection-between-apps)
-    - [5.1.4. Frontend to Backend traffic](#514-frontend-to-backend-traffic)
+    - [4.1.4. Frontend to Backend traffic](#414-frontend-to-backend-traffic)
       - [Test connection](#test-connection)
       - [Test connection](#test-connection-1)
       - [If you want connect to DNS, you indicate Port 53](#if-you-want-connect-to-dns-you-indicate-port-53)
-    - [5.1.5. Backend to database traffic](#515-backend-to-database-traffic)
+    - [4.1.5. Backend to database traffic](#415-backend-to-database-traffic)
       - [Create a namespace](#create-a-namespace)
       - [Create a Pod](#create-a-pod)
       - [Get Pod Cassandra IP](#get-pod-cassandra-ip)
@@ -71,44 +70,44 @@
       - [Create configuration to Deny all to cassandra Pod](#create-configuration-to-deny-all-to-cassandra-pod)
       - [And create NetworkPolicy to cassandra ingress from default](#and-create-networkpolicy-to-cassandra-ingress-from-default)
       - [Labeled default namespace and launch curl](#labeled-default-namespace-and-launch-curl)
-    - [5.1.6. Recap](#516-recap)
-  - [5.2. GUI Elements](#52-gui-elements)
-    - [5.2.1. Introduction](#521-introduction)
+    - [4.1.6. Recap](#416-recap)
+  - [4.2. GUI Elements](#42-gui-elements)
+    - [4.2.1. Introduction](#421-introduction)
       - [Gui Elements and the Dashboard](#gui-elements-and-the-dashboard)
       - [Kubectl proxy](#kubectl-proxy)
       - [Kubectl port-forward](#kubectl-port-forward)
       - [Ingress](#ingress)
-    - [5.2.2. Install Dashboard](#522-install-dashboard)
+    - [4.2.2. Install Dashboard](#422-install-dashboard)
       - [Deploy Dashboard](#deploy-dashboard)
       - [Get objects](#get-objects)
-    - [5.2.3. Outside Insecure Access](#523-outside-insecure-access)
+    - [4.2.3. Outside Insecure Access](#423-outside-insecure-access)
       - [Expose insecure Dashboard](#expose-insecure-dashboard)
-    - [5.2.4. RBAC for the dashboard](#524-rbac-for-the-dashboard)
-    - [5.2.5. Recap](#525-recap)
+    - [4.2.4. RBAC for the dashboard](#424-rbac-for-the-dashboard)
+    - [4.2.5. Recap](#425-recap)
       - [Interesting dashboard security arguments](#interesting-dashboard-security-arguments)
-  - [5.3. Secure Ingress](#53-secure-ingress)
-    - [5.3.3. Create an Ingress](#533-create-an-ingress)
+  - [4.3. Secure Ingress](#43-secure-ingress)
+    - [4.3.3. Create an Ingress](#433-create-an-ingress)
       - [Setup an example Ingress](#setup-an-example-ingress)
-    - [5.3.4. Secure an Ingress](#534-secure-an-ingress)
-    - [5.3.5. Recap](#535-recap)
-  - [5.4. Node metadata protection](#54-node-metadata-protection)
-    - [5.4.1. Introduction](#541-introduction)
+    - [4.3.4. Secure an Ingress](#434-secure-an-ingress)
+    - [4.3.5. Recap](#435-recap)
+  - [4.4. Node metadata protection](#44-node-metadata-protection)
+    - [4.4.1. Introduction](#441-introduction)
       - [Cloud Platform Node Metadata](#cloud-platform-node-metadata)
       - [Limit permissions for instance credentials](#limit-permissions-for-instance-credentials)
-    - [5.4.2. Access Node Metadata](#542-access-node-metadata)
-    - [5.4.3. Protect Node Metadata via Network Policy](#543-protect-node-metadata-via-network-policy)
+    - [4.4.2. Access Node Metadata](#442-access-node-metadata)
+    - [4.4.3. Protect Node Metadata via Network Policy](#443-protect-node-metadata-via-network-policy)
       - [All pods in namespace cannot access metadata endpoint](#all-pods-in-namespace-cannot-access-metadata-endpoint)
       - [Only pods with label are allowed to access metadata endpoint](#only-pods-with-label-are-allowed-to-access-metadata-endpoint)
       - [Labeled Pod](#labeled-pod)
-  - [5.5. CIS Bechmarck](#55-cis-bechmarck)
-    - [5.5.1. Introduction](#551-introduction)
+  - [4.5. CIS Bechmarck](#45-cis-bechmarck)
+    - [4.5.1. Introduction](#451-introduction)
       - [CIS - Center for Internet Security](#cis---center-for-internet-security)
-    - [5.5.2. CIS in action](#552-cis-in-action)
-    - [5.5.3. kube-bench](#553-kube-bench)
+    - [4.5.2. CIS in action](#452-cis-in-action)
+    - [4.5.3. kube-bench](#453-kube-bench)
       - [How to run](#how-to-run)
-    - [5.5.4. Recap](#554-recap)
-  - [5.6. Verify Platform Binaries](#56-verify-platform-binaries)
-    - [5.6.1. Verify apiserver binary running in our cluster](#561-verify-apiserver-binary-running-in-our-cluster)
+    - [4.5.4. Recap](#454-recap)
+  - [4.6. Verify Platform Binaries](#46-verify-platform-binaries)
+    - [4.6.1. Verify apiserver binary running in our cluster](#461-verify-apiserver-binary-running-in-our-cluster)
     - [5.6.4. Recap](#564-recap)
 - [6. Cluster Hardening](#6-cluster-hardening)
   - [6.1. RBAC](#61-rbac)
@@ -462,14 +461,14 @@ $ gcloud compute firewall-rules create nodeports --allow tcp:30000-40000
 docker --> containerd
 
 ## 2.6. Recap
+```sh
 minikube start --network-plugin=cni --cni=calico -p cks
-
+```
 
 
 # 3. Foundation
 ## 3.1. Kubernetes Secure Arquitecture
-### 3.1.1. Intro
-### 3.1.2. Find various k8s certificates
+### 3.1.1. Find various k8s certificates
 
 | Default CN                   | recommended key path         | recommended cert path       | command        | key argument                 | cert argument                             |
 |------------------------------|------------------------------|-----------------------------|----------------|------------------------------|-------------------------------------------|
@@ -695,9 +694,9 @@ root          35  1.0  0.0   7060  1584 ?        Rs   16:32   0:00 ps aux
 
 
 
-# 5. Cluster setup
-## 5.1. Network Policies
-### 5.1.1. Introduction 1
+# 4. Cluster setup
+## 4.1. Network Policies
+### 4.1.1. Introduction 1
 #### NetworkPolicies
 * Firewall rules in Kubernetes
 * Implemented by the Network Plugins CNI (Calico/Weave)
@@ -708,7 +707,7 @@ root          35  1.0  0.0   7060  1584 ?        Rs   16:32   0:00 ps aux
 * By default every pod can access every pod
 * Pods are **NOT** isolated.
 
-### 5.1.2. Introduction 2
+### 4.1.2. Introduction 2
 #### NetworkPolicy example
 ```yaml
 apiVersion: networking.k8s.io/v1
@@ -788,7 +787,7 @@ spec:
             id: backend
 ```
 
-### 5.1.3. Default Deny
+### 4.1.3. Default Deny
 #### Create a frontend and backend applications and expose.
 ```sh
 $ kubectl run frontend --image=nginx
@@ -909,7 +908,7 @@ command terminated with exit code 6
 ```
 
 
-### 5.1.4. Frontend to Backend traffic
+### 4.1.4. Frontend to Backend traffic
 ```yaml
 # allows frontend pods to communicate with backend pods
 apiVersion: networking.k8s.io/v1
@@ -1012,7 +1011,7 @@ spec:
       protocol: UDP
 ```
 
-### 5.1.5. Backend to database traffic
+### 4.1.5. Backend to database traffic
 #### Create a namespace
 ```sh
 $ kubectl create ns cassandra
@@ -1168,11 +1167,11 @@ Commercial support is available at
 </html>
 ```
 
-### 5.1.6. Recap
+### 4.1.6. Recap
 > https://kubernetes.io/docs/concepts/services-networking/network-policies
 
-## 5.2. GUI Elements
-### 5.2.1. Introduction
+## 4.2. GUI Elements
+### 4.2.1. Introduction
 #### Gui Elements and the Dashboard
 * only expose services externally if needed
 * cluster internal services/dashboards can also be accessed using `kubectl port-forward`
@@ -1194,7 +1193,7 @@ Commercial support is available at
 #### Ingress
 ![cks](images/07_intro_ingress.png)
 
-### 5.2.2. Install Dashboard
+### 4.2.2. Install Dashboard
 #### Deploy Dashboard
 ```sh
 $ kubectl apply -f https://raw.githubusercontent.com/kubernetes/dashboard/v2.1.0/aio/deploy/recommended.yaml
@@ -1225,7 +1224,7 @@ service/dashboard-metrics-scraper   ClusterIP   10.104.44.96     <none>        8
 service/kubernetes-dashboard        ClusterIP   10.101.163.180   <none>        443/TCP
 ```
 
-### 5.2.3. Outside Insecure Access
+### 4.2.3. Outside Insecure Access
 #### Expose insecure Dashboard
 ```sh
 # Edit deployment
@@ -1259,7 +1258,7 @@ $ kubectl -n kubernetes-dashboard edit svc kubernetes-dashboard
 > https://github.com/kubernetes/dashboard/blob/master/docs/common/dashboard-arguments.md
 
 
-### 5.2.4. RBAC for the dashboard
+### 4.2.4. RBAC for the dashboard
 
 ```sh
 # Get Service Accounts
@@ -1282,7 +1281,7 @@ $ kubectl -n kubernetes-dashboard create rolebinding insecure --serviceaccount k
 $ kubectl -n kubernetes-dashboard create clusterrolebinding insecure --serviceaccount kubernetes-dashboard:kubernetes-dashboard --clusterrole view
 ```
 
-### 5.2.5. Recap
+### 4.2.5. Recap
 #### Interesting dashboard security arguments
 ```sh
 --authentication-mode=basic
@@ -1292,8 +1291,8 @@ $ kubectl -n kubernetes-dashboard create clusterrolebinding insecure --serviceac
 
 >https://github.com/kubernetes/dashboard/blob/master/docs/user/access-control/README.md
 
-## 5.3. Secure Ingress
-### 5.3.3. Create an Ingress
+## 4.3. Secure Ingress
+### 4.3.3. Create an Ingress
 #### Setup an example Ingress
 ![cks](images/08_create_an_ingress.png)
 
@@ -1336,7 +1335,7 @@ https://github.com/killer-sh/cks-course-environment/tree/master/course-content/c
 
 > https://kubernetes.io/docs/concepts/services-networking/ingress
 
-### 5.3.4. Secure an Ingress
+### 4.3.4. Secure an Ingress
 ![cks](images/08_secure_an_ingress.png)
 
 ```yaml
@@ -1394,15 +1393,15 @@ https://github.com/killer-sh/cks-course-environment/tree/master/course-content/c
 
 
 # curl command to access, replace your IP and secure NodePort->443
-curl https://secure-ingress.com:31047/service2 -kv --resolve secure-ingress.com:31047:34.105.246.174
+curl https://secure-ingress.com:31047/service2 -kv --resolve secure-ingress.com:31047:34.104.246.174
 
 # k8s docs
 https://kubernetes.io/docs/concepts/services-networking/ingress/#tls
 ```
 
-### 5.3.5. Recap
-## 5.4. Node metadata protection
-### 5.4.1. Introduction
+### 4.3.5. Recap
+## 4.4. Node metadata protection
+### 4.4.1. Introduction
 #### Cloud Platform Node Metadata
 * Metadata service API by default reachable from VMs
 * Can contain cloud credentials for VMs/Nodes
@@ -1414,7 +1413,7 @@ https://kubernetes.io/docs/concepts/services-networking/ingress/#tls
 * Not in the hands of Kubernetes
 
 
-### 5.4.2. Access Node Metadata
+### 4.4.2. Access Node Metadata
 
 ```sh
 # Example
@@ -1424,7 +1423,7 @@ curl "http://metadata.google.internal/computeMetadata/v1/instance/disks/" -H "Me
 > https://cloud.google.com/compute/docs/metadata/overview
 
 
-### 5.4.3. Protect Node Metadata via Network Policy
+### 4.4.3. Protect Node Metadata via Network Policy
 
 #### All pods in namespace cannot access metadata endpoint
 ```yaml
@@ -1469,8 +1468,8 @@ spec:
 $ kubectl label pod nginx role=metadata-accessor 
 ```
 
-## 5.5. CIS Bechmarck
-### 5.5.1. Introduction
+## 4.5. CIS Bechmarck
+### 4.5.1. Introduction
 #### CIS - Center for Internet Security
 * Best practices for the secure configuration of a target system
 * Covering more than 14 technology groups
@@ -1478,13 +1477,13 @@ $ kubectl label pod nginx role=metadata-accessor
 
 ![cks](images/10_intro_cis.png)
 
-### 5.5.2. CIS in action
+### 4.5.2. CIS in action
 
 > https://www.cisecurity.org/benchmark/kubernetes
 
 > https://ettayeb.fr/content/files/2022/03/CIS_Kubernetes_Benchmark_v1.6.0.pdf
 
-### 5.5.3. kube-bench
+### 4.5.3. kube-bench
 #### How to run
 > https://github.com/aquasecurity/kube-bench/blob/main/docs/running.md
 
@@ -1495,7 +1494,7 @@ docker run --pid=host -v /etc:/etc:ro -v /var:/var:ro -t aquasec/kube-bench:late
 # run on worker
 docker run --pid=host -v /etc:/etc:ro -v /var:/var:ro -t aquasec/kube-bench:latest run --targets=node --version 1.22
 ```
-### 5.5.4. Recap
+### 4.5.4. Recap
 > https://cloud.google.com/kubernetes-engine/docs/concepts/cis-benchmarks?hl=es-419#status
 
 > https://www.youtube.com/watch?v=53-v3stlnCo
@@ -1503,8 +1502,8 @@ docker run --pid=host -v /etc:/etc:ro -v /var:/var:ro -t aquasec/kube-bench:late
 > https://github.com/docker/docker-bench-security
 
 
-## 5.6. Verify Platform Binaries
-### 5.6.1. Verify apiserver binary running in our cluster
+## 4.6. Verify Platform Binaries
+### 4.6.1. Verify apiserver binary running in our cluster
 ```sh
 # Get version
 $ kubectl get nodes
