@@ -218,7 +218,6 @@
     - [6.4.2. Create sidecar proxy](#642-create-sidecar-proxy)
       - [Without Capabilities](#without-capabilities)
       - [With Capabilities](#with-capabilities)
-    - [6.4.3. Recap](#643-recap)
 - [7. Open Policy Agent (OPA)](#7-open-policy-agent-opa)
   - [7.1. Introduction](#71-introduction)
     - [OPA - Open Policy Agent](#opa---open-policy-agent)
@@ -258,7 +257,6 @@
     - [8.2.5. OPA Conftest for K8s YAML](#825-opa-conftest-for-k8s-yaml)
       - [Fixed](#fixed)
     - [8.2.6. OPA Conftest for Dockerfile](#826-opa-conftest-for-dockerfile)
-    - [8.2.7. Recap](#827-recap)
   - [8.3. Image Vulnerability Scanning](#83-image-vulnerability-scanning)
     - [8.3.1. Introduction](#831-introduction)
       - [Known Image Vulnerabilities](#known-image-vulnerabilities)
@@ -266,7 +264,6 @@
       - [Clair](#clair)
       - [Trivy](#trivy)
     - [8.3.3. Use Trivy to scan images](#833-use-trivy-to-scan-images)
-    - [8.3.4. Recap](#834-recap)
   - [8.4. Secure Supply Chain](#84-secure-supply-chain)
     - [8.4.1. Introduction](#841-introduction)
       - [K8s and Container Registries](#k8s-and-container-registries)
@@ -274,7 +271,6 @@
     - [8.4.3. Whitelist Registries with OPA](#843-whitelist-registries-with-opa)
     - [8.4.4. ImagePolicyWebhook](#844-imagepolicywebhook)
     - [8.4.5. Practice ImagePolicyWebhook](#845-practice-imagepolicywebhook)
-    - [8.4.6. Recap](#846-recap)
 - [9. Runtime Security](#9-runtime-security)
   - [9.1. Behavioral Analytics at host and ...](#91-behavioral-analytics-at-host-and-)
     - [9.1.1. Introduction](#911-introduction)
@@ -345,7 +341,6 @@
     - [10.2.3. Install and investigate Services](#1023-install-and-investigate-services)
     - [10.2.4. Disabled application listening on port](#1024-disabled-application-listening-on-port)
     - [10.2.5. Investigate Linux Users](#1025-investigate-linux-users)
-    - [10.2.6. Recap](#1026-recap)
 
 # 1. Introduction
 ## 1.1. Welcome
@@ -3051,9 +3046,6 @@ Chain OUTPUT (policy ACCEPT)
 target     prot opt source               destination 
 ```
 
-### 6.4.3. Recap
-
-
 
 # 7. Open Policy Agent (OPA)
 ## 7.1. Introduction
@@ -3819,8 +3811,6 @@ FAIL - Dockerfile - commands - unallowed commands found ["apt-get update && apt-
 2 tests, 0 passed, 0 warnings, 2 failures, 0 exceptions
 ```
 
-### 8.2.7. Recap
-
 ## 8.3. Image Vulnerability Scanning
 ### 8.3.1. Introduction
 **Webservers or other apps can contain vulnerabilities** (Buffer overflows)
@@ -3878,7 +3868,6 @@ Status: Downloaded newer image for ghcr.io/aquasecurity/trivy:latest
 ```
 > https://github.com/aquasecurity/trivy#docker
 
-### 8.3.4. Recap
 
 ## 8.4. Secure Supply Chain
 ### 8.4.1. Introduction
@@ -4181,8 +4170,6 @@ cp -r cks-course-environment/course-content/supply-chain-security/secure-the-sup
 # example of an external service which can be used
 https://github.com/flavio/kube-image-bouncer
 ```
-### 8.4.6. Recap
-
 
 
 # 9. Runtime Security
@@ -5584,4 +5571,3 @@ $ root@cks:~# su test
 $ test@cks:/root$ whoami
 test
 ```
-### 10.2.6. Recap
