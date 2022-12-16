@@ -121,7 +121,6 @@
     - [5.1.4. Accounts and Users](#514-accounts-and-users)
     - [5.1.5. CertificateSingingRequets](#515-certificatesingingrequets)
       - [Users and Certificates](#users-and-certificates)
-    - [5.1.6. Recap](#516-recap)
   - [5.2. Exercise caution in using ServiceAccounts](#52-exercise-caution-in-using-serviceaccounts)
     - [5.2.1. Intro](#521-intro)
       - [Accounts](#accounts)
@@ -160,25 +159,24 @@
     - [5.4.6. Recap](#546-recap)
 - [6. Microservice Vulnerabilities](#6-microservice-vulnerabilities)
   - [6.1. Manage Kubernetes](#61-manage-kubernetes)
-    - [6.1.1. Intro](#611-intro)
-    - [6.1.2. Create Simple Secret Scenario](#612-create-simple-secret-scenario)
+    - [6.1.1. Create Simple Secret Scenario](#611-create-simple-secret-scenario)
       - [Create a generic secret](#create-a-generic-secret)
       - [Mount secret in a Pod](#mount-secret-in-a-pod)
-    - [6.1.3. Hacks Secret in Container Runtime](#613-hacks-secret-in-container-runtime)
+    - [6.1.2. Hacks Secret in Container Runtime](#612-hacks-secret-in-container-runtime)
       - [Search "mypod"](#search-mypod)
       - [Inspect container and show "envs" and "mounts"](#inspect-container-and-show-envs-and-mounts)
-    - [6.1.4. Hacks Secret in ETCD](#614-hacks-secret-in-etcd)
+    - [6.1.3. Hacks Secret in ETCD](#613-hacks-secret-in-etcd)
       - [Access secret int etcd](#access-secret-int-etcd)
       - [Show secret](#show-secret)
-    - [6.1.5. ETCD Encryption](#615-etcd-encryption)
+    - [6.1.4. ETCD Encryption](#614-etcd-encryption)
       - [Encrypt](#encrypt)
       - [Encrypt (all Secrets) in ETCD](#encrypt-all-secrets-in-etcd)
       - [Decrypt all Secrets in ETCD](#decrypt-all-secrets-in-etcd)
-    - [6.1.6. Encrypt ETCD (example)](#616-encrypt-etcd-example)
+    - [6.1.5. Encrypt ETCD (example)](#615-encrypt-etcd-example)
       - [/etc/kubernetes/etcd/ec.yaml](#etckubernetesetcdecyaml)
       - [Edit API Server](#edit-api-server)
       - [Encrypt existing Secrets](#encrypt-existing-secrets)
-    - [6.1.7. Recap](#617-recap)
+    - [6.1.6. Recap](#616-recap)
   - [6.2. Container Runtime](#62-container-runtime)
     - [6.2.1. Intro](#621-intro)
       - [Technical Overview](#technical-overview)
@@ -1708,8 +1706,6 @@ $ kubectl auth can-i get secrets -A # no
 $ kubectl auth can-i get secrets -n red # yes
 ```
 
-### 5.1.6. Recap
-
 ## 5.2. Exercise caution in using ServiceAccounts
 ### 5.2.1. Intro
 #### Accounts
@@ -2111,8 +2107,7 @@ $ kubectl uncordon cks-node
 
 # 6. Microservice Vulnerabilities
 ## 6.1. Manage Kubernetes
-### 6.1.1. Intro
-### 6.1.2. Create Simple Secret Scenario
+### 6.1.1. Create Simple Secret Scenario
 #### Create a generic secret
 ```sh
 $ kubectl create secret generic secret1 --from-literal pass=12345678
@@ -2155,7 +2150,7 @@ $ kubectl exec -it mypod -- cat /etc/foo/pass
 12345678
 ```
 
-### 6.1.3. Hacks Secret in Container Runtime
+### 6.1.2. Hacks Secret in Container Runtime
 #### Search "mypod"
 ```sh
 $ crictl ps | grep mypod
@@ -2185,7 +2180,7 @@ $ crictl inspect a7f2d581cf409
 }
 
 ```
-### 6.1.4. Hacks Secret in ETCD
+### 6.1.3. Hacks Secret in ETCD
 #### Access secret int etcd
 ```sh
 $ ETCDCTL_API=3 etcdctl --cert /etc/kubernetes/pki/apiserver-etcd-client.crt --key /etc/kubernetes/pki/apiserver-etcd-client.key --cacert /etc/kubernetes/pki/etcd/ca.crt endpoint health
@@ -2208,7 +2203,7 @@ kubectl-createUpdatev餛FieldsV1:-
 datasecretOpaque"
 ```
 
-### 6.1.5. ETCD Encryption
+### 6.1.4. ETCD Encryption
 #### Encrypt
 ```yaml
 apiVersion: apiserver.config.k8s.io/v1
@@ -2278,7 +2273,7 @@ resources:
 $ kubectl get secrets -A -ojson | kubectl replace -f -
 ```
 
-### 6.1.6. Encrypt ETCD (example)
+### 6.1.5. Encrypt ETCD (example)
 
 #### /etc/kubernetes/etcd/ec.yaml
 ```yaml
@@ -2344,7 +2339,7 @@ k8s:enc:aesgcm:v1:key1:Li&?ųw!lSV2      ~(n4h͊ЗwyP"`;yQZ2=Jtet`%=qĕ@qӦss
                                                                        -^V*Yp\V|N3P+J@p.Dr$j]St/7e <ȏbUf"kh_?SyTV- v.Idr7(n&Pգo
 ```
 > https://kubernetes.io/docs/tasks/administer-cluster/encrypt-data
-### 6.1.7. Recap
+### 6.1.6. Recap
 > https://v1-22.docs.kubernetes.io/docs/concepts/configuration/secret/#risks
 
 > https://www.youtube.com/watch?v=f4Ru6CPG1z4
