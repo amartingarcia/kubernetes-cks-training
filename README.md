@@ -1572,7 +1572,7 @@ $ kubectl api-resources --namespaced=false
 
 #### ClusterRoleBinding
 ![cks](images/12_intro_clusterrolebinding.png)
-![cks](images/12_intro_rbac_clusterrole_01.png)
+![cks](images/12_intro_rbac_clusterrole_02.png)
 
 ### 5.1.2. Role and Rolebinding
 ```sh
