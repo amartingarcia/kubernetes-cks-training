@@ -292,26 +292,45 @@
       - [strace and /proc: etcd](#strace-and-proc-etcd)
     - [10.1.4. /proc and env variables](#1014-proc-and-env-variables)
     - [10.1.5. Falco and Installation](#1015-falco-and-installation)
-    - [10.1.6. Use Falco to find malicious processes](#1016-use-falco-to-find-malicious-processes)
+      - [Falco](#falco)
     - [10.1.7. Investigate Falco rules](#1017-investigate-falco-rules)
     - [10.1.8. Change Falco rule](#1018-change-falco-rule)
     - [10.1.9. Recap](#1019-recap)
   - [10.2. Inmutability of containers at runtime](#102-inmutability-of-containers-at-runtime)
     - [10.2.1. Introduction](#1021-introduction)
+      - [Inmutability](#inmutability)
     - [10.2.2. Ways to enforce immutability](#1022-ways-to-enforce-immutability)
+      - [Enforce on Container Image Level](#enforce-on-container-image-level)
+      - [Make manual changes to container - Command ?](#make-manual-changes-to-container---command-)
+      - [Make manual changes to container - StartupProbe ?](#make-manual-changes-to-container---startupprobe-)
+      - [Enforce Read-Only Root Filesystem](#enforce-read-only-root-filesystem)
+      - [Move logic to InitContainer ?](#move-logic-to-initcontainer-)
     - [10.2.3. StartupProbe changes container](#1023-startupprobe-changes-container)
+      - [StartupProbe for Immutability](#startupprobe-for-immutability)
     - [10.2.4. SecurityContext renders container immutable](#1024-securitycontext-renders-container-immutable)
+      - [Enforce RO-filesystem](#enforce-ro-filesystem)
     - [10.2.5. Recap](#1025-recap)
   - [10.3. Auditing](#103-auditing)
     - [10.3.1. Introduction](#1031-introduction)
+      - [Audit Logs - Introduction](#audit-logs---introduction)
+      - [API Request Stages](#api-request-stages)
+      - [Audit Policy - Waht data to store?](#audit-policy---waht-data-to-store)
+      - [Audit Backends - Where to store all that data?](#audit-backends---where-to-store-all-that-data)
+      - [Audit Logs - Overview](#audit-logs---overview)
     - [10.3.2. Enable Auditing Logging in Apiserver](#1032-enable-auditing-logging-in-apiserver)
+      - [Setup Audit Logs](#setup-audit-logs)
     - [10.3.3. Create Secret and check Audit Logs](#1033-create-secret-and-check-audit-logs)
     - [10.3.4. Create advanced Audit Policy](#1034-create-advanced-audit-policy)
     - [10.3.5. Recap](#1035-recap)
 - [11. System Hardening](#11-system-hardening)
   - [11.1. Kernel Hardening Tools](#111-kernel-hardening-tools)
     - [11.1.1. Introduction](#1111-introduction)
+      - [Linux Kernel Isolation](#linux-kernel-isolation)
+      - [Kernel vs User Space](#kernel-vs-user-space-1)
+      - [Overview](#overview)
     - [11.1.2. AppArmor](#1112-apparmor)
+      - [AppArmor](#apparmor)
+      - [Main Commands](#main-commands)
     - [11.1.3. AppArmor for curl](#1113-apparmor-for-curl)
     - [11.1.4. AppArmor for Docker Nginx](#1114-apparmor-for-docker-nginx)
     - [11.1.5. AppArmor for Kubernetes Nginx](#1115-apparmor-for-kubernetes-nginx)
@@ -321,6 +340,13 @@
     - [11.1.9. Recap](#1119-recap)
   - [11.2. Reduce Attack Surface](#112-reduce-attack-surface)
     - [11.2.1. Introduction](#1121-introduction)
+      - [Overview](#overview-1)
+      - [Nodes that run Kubernetes](#nodes-that-run-kubernetes)
+      - [Linux Distributions](#linux-distributions)
+      - [Open Ports](#open-ports)
+      - [Port used by which application?](#port-used-by-which-application)
+      - [Running Services](#running-services)
+      - [Processes and Users](#processes-and-users)
     - [11.2.2. Systemctl and Services](#1122-systemctl-and-services)
     - [11.2.3. Install and investigate Services](#1123-install-and-investigate-services)
     - [11.2.4. Disabled application listening on port](#1124-disabled-application-listening-on-port)
@@ -4464,46 +4490,1115 @@ $ cat 10 | strings | grep 111122223333444
 111122223333444
 ```
 ### 10.1.4. /proc and env variables
+**Create Apache pod with a secret as environment variable**
+Read that secret from host filesystem
+
+```yaml
+apiVersion: v1
+kind: Pod
+metadata:
+  creationTimestamp: null
+  labels:
+    run: apache
+  name: apache
+spec:
+  containers:
+  - image: httpd
+    name: apache
+    resources: {}
+    env:
+    - name: SECRET
+      value: "55667788"
+  dnsPolicy: ClusterFirst
+  restartPolicy: Always
+status: {}
+```
+
+```sh
+$ kubectl create -f pod.yaml
+pod/apache created
+
+$ kubectl exec apache -- env | grep -i secret
+SECRET=55667788
+
+$ ps aux | grep httpd
+root        4684  0.0  0.0   6004  4676 ?        Ss   09:58   0:00 httpd -DFOREGROUND
+www-data    4698  0.0  0.0 1997112 3576 ?        Sl   09:58   0:00 httpd -DFOREGROUND
+www-data    4699  0.0  0.0 1997112 3576 ?        Sl   09:58   0:00 httpd -DFOREGROUND
+www-data    4700  0.0  0.0 1997112 3576 ?        Sl   09:58   0:00 httpd -DFOREGROUND
+docker      4982  0.0  0.0   3312   724 pts/1    S+   09:59   0:00 grep --color=auto httpd
+
+$ cd /proc/4684/
+
+$ cat environ 
+KUBERNETES_SERVICE_PORT=443KUBERNETES_PORT=tcp://10.96.0.1:443HTTPD_VERSION=2.4.54HOSTNAME=apacheHOME=/rootHTTPD_PATCHES=KUBERNETES_PORT_443_TCP_ADDR=10.96.0.1PATH=/usr/local/apache2/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/binKUBERNETES_PORT_443_TCP_PORT=443KUBERNETES_PORT_443_TCP_PROTO=tcpHTTPD_SHA256=eb397feeefccaf254f8d45de3768d9d68e8e73851c49afd5b7176d1ecf80c340SECRET=55667788HTTPD_PREFIX=/usr/local/apache2KUBERNETES_SERVICE_PORT_HTTPS=443KUBERNETES_PORT_443_TCP=tcp://10.96.0.1:443KUBERNETES_SERVICE_HOST=10.96.0.1PWD=/usr/local/apache2
+```
+
+**Secret as environment variables can be read from anyone who can access /proc on the host**
+
 ### 10.1.5. Falco and Installation
-### 10.1.6. Use Falco to find malicious processes
+#### Falco
+* Cloud-Native runtime security (CNCF)
+* **ACCESS**
+  * Deep kernel tracing built on the Linux Kernel
+* **ASSERT**
+  * Describe security rules against a system (+default ones)
+  * Detect unwanted behaviour
+* **ACTION**
+  * Automated respond to a security violations
+
+**Install Falco on worker node**
+```sh
+
+$ curl -s https://falco.org/repo/falcosecurity-3672BA8F.asc | apt-key add -
+$ echo "deb https://download.falco.org/packages/deb stable main" | tee -a /etc/apt/sources.list.d/falcosecurity.list
+$ apt-get update -y
+$ apt-get -y install linux-headers-$(uname -r)
+$ apt-get install -y falco=0.26.1
+
+$ ls -l /etc/falco
+total 184
+drwxr-xr-x 4 root root   4096 Dec 16 08:28 ./
+drwxr-xr-x 1 root root   4096 Dec 16 08:29 ../
+-rw-r--r-- 1 root root   7834 Oct  1  2020 falco.yaml
+-rw-r--r-- 1 root root   1136 Oct  1  2020 falco_rules.local.yaml
+-rw-r--r-- 1 root root 126820 Oct  1  2020 falco_rules.yaml
+-rw-r--r-- 1 root root  25941 Oct  1  2020 k8s_audit_rules.yaml
+drwxr-xr-x 2 root root   4096 Dec 16 08:28 rules.available/
+drwxr-xr-x 2 root root   4096 Oct  1  2020 rules.d/
+```
+> https://v1-16.docs.kubernetes.io/docs/tasks/debug-application-cluster/falco
+
+
 ### 10.1.7. Investigate Falco rules
+**Look at some existing Falco rules**
+```sh
+$ cat /etc/falco/falco_rules.yaml
+...
+- rule: Terminal shell in container
+  desc: A shell was used as the entrypoint/exec point into a container with an attached terminal.
+  condition: >
+    spawned_process and container
+    and shell_procs and proc.tty != 0
+    and container_entrypoint
+    and not user_expected_terminal_shell_in_container_conditions
+  output: >
+    A shell was spawned in a container with an attached terminal (user=%user.name user_loginuid=%user.loginuid %container.info
+    shell=%proc.name parent=%proc.pname cmdline=%proc.cmdline terminal=%proc.tty container_id=%container.id image=%container.image.repository)
+  priority: NOTICE
+  tags: [container, shell, mitre_execution]
+...
+```
+
+```sh
+$ cat /etc/falco/k8s_audit_rules.yaml
+...
+- rule: K8s Secret Created
+  desc: Detect any attempt to create a secret. Service account tokens are excluded.
+  condition: (kactivity and kcreate and secret and ka.target.namespace!=kube-system and non_system_user and response_successful)
+  output: K8s Secret Created (user=%ka.user.name secret=%ka.target.name ns=%ka.target.namespace resp=%ka.response.code decision=%ka.auth.decision reason=%ka.auth.reason)
+  priority: INFO
+  source: k8s_audit
+  tags: [k8s]
+...
+```
+
 ### 10.1.8. Change Falco rule
+**Change Falco rule to get custom output format**
+Rule:             "A shell was spawned in a container with an attached terminal"
+Output Format:    TIME,USER-NAME,CONTAINER-NAME,CONTAINER-ID
+Priority:         WARNING
+
+Create a Pod
+```yaml
+apiVersion: v1
+kind: Pod
+metadata:
+  creationTimestamp: null
+  labels:
+    run: apache
+  name: apache
+spec:
+  containers:
+  - image: httpd
+    name: apache
+    resources: {}
+    env:
+    - name: SECRET
+      value: "55667788"
+  dnsPolicy: ClusterFirst
+  restartPolicy: Always
+status: {}
+```
+
+```sh
+$ falco
+
+09:29:25.296597224: Notice A shell was spawned in a container with an attached terminal (user=root user_loginuid=-1 container=7d4a76ce9019 shell=sh parent=runc cmdline=sh terminal=34816 container_id=7d4a76ce9019 image=httpd)
+```
+
+>https://falco.org/docs/rules/supported-fields
+
 ### 10.1.9. Recap
+
+> https://www.youtube.com/watch?v=8g-NUUmCeGI
+> https://www.youtube.com/watch?v=8N8IpToYOGM
+
 
 ## 10.2. Inmutability of containers at runtime
 ### 10.2.1. Introduction
+#### Inmutability
+![cks](images/26_immutability_intro.png)
+
 ### 10.2.2. Ways to enforce immutability
+#### Enforce on Container Image Level
+![cks](images/26_immutability_enforce.png)
+
+#### Make manual changes to container - Command ?
+![cks](images/26_immutability_enforce_02.png)
+
+#### Make manual changes to container - StartupProbe ?
+![cks](images/26_immutability_enforce_03.png)
+
+#### Enforce Read-Only Root Filesystem
+Enforce Read-Only root filesystem using **SecurityContexts** and **PodSecurityPolicies**
+
+#### Move logic to InitContainer ?
+![cks](images/26_immutability_enforce_04.png)
+
 ### 10.2.3. StartupProbe changes container
+#### StartupProbe for Immutability
+**Use StartupProbe to remove** `touch` and `bash` **from container**
+
+```yaml
+apiVersion: v1
+kind: Pod
+metadata:
+  creationTimestamp: null
+  labels:
+    run: immutable
+  name: immutable
+spec:
+  containers:
+  - image: httpd
+    name: immutable
+    resources: {}
+  dnsPolicy: ClusterFirst
+  restartPolicy: Always
+status: {}
+```
+
+```sh
+$ kubectl exec -it immutable -- bash
+
+$ root@immutable:/usr/local/apache2# touch test
+$ root@immutable:/usr/local/apache2# ls test
+test
+$ root@immutable:/usr/local/apache2# ls
+bin  build  cgi-bin  conf  error  htdocs  icons  include  logs	modules  test
+$ root@immutable:/usr/local/apache2# exit
+exit
+```
+
+```yaml
+apiVersion: v1
+kind: Pod
+metadata:
+  creationTimestamp: null
+  labels:
+    run: immutable
+  name: immutable
+spec:
+  containers:
+  - image: httpd
+    name: immutable
+    resources: {}
+    startupProbe:
+      exec:
+        command:
+          - rm
+          - /bin/touch
+      initialDelaySeconds: 1
+      periodSeconds: 5
+  dnsPolicy: ClusterFirst
+  restartPolicy: Always
+status: {}
+```
+
+```sh
+$ kubectl exec -it immutable -- bash
+
+$ root@immutable:/usr/local/apache2# touch test
+bash: touch: command not found
+
+$ root@immutable:/usr/local/apache2# exit
+exit
+command terminated with exit code 127
+```
+
+```yaml
+apiVersion: v1
+kind: Pod
+metadata:
+  creationTimestamp: null
+  labels:
+    run: immutable
+  name: immutable
+spec:
+  containers:
+  - image: httpd
+    name: immutable
+    resources: {}
+    securityContext:
+      readOnlyRootFilesystem: true
+  dnsPolicy: ClusterFirst
+  restartPolicy: Always
+status: {}
+```
+
+```sh
+$ kubectl exec -it immutable -- bash
+OCI runtime exec failed: exec failed: unable to start container process: exec: "bash": executable file not found in $PATH: unknown
+command terminated with exit code 126
+```
+
 ### 10.2.4. SecurityContext renders container immutable
+#### Enforce RO-filesystem
+**Create Pod SecurityContext to make filesystem Read-Only**
+Ensure some directories are still writeable using emptyDir volume
+
+```yaml
+apiVersion: v1
+kind: Pod
+metadata:
+  creationTimestamp: null
+  labels:
+    run: immutable
+  name: immutable
+spec:
+  containers:
+  - image: httpd
+    name: immutable
+    resources: {}
+    securityContext:
+      readOnlyRootFilesystem: true
+  dnsPolicy: ClusterFirst
+  restartPolicy: Always
+status: {}
+```
+
+```sh
+$ kubectl get po
+NAME        READY   STATUS             RESTARTS        AGE
+immutable   0/1     CrashLoopBackOff   1 (16s ago)     20s
+
+$ kubectl logs immutable 
+AH00558: httpd: Could not reliably determine the server's fully qualified domain name, using 172.17.0.5. Set the 'ServerName' directive globally to suppress this message
+AH00558: httpd: Could not reliably determine the server's fully qualified domain name, using 172.17.0.5. Set the 'ServerName' directive globally to suppress this message
+[Fri Dec 16 09:50:48.540815 2022] [core:error] [pid 1:tid 139802489503040] (30)Read-only file system: AH00099: could not create /usr/local/apache2/logs/httpd.pid.frGzMi
+[Fri Dec 16 09:50:48.540855 2022] [core:error] [pid 1:tid 139802489503040] AH00100: httpd: could not log pid to file /usr/local/apache2/logs/httpd.pid
+```
+
+```yaml
+apiVersion: v1
+kind: Pod
+metadata:
+  creationTimestamp: null
+  labels:
+    run: immutable
+  name: immutable
+spec:
+  containers:
+  - image: httpd
+    name: immutable
+    resources: {}
+    securityContext:
+      readOnlyRootFilesystem: true
+    volumeMounts:
+    - name: cache-volume
+      mountPath: /usr/local/apache2/logs
+  volumes:
+  - name: cache-volume
+    emptyDir: {}
+  dnsPolicy: ClusterFirst
+  restartPolicy: Always
+status: {}
+```
+
+```sh
+$ kubectl get po
+NAME        READY   STATUS    RESTARTS   AGE
+immutable   1/1     Running   0          14s
+
+$ kubectl exec -it immutable -- bash
+
+$ root@immutable:/usr/local/apache2# touch test
+touch: cannot touch 'test': Read-only file system
+
+$ root@immutable:/usr/local/apache2# cd /usr/local/apache2/logs/
+$ root@immutable:/usr/local/apache2/logs# ls
+httpd.pid
+$ root@immutable:/usr/local/apache2/logs# touch test
+$ root@immutable:/usr/local/apache2/logs# ls
+httpd.pid  test
+```
+
+```sh
+docker run --read-only --tmpfs /run my-container
+```
+
 ### 10.2.5. Recap
+With RBAC it should be ensured that only certain people can even edit pod specs
 
 ## 10.3. Auditing
 ### 10.3.1. Introduction
-### 10.3.2. Enable Auditing Logging in Apiserver
-### 10.3.3. Create Secret and check Audit Logs
-### 10.3.4. Create advanced Audit Policy
-### 10.3.5. Recap
+#### Audit Logs - Introduction
+![cks](images/27_auditing_intro.png)
 
+* Did someone access an important secret while it was not protected?
+* When was the last time that user X did access cluster Y?
+* Does my CRD work properly?
+
+![cks](images/27_auditing_intro_02.png)
+
+#### API Request Stages
+Each request can be recorded with an associated "stage". The known stages are:
+* `RequestReceived` - The stage for events generated as soon as the audit handler receives the request, and before it is delegated down the handler chain.
+* `ResponseStarted` - Once the response headers are sent, but before the response body is sent. This stage is only generated for long-running requests (e.g. watch).
+* `ResponseComplete` - The response body has been completed and no more bytes will be sent.
+* `Panic` - Events generated when a panic ocurred.
+
+#### Audit Policy - Waht data to store?
+![cks](images/27_auditing_intro_03.png)
+
+**Wath events should be recorded and wath data should these contain?**
+
+* `None` - dont log events that match this rule.
+* `Metadata` - log request metadata (requesting user, timestamp, resource, verb, etc) but not request or response body
+* `Request` - log event metadata and request body but not response body. This does not apply for non-resource requests.
+* `RequestResponse` - log event metadata, request and response bodies. This does not apply for non-resources requests.
+
+```yaml
+apiVersion: audit.k8s.io/v1
+kind: Policy
+omitStages:
+  - "RequestReceived"
+rules:
+  # Log no "read" actions
+  - level: None
+    verbs: ["get", "watch", "list"]
+  
+  # log nothing regarding events
+  - level: None
+    resources:
+    - group: "" # core
+      resources: ["events"]
+  
+  # log nothing coming from some groups
+  - level: None
+    userGroups: ["system:nodes"]
+  
+  - level: RequestResponse
+    resources:
+    - group: ""
+      resources: ["secrets"]
+  
+  # for everything else log
+  - level: Metadata
+```
+
+#### Audit Backends - Where to store all that data?
+![cks](images/27_auditing_intro_04.png)
+
+#### Audit Logs - Overview
+![cks](images/27_auditing_intro_05.png)
+
+### 10.3.2. Enable Auditing Logging in Apiserver
+#### Setup Audit Logs
+**Configure apiserver to store Audit Logs in JSON format**
+```sh
+$ root@cks:/ cd /etc/kubernetes/audit
+$ root@cks:/etc/kubernetes/audit# vim policy.yaml
+```
+
+```yaml
+apiVersion: audit.k8s.io/v1
+kind: Policy
+rules:
+- level: Metadata
+```
+
+`Add lines into apiserver yaml definition`
+```yaml
+command:
+...
+- --audit-policy-file=/etc/kubernetes/audit/policy.yaml
+- --audit-log-path=/etc/kubernetes/audit/logs/audit.log
+- --audit-log-maxsize=500
+- --audit-log-maxbackup=5
+...
+
+volumeMounts:
+...
+- mountPath: /etc/kubernetes/audit
+  name: audit
+...
+volumes:
+...
+- hostPath:
+    path: /etc/kubernetes/audit
+    type: DirectoryOrCreate
+  name: audit
+...
+```
+
+```sh
+$ tail -f audit.log
+
+{"kind":"Event","apiVersion":"audit.k8s.io/v1","level":"Metadata","auditID":"158438ad-859c-43c7-8646-f33eb9dadbb1","stage":"ResponseComplete","requestURI":"/api/v1/namespaces/default/configmaps?fieldManager=kubectl-client-side-apply","verb":"create","user":{"username":"minikube-user","groups":["system:masters","system:authenticated"]},"sourceIPs":["192.168.59.1"],"userAgent":"kubectl/v1.23.5 (linux/amd64) kubernetes/c285e78","objectRef":{"resource":"configmaps","namespace":"default","name":"my-config","uid":"b4952dc3-d670-11e5-8cd0-68f728db1985","apiVersion":"v1"},"responseStatus":{"metadata":{},"code":201},"requestObject":{"kind":"ConfigMap","apiVersion":"v1","metadata":{"name":"my-config","namespace":"default","selfLink":"/api/v1/namespaces/default/configmaps/my-config","uid":"b4952dc3-d670-11e5-8cd0-68f728db1985","creationTimestamp":"2016-02-18T18:52:05Z","annotations":{"kubectl.kubernetes.io/last-applied-configuration":"{\"apiVersion\":\"v1\",\"data\":{\"access.properties\":\"aws_access_key_id = MY-ID\\naws_secret_access_key = MY-KEY\\n\",\"ui.properties\":\"color.good=purple\\ncolor.bad=yellow\\nallow.textmode=true\\n\"},\"kind\":\"ConfigMap\",\"metadata\":{\"annotations\":{},\"creationTimestamp\":\"2016-02-18T18:52:05Z\",\"name\":\"my-config\",\"namespace\":\"default\",\"resourceVersion\":\"516\",\"selfLink\":\"/api/v1/namespaces/default/configmaps/my-config\",\"uid\":\"b4952dc3-d670-11e5-8cd0-68f728db1985\"}}\n"}},"data":{"access.properties":"aws_access_key_id = MY-ID\naws_secret_access_key = MY-KEY\n","ui.properties":"color.good=purple\ncolor.bad=yellow\nallow.textmode=true\n"}},"responseObject":{"kind":"ConfigMap","apiVersion":"v1","metadata":{"name":"my-config","namespace":"default","uid":"8865fdb5-541d-4bc2-b6f7-dd1e6ff7db6b","resourceVersion":"4177","creationTimestamp":"2022-07-05T13:10:19Z","annotations":{"kubectl.kubernetes.io/last-applied-configuration":"{\"apiVersion\":\"v1\",\"data\":{\"access.properties\":\"aws_access_key_id = MY-ID\\naws_secret_access_key = MY-KEY\\n\",\"ui.properties\":\"color.good=purple\\ncolor.bad=yellow\\nallow.textmode=true\\n\"},\"kind\":\"ConfigMap\",\"metadata\":{\"annotations\":{},\"creationTimestamp\":\"2016-02-18T18:52:05Z\",\"name\":\"my-config\",\"namespace\":\"default\",\"resourceVersion\":\"516\",\"selfLink\":\"/api/v1/namespaces/default/configmaps/my-config\",\"uid\":\"b4952dc3-d670-11e5-8cd0-68f728db1985\"}}\n"},"managedFields":[{"manager":"kubectl-client-side-apply","operation":"Update","apiVersion":"v1","time":"2022-07-05T13:10:19Z","fieldsType":"FieldsV1","fieldsV1":{"f:data":{".":{},"f:access.properties":{},"f:ui.properties":{}},"f:metadata":{"f:annotations":{".":{},"f:kubectl.kubernetes.io/last-applied-configuration":{}}}}}]},"data":{"access.properties":"aws_access_key_id = MY-ID\naws_secret_access_key = MY-KEY\n","ui.properties":"color.good=purple\ncolor.bad=yellow\nallow.textmode=true\n"}},"requestReceivedTimestamp":"2022-07-05T13:10:19.960188Z","stageTimestamp":"2022-07-05T13:10:19.964977Z","annotations":{"authorization.k8s.io/decision":"allow","authorization.k8s.io/reason":""}}
+```
+
+### 10.3.3. Create Secret and check Audit Logs
+**Create a secret and investigate the JSON audit log**
+```sh
+$ kubectl create secret generic very-secure --from-literal=user=admin
+```
+
+![cks](images/27_auditing_secret.png)
+
+### 10.3.4. Create advanced Audit Policy
+**We want to restrict logged data with an Audit Policy**
+* Nothing from stage RequestReceived
+* Nothing from "get", "watch", "list"
+* From Secrets only metadata level
+* Everything elese RequestResponse level
+
+1. Change policy file
+2. Disable audit logging in apiserver, wait till restart
+3. Enable audit logging in apiserver, wait till restart
+   1. If apiserver doesn't start, then check: `/var/log/pods/kube-system_kube-apiserver*`
+4. Test your changes
+
+```yaml
+apiVersion: audit.k8s.io/v1
+kind: Policy
+omitStages:
+  - "RequestReceived"
+
+rules:
+- level: None
+  verbs: ["get", "watch", "list"]
+
+- level: RequestResponse
+  resources:
+  - group: ""
+    resources: ["secrets"]
+
+- level: RequestResponse
+```
+
+![cks](images/27_auditing_advanced.png)
+
+### 10.3.5. Recap
+> https://www.youtube.com/watch?v=HXtLTxo30SY
 
 
 # 11. System Hardening
 ## 11.1. Kernel Hardening Tools
 ### 11.1.1. Introduction
+#### Linux Kernel Isolation
+![cks](images/28_hardening_intro.png)
+
+#### Kernel vs User Space
+![cks](images/28_hardening_intro_02.png)
+#### Overview
+![cks](images/28_hardening_intro_03.png)
+
 ### 11.1.2. AppArmor
+#### AppArmor
+![cks](images/28_hardening_apparmor.png)
+![cks](images/28_hardening_apparmor_02.png)
+
+#### Main Commands
+```sh
+# Show all profiles
+aa-status
+
+## generate a new profile (smart wrapper around aa-logprof)
+aa-genprof
+
+## put profile in complain mode
+aa-complain
+
+## put profile in enforce mode
+aa-enforce
+
+## update the profile if app produced some more usage logs (syslog)
+aa-logprof
+```
+
 ### 11.1.3. AppArmor for curl
+**Setup simple AppArmor profile for curl**
+```sh
+$ curl killer.sh -v
+*   Trying 35.227.196.29:80...
+* TCP_NODELAY set
+* Connected to killer.sh (35.227.196.29) port 80 (#0)
+> GET / HTTP/1.1
+> Host: killer.sh
+> User-Agent: curl/7.68.0
+> Accept: */*
+> 
+* Mark bundle as not supporting multiuse
+< HTTP/1.1 301 Moved Permanently
+< Cache-Control: private
+< Location: https://killer.sh:443/
+< Content-Length: 0
+< Date: Fri, 16 Dec 2022 10:47:39 GMT
+< Content-Type: text/html; charset=UTF-8
+< 
+* Connection #0 to host killer.sh left intact
+
+$ aa-status 
+apparmor module is loaded.
+60 profiles are loaded.
+54 profiles are in enforce mode.
+   /snap/core/14399/usr/lib/snapd/snap-confine
+   /snap/core/14399/usr/lib/snapd/snap-confine//mount-namespace-capture-helper
+   /snap/snapd/17883/usr/lib/snapd/snap-confine
+   /snap/snapd/17883/usr/lib/snapd/snap-confine//mount-namespace-capture-helper
+   /usr/bin/evince
+   /usr/bin/evince-previewer
+   /usr/bin/evince-previewer//sanitized_helper
+   /usr/bin/evince-thumbnailer
+   /usr/bin/evince//sanitized_helper
+   /usr/bin/man
+   /usr/lib/NetworkManager/nm-dhcp-client.action
+   /usr/lib/NetworkManager/nm-dhcp-helper
+   /usr/lib/connman/scripts/dhclient-script
+   /usr/lib/cups/backend/cups-pdf
+   /usr/lib/snapd/snap-confine
+   /usr/lib/snapd/snap-confine//mount-namespace-capture-helper
+   /usr/sbin/cups-browsed
+   /usr/sbin/cupsd
+   /usr/sbin/cupsd//third_party
+   /usr/sbin/tcpdump
+   /{,usr/}sbin/dhclient
+   docker-default
+   ippusbxd
+   libreoffice-senddoc
+   libreoffice-soffice//gpg
+   libreoffice-xpdfimport
+   lsb_release
+   man_filter
+   man_groff
+   nvidia_modprobe
+   nvidia_modprobe//kmod
+   snap-update-ns.code
+   snap-update-ns.core
+   snap-update-ns.keepassxc
+   snap-update-ns.kontena-lens
+   snap-update-ns.snap-store
+   snap-update-ns.spotify
+   snap-update-ns.sublime-text
+   snap-update-ns.telegram-desktop
+   snap-update-ns.yq
+   snap.core.hook.configure
+   snap.keepassxc.cli
+   snap.keepassxc.hook.configure
+   snap.keepassxc.keepassxc
+   snap.keepassxc.proxy
+   snap.snap-store.hook.configure
+   snap.snap-store.snap-store
+   snap.snap-store.ubuntu-software
+   snap.snap-store.ubuntu-software-local-file
+   snap.spotify.hook.configure
+   snap.spotify.spotify
+   snap.telegram-desktop.hook.configure
+   snap.telegram-desktop.telegram-desktop
+   snap.yq.yq
+6 profiles are in complain mode.
+   libreoffice-oopslash
+   libreoffice-soffice
+   snap.code.code
+   snap.code.url-handler
+   snap.kontena-lens.kontena-lens
+   snap.sublime-text.subl
+25 processes have profiles defined.
+4 processes are in enforce mode.
+   /usr/sbin/cups-browsed (1978) 
+   /usr/sbin/cupsd (2017) 
+   /usr/lib/cups/notifier/dbus (2027) /usr/sbin/cupsd
+   /snap/snap-store/638/usr/bin/snap-store (4086) snap.snap-store.ubuntu-software
+21 processes are in complain mode.
+   /snap/code/115/usr/share/code/code (7938) snap.code.code
+   /snap/code/115/usr/share/code/code (7940) snap.code.code
+   /snap/code/115/usr/share/code/code (7941) snap.code.code
+   /snap/code/115/usr/share/code/code (7986) snap.code.code
+   /snap/code/115/usr/share/code/code (8028) snap.code.code
+   /snap/code/115/usr/share/code/code (8135) snap.code.code
+   /snap/code/115/usr/share/code/code (8150) snap.code.code
+   /snap/code/115/usr/share/code/code (8177) snap.code.code
+   /usr/bin/bash (8257) snap.code.code
+   /snap/code/115/usr/share/code/code (22976) snap.code.code
+   /snap/code/115/usr/share/code/code (23021) snap.code.code
+   /snap/code/115/usr/share/code/code (23086) snap.code.code
+   /home/adrianmartin/.vscode/extensions/hashicorp.terraform-2.25.2-linux-x64/bin/terraform-ls (23121) snap.code.code
+   /snap/code/115/usr/share/code/code (23141) snap.code.code
+   /snap/code/115/usr/share/code/code (23155) snap.code.code
+   /snap/code/115/usr/share/code/code (25573) snap.code.code
+   /usr/bin/sudo (170532) snap.code.code
+   /usr/bin/python3.8 (170558) snap.code.code
+   /snap/sublime-text/116/opt/sublime_text/sublime_text (10584) snap.sublime-text.subl
+   /snap/sublime-text/116/opt/sublime_text/plugin_host-3.3 (10605) snap.sublime-text.subl
+   /snap/sublime-text/116/opt/sublime_text/plugin_host-3.8 (10608) snap.sublime-text.subl
+0 processes are unconfined but have a profile defined.
+```
+
+```sh
+$ apt-get install apparmor-utils
+```
 ### 11.1.4. AppArmor for Docker Nginx
+`/etc/apparmor.d/docker-nginx`
+```sh
+#include <tunables/global>
+
+profile docker-nginx flags=(attach_disconnected,mediate_deleted) {
+  #include <abstractions/base>
+
+  network inet tcp,
+  network inet udp,
+  network inet icmp,
+
+  deny network raw,
+
+  deny network packet,
+
+  file,
+  umount,
+
+  deny /bin/** wl,
+  deny /boot/** wl,
+  deny /dev/** wl,
+  deny /etc/** wl,
+  deny /home/** wl,
+  deny /lib/** wl,
+  deny /lib64/** wl,
+  deny /media/** wl,
+  deny /mnt/** wl,
+  deny /opt/** wl,
+  deny /proc/** wl,
+  deny /root/** wl,
+  deny /sbin/** wl,
+  deny /srv/** wl,
+  deny /tmp/** wl,
+  deny /sys/** wl,
+  deny /usr/** wl,
+
+  audit /** w,
+
+  /var/run/nginx.pid w,
+
+  /usr/sbin/nginx ix,
+
+  deny /bin/dash mrwklx,
+  deny /bin/sh mrwklx,
+  deny /usr/bin/top mrwklx,
+
+
+  capability chown,
+  capability dac_override,
+  capability setuid,
+  capability setgid,
+  capability net_bind_service,
+
+  deny @{PROC}/* w,   # deny write for all files directly in /proc (not in a subdir)
+  # deny write to files not in /proc/<number>/** or /proc/sys/**
+  deny @{PROC}/{[^1-9],[^1-9][^0-9],[^1-9s][^0-9y][^0-9s],[^1-9][^0-9][^0-9][^0-9]*}/** w,
+  deny @{PROC}/sys/[^k]** w,  # deny /proc/sys except /proc/sys/k* (effectively /proc/sys/kernel)
+  deny @{PROC}/sys/kernel/{?,??,[^s][^h][^m]**} w,  # deny everything except shm* in /proc/sys/kernel/
+  deny @{PROC}/sysrq-trigger rwklx,
+  deny @{PROC}/mem rwklx,
+  deny @{PROC}/kmem rwklx,
+  deny @{PROC}/kcore rwklx,
+
+  deny mount,
+
+  deny /sys/[^f]*/** wklx,
+  deny /sys/f[^s]*/** wklx,
+  deny /sys/fs/[^c]*/** wklx,
+  deny /sys/fs/c[^g]*/** wklx,
+  deny /sys/fs/cg[^r]*/** wklx,
+  deny /sys/firmware/** rwklx,
+  deny /sys/kernel/security/** rwklx,
+}
+```
+
+```sh
+$ docker run --security-apt apparmor=docker-nginx nginx
+
+$ docker exec -it nginx sh
+# touch /root/test
+touch: cannot touch '/root/test': Permission denied
+# touch /test
+# sh
+sh: 3: sh: Permission denied
+# exit
+```
+
+> https://kubernetes.io/docs/tutorials/clusters/apparmor/#example
+
 ### 11.1.5. AppArmor for Kubernetes Nginx
+* Container runtime needs to support AppArmor
+* AppArmor needs to be installed on every node
+* AppArmor profiles need to be available on every node
+* AppArmor profiles are **specified per container**
+  * done using annotations
+
+![cks](images/28_hardening_apparmor_kubernetes.png)
+
+```yaml
+apiVersion: v1
+kind: Pod
+metadata:
+  creationTimestamp: null
+  annotations:
+    container.apparmor.security.beta.kubernetes.io/secure: localhost/hello
+  labels:
+    run: secure
+  name: secure
+spec:
+  containers:
+  - image: nginx
+    name: secure
+    resources: {}
+  dnsPolicy: ClusterFirst
+  restartPolicy: Always
+status: {}
+```
+
+```sh
+$ kubectl get po
+NAME     READY   STATUS    RESTARTS   AGE
+secure   0/1     Blocked   0          8s
+
+$ kubectl describe pod 
+Name:             secure
+Namespace:        default
+Priority:         0
+Service Account:  default
+Node:             cks/192.168.58.2
+Start Time:       Fri, 16 Dec 2022 11:59:25 +0100
+Labels:           run=secure
+Annotations:      container.apparmor.security.beta.kubernetes.io/secure: localhost/hello
+Status:           Pending
+Reason:           AppArmor
+Message:          Cannot enforce AppArmor: AppArmor is not enabled on the host
+...
+```
+
+```yaml
+apiVersion: v1
+kind: Pod
+metadata:
+  creationTimestamp: null
+  annotations:
+    container.apparmor.security.beta.kubernetes.io/secure: localhost/docker-nginx
+  labels:
+    run: secure
+  name: secure
+spec:
+  containers:
+  - image: nginx
+    name: secure
+    resources: {}
+  dnsPolicy: ClusterFirst
+  restartPolicy: Always
+status: {}
+```
+
+```sh
+$ kubectl get po
+NAME     READY   STATUS    RESTARTS   AGE
+secure   1/1     Running   0          8s
+
+$ kubectl exec -it secure -- bash
+
+$ root@secure:/# sh
+bash: /bin/sh: Permission denied
+```
+
 ### 11.1.6. Seccomp
+* "secure computing mode"
+* Security facility in the Linux Kernel
+* Restricts execution of syscalls
+
+![cks](images/28_hardening_seccomp.png)
+![cks](images/28_hardening_seccomp_02.png)
+
 ### 11.1.7. Seccomp for Docker Nginx
 ### 11.1.8. Seccomp for Kubernetes Nginx
+**Create a Nginx Pod in Kubernetes and assign a seccomp profile to it**
+
+```yaml
+apiVersion: v1
+kind: Pod
+metadata:
+  creationTimestamp: null
+  labels:
+    run: secure
+  name: secure
+spec:
+  securityContext:
+    seccompProfile:
+      type: Localhost
+      localhostProfile: profiles/audit.json
+  containers:
+  - image: nginx
+    name: secure
+    resources: {}
+  dnsPolicy: ClusterFirst
+  restartPolicy: Always
+status: {}
+```
+
 ### 11.1.9. Recap
+> https://www.youtube.com/watch?v=8g-NUUmCeGI
+
+> https://www.youtube.com/watch?v=JFjXvIwAeVI
+
 
 ## 11.2. Reduce Attack Surface
 ### 11.2.1. Introduction
+#### Overview
+![cks](images/29_reduce_attack_surface_intro.png)
+
+#### Nodes that run Kubernetes
+* Only purpose: run Kubernetes components
+  * Remove unnecesary services
+* Node Recycling
+  * Nodes should be ephemeral
+  * Created from images
+  * Can be recycled any time (and fas if necessary)
+
+#### Linux Distributions
+* Often include number of services
+* Meant to help, but widen attack surface
+* The more existing and running services, the more environment
+
+#### Open Ports
+`netstat` (Red Hat: ssh command)
+![cks](images/29_reduce_attack_surface_intro_02.png)
+
+#### Port used by which application?
+`netstat` or `lsfot`
+![cks](images/29_reduce_attack_surface_intro_03.png)
+
+#### Running Services
+`systemctl`
+![cks](images/29_reduce_attack_surface_intro_04.png)
+
+#### Processes and Users
+`ps`
+![cks](images/29_reduce_attack_surface_intro_05.png)
+
 ### 11.2.2. Systemctl and Services
+**Disable Service Snapd via systemctl**
+```
+$ sudo systemctl status snapd
+● snapd.service - Snap Daemon
+     Loaded: loaded (/lib/systemd/system/snapd.service; enabled; vendor preset: enabled)
+     Active: active (running) since Fri 2022-12-16 08:39:25 CET; 4h 6min ago
+TriggeredBy: ● snapd.socket
+   Main PID: 1820 (snapd)
+      Tasks: 22 (limit: 18750)
+     Memory: 210.3M
+     CGroup: /system.slice/snapd.service
+             └─1820 /usr/lib/snapd/snapdf
+
+$ sudo systemctl stop snapd
+Warning: Stopping snapd.service, but it can still be activated by: 
+  snapd.socket
+
+$ systemctl list-units | grep snapd
+  run-snapd-ns-snap\x2dstore.mnt.mount                                                                             loaded active     mounted   /run/snapd/ns/snap-store.mnt                                                                    
+  run-snapd-ns-telegram\x2ddesktop.mnt.mount                                                                       loaded active     mounted   /run/snapd/ns/telegram-desktop.mnt                                                              
+  run-snapd-ns.mount                                                                                               loaded active     mounted   /run/snapd/ns                                                                                   
+  snap-snapd-17883.mount                                                                                           loaded active     mounted   Mount unit for snapd, revision 17883                                                            
+  snapd.apparmor.service                                                                                           loaded active     exited    Load AppArmor profiles managed internally by snapd                                              
+  snapd.seeded.service                                                                                             loaded active     exited    Wait until snapd is fully seeded                                                                
+  snapd.service                                                                                                    loaded active     running   Snap Daemon                                                                                     
+  snapd.socket                                                                                                     loaded active     running   Socket activation for snappy daemon
+
+$ systemctl list-units --type=service | grep snapd
+  snapd.apparmor.service                                                                    loaded active exited  Load AppArmor profiles managed internally by snapd                           
+  snapd.seeded.service                                                                      loaded active exited  Wait until snapd is fully seeded                                             
+  snapd.service                                                                             loaded active running Snap Daemon 
+
+$ systemctl list-units --type=service --state=running | grep snapd
+
+$ systemctl start snapd
+
+$ systemctl list-units --type=service --state=running | grep snapd
+snapd.service             loaded active running Snap Daemon
+
+$ systemctl disable snapd
+Removed /etc/systemd/system/multi-user.target.wants/snapd.service.
+```
+
 ### 11.2.3. Install and investigate Services
+```sh
+$ ps aux | grep postgres
+postgres    2036  0.0  0.1 223612 30044 ?        Ss   08:39   0:00 /usr/lib/postgresql/15/bin/postgres -D /var/lib/postgresql/15/main -c config_file=/etc/postgresql/15/main/postgresql.conf
+postgres    2049  0.0  0.0 223772  7912 ?        Ss   08:39   0:00 postgres: 15/main: checkpointer 
+postgres    2050  0.0  0.0 223756  5968 ?        Ss   08:39   0:00 postgres: 15/main: background writer 
+postgres    2053  0.0  0.0 223756 10432 ?        Ss   08:39   0:00 postgres: 15/main: walwriter 
+postgres    2054  0.0  0.0 225188  8564 ?        Ss   08:39   0:00 postgres: 15/main: autovacuum launcher 
+postgres    2055  0.0  0.0 225220  6684 ?        Ss   08:39   0:00 postgres: 15/main: logical replication launcher 
+adrianm+  245841  0.0  0.0  11664  2780 pts/2    S+   13:03   0:00 grep --color=auto postgres
+
+
+$ sudo netstat -plnt
+Active Internet connections (only servers)
+Proto Recv-Q Send-Q Local Address           Foreign Address         State       PID/Program name    
+tcp        0      0 127.0.0.1:5939          0.0.0.0:*               LISTEN      2742/teamviewerd    
+tcp        0      0 127.0.0.53:53           0.0.0.0:*               LISTEN      1693/systemd-resolv 
+tcp        0      0 127.0.0.1:631           0.0.0.0:*               LISTEN      2017/cupsd          
+tcp        0      0 127.0.1.1:5432          0.0.0.0:*               LISTEN      2036/postgres       
+tcp        0      0 127.0.0.1:5432          0.0.0.0:*               LISTEN      2036/postgres       
+tcp        0      0 127.0.0.1:39003         0.0.0.0:*               LISTEN      1811/confighandler  
+tcp        0      0 127.0.0.1:49153         0.0.0.0:*               LISTEN      26007/docker-proxy  
+tcp        0      0 127.0.0.1:49154         0.0.0.0:*               LISTEN      26021/docker-proxy  
+tcp        0      0 127.0.0.1:49155         0.0.0.0:*               LISTEN      26033/docker-proxy  
+tcp        0      0 127.0.0.1:49156         0.0.0.0:*               LISTEN      26046/docker-proxy  
+tcp        0      0 127.0.0.1:49157         0.0.0.0:*               LISTEN      26058/docker-proxy  
+tcp        0      0 127.0.0.1:39245         0.0.0.0:*               LISTEN      22976/code
+```
+
 ### 11.2.4. Disabled application listening on port
 ### 11.2.5. Investigate Linux Users
+```sh
+$ root@cks:~# whoami
+root
+
+$ root@cks:~# cat /etc/passwd
+root:x:0:0:root:/root:/bin/bash
+daemon:x:1:1:daemon:/usr/sbin:/usr/sbin/nologin
+bin:x:2:2:bin:/bin:/usr/sbin/nologin
+sys:x:3:3:sys:/dev:/usr/sbin/nologin
+sync:x:4:65534:sync:/bin:/bin/sync
+games:x:5:60:games:/usr/games:/usr/sbin/nologin
+man:x:6:12:man:/var/cache/man:/usr/sbin/nologin
+lp:x:7:7:lp:/var/spool/lpd:/usr/sbin/nologin
+mail:x:8:8:mail:/var/mail:/usr/sbin/nologin
+news:x:9:9:news:/var/spool/news:/usr/sbin/nologin
+uucp:x:10:10:uucp:/var/spool/uucp:/usr/sbin/nologin
+proxy:x:13:13:proxy:/bin:/usr/sbin/nologin
+www-data:x:33:33:www-data:/var/www:/usr/sbin/nologin
+backup:x:34:34:backup:/var/backups:/usr/sbin/nologin
+list:x:38:38:Mailing List Manager:/var/list:/usr/sbin/nologin
+irc:x:39:39:ircd:/var/run/ircd:/usr/sbin/nologin
+gnats:x:41:41:Gnats Bug-Reporting System (admin):/var/lib/gnats:/usr/sbin/nologin
+nobody:x:65534:65534:nobody:/nonexistent:/usr/sbin/nologin
+_apt:x:100:65534::/nonexistent:/usr/sbin/nologin
+_rpc:x:101:65534::/run/rpcbind:/usr/sbin/nologin
+statd:x:102:65534::/var/lib/nfs:/usr/sbin/nologin
+systemd-timesync:x:103:104:systemd Time Synchronization,,,:/run/systemd:/usr/sbin/nologin
+systemd-network:x:104:106:systemd Network Management,,,:/run/systemd:/usr/sbin/nologin
+systemd-resolve:x:105:107:systemd Resolver,,,:/run/systemd:/usr/sbin/nologin
+sshd:x:106:65534::/run/sshd:/usr/sbin/nologin
+dnsmasq:x:107:65534:dnsmasq,,,:/var/lib/misc:/usr/sbin/nologin
+messagebus:x:108:110::/nonexistent:/usr/sbin/nologin
+docker:x:1000:999:,,,:/home/docker:/bin/bash
+systemd-coredump:x:998:998:systemd Core Dumper:/:/usr/sbin/nologin
+
+$ root@cks:~# su docker
+
+$ docker@cks:/root$ whoami
+docker
+
+$ docker@cks:/root$ sudo -i
+
+root@cks:~# ps aux | grep bash
+docker    176876  0.0  0.0   4248  3508 pts/1    Ss   12:04   0:00 -bash
+root      176906  0.0  0.0   4248  3496 pts/1    S    12:04   0:00 bash
+docker    177188  0.0  0.0   4248  3556 pts/1    S    12:04   0:00 bash
+root      177335  0.0  0.0   4248  3544 pts/1    S    12:04   0:00 -bash
+root      177363  0.0  0.0   3312   712 pts/1    S+   12:05   0:00 grep --color=auto bash
+
+$ root@cks:~# exit
+logout
+
+$ docker@cks:/root$ ps aux | grep bash
+docker    176876  0.0  0.0   4248  3508 pts/1    Ss   12:04   0:00 -bash
+root      176906  0.0  0.0   4248  3496 pts/1    S    12:04   0:00 bash
+docker    177188  0.0  0.0   4248  3556 pts/1    S    12:04   0:00 bash
+docker    177651  0.0  0.0   3312   648 pts/1    S+   12:05   0:00 grep --color=auto bash
+
+$ root@cks:~# adduser test
+Adding user `test' ...
+Adding new group `test' (1000) ...
+Adding new user `test' (1001) with group `test' ...
+Creating home directory `/home/test' ...
+Copying files from `/etc/skel' ...
+New password: 
+Retype new password: 
+No password supplied
+New password: 
+Retype new password: 
+No password supplied
+New password: 
+Retype new password: 
+No password supplied
+passwd: Authentication token manipulation error
+passwd: password unchanged
+Try again? [y/N] N
+Changing the user information for test
+Enter the new value, or press ENTER for the default
+	Full Name []: 
+	Room Number []: 
+	Work Phone []: 
+	Home Phone []: 
+	Other []: 
+Is the information correct? [Y/n] Y
+
+$ root@cks:~# cat /etc/passwd
+root:x:0:0:root:/root:/bin/bash
+daemon:x:1:1:daemon:/usr/sbin:/usr/sbin/nologin
+bin:x:2:2:bin:/bin:/usr/sbin/nologin
+sys:x:3:3:sys:/dev:/usr/sbin/nologin
+sync:x:4:65534:sync:/bin:/bin/sync
+games:x:5:60:games:/usr/games:/usr/sbin/nologin
+man:x:6:12:man:/var/cache/man:/usr/sbin/nologin
+lp:x:7:7:lp:/var/spool/lpd:/usr/sbin/nologin
+mail:x:8:8:mail:/var/mail:/usr/sbin/nologin
+news:x:9:9:news:/var/spool/news:/usr/sbin/nologin
+uucp:x:10:10:uucp:/var/spool/uucp:/usr/sbin/nologin
+proxy:x:13:13:proxy:/bin:/usr/sbin/nologin
+www-data:x:33:33:www-data:/var/www:/usr/sbin/nologin
+backup:x:34:34:backup:/var/backups:/usr/sbin/nologin
+list:x:38:38:Mailing List Manager:/var/list:/usr/sbin/nologin
+irc:x:39:39:ircd:/var/run/ircd:/usr/sbin/nologin
+gnats:x:41:41:Gnats Bug-Reporting System (admin):/var/lib/gnats:/usr/sbin/nologin
+nobody:x:65534:65534:nobody:/nonexistent:/usr/sbin/nologin
+_apt:x:100:65534::/nonexistent:/usr/sbin/nologin
+_rpc:x:101:65534::/run/rpcbind:/usr/sbin/nologin
+statd:x:102:65534::/var/lib/nfs:/usr/sbin/nologin
+systemd-timesync:x:103:104:systemd Time Synchronization,,,:/run/systemd:/usr/sbin/nologin
+systemd-network:x:104:106:systemd Network Management,,,:/run/systemd:/usr/sbin/nologin
+systemd-resolve:x:105:107:systemd Resolver,,,:/run/systemd:/usr/sbin/nologin
+sshd:x:106:65534::/run/sshd:/usr/sbin/nologin
+dnsmasq:x:107:65534:dnsmasq,,,:/var/lib/misc:/usr/sbin/nologin
+messagebus:x:108:110::/nonexistent:/usr/sbin/nologin
+docker:x:1000:999:,,,:/home/docker:/bin/bash
+systemd-coredump:x:998:998:systemd Core Dumper:/:/usr/sbin/nologin
+test:x:1001:1000:,,,:/home/test:/bin/bash
+
+$ root@cks:~# su test
+
+$ test@cks:/root$ whoami
+test
+```
 ### 11.2.6. Recap
 
 
