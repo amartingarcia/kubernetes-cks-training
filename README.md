@@ -212,8 +212,6 @@
     - [6.3.7. Disable PrivilegeScalation](#637-disable-privilegescalation)
     - [6.3.8. PodSecurityPolicies](#638-podsecuritypolicies)
       - [Pod Security Policies](#pod-security-policies)
-    - [6.3.9. Create and enable PodSecurityPolicies](#639-create-and-enable-podsecuritypolicies)
-    - [6.3.10. Recap](#6310-recap)
   - [6.4. mTLS](#64-mtls)
     - [6.4.1. Intro](#641-intro)
       - [mTLS - Mutual TLS](#mtls---mutual-tls)
@@ -2924,8 +2922,6 @@ containers:
 
 > https://kubernetes.io/docs/concepts/security/pod-security-admission/
 
-### 6.3.9. Create and enable PodSecurityPolicies
-### 6.3.10. Recap
 
 ## 6.4. mTLS
 ### 6.4.1. Intro
