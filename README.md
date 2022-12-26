@@ -1,7 +1,7 @@
 # training_k8s_cks
 
 # Table of Contents
-- [training\_k8s\_cks](#training_k8s_cks)
+- [training_k8s_cks](#training_k8s_cks)
 - [Table of Contents](#table-of-contents)
 - [1. Introduction](#1-introduction)
   - [1.1. Welcome](#11-welcome)
@@ -203,7 +203,7 @@
     - [6.3.1. Intro and Security Context](#631-intro-and-security-context)
       - [Security Context](#security-context)
     - [6.3.2. Set container User and Group](#632-set-container-user-and-group)
-      - [security Contexts \& UID GID](#security-contexts--uid-gid)
+      - [security Contexts & UID GID](#security-contexts--uid-gid)
     - [6.3.3. Force container non-root](#633-force-container-non-root)
     - [6.3.4. Privileged Containers](#634-privileged-containers)
       - [Privileged Containers in Kubernetes](#privileged-containers-in-kubernetes)
@@ -487,18 +487,17 @@ minikube start --network-plugin=cni --cni=calico -p cks
 #### 3.2.1.1. Container and Image
 * **Dockerfile**: Script/text defines how to build an image
 * **Image** (docker build): Multi layer binary representation of state
-* **Container** (docker run): "running" instnace of an image
+* **Container** (docker run): "running" instance of an image
   * Collection of one or multiple applications.
   * Includes all its dependencies.
   * Just a process which runs on the Linux Kernel (but which cannot see everything).
 
 ### 3.2.2. Test Tools Introduction
 #### Container tools
-
-**Docker**: Container Runtime + Tool for managing containers and images.
-**Containerd**: Container Runtime.
-**Crictl**: CLI for CRI-compatible Container Runtimes.
-**Podman**: Tool for managing containers and images.
+* **Docker**: Container Runtime + Tool for managing containers and images.
+* **Containerd**: Container Runtime.
+* **Crictl**: CLI for CRI-compatible Container Runtimes.
+* **Podman**: Tool for managing containers and images.
 
 ##### Dockerfile
 ```sh
