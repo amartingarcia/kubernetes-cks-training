@@ -1,15 +1,15 @@
 # training_k8s_cks
 
 # Table of Contents
-- [training_k8s_cks](#training_k8s_cks)
+- [training\_k8s\_cks](#training_k8s_cks)
 - [Table of Contents](#table-of-contents)
 - [1. Introduction](#1-introduction)
   - [1.1. Welcome](#11-welcome)
   - [1.2. K8s Security Best Practices](#12-k8s-security-best-practices)
-    - [K8s Security Categories](#k8s-security-categories)
-      - [Host Operating System Security (Ex. Linux)](#host-operating-system-security-ex-linux)
-      - [Kubernetes Cluster Security (Ex. Kubernetes)](#kubernetes-cluster-security-ex-kubernetes)
-      - [Application Security (Ex. Container)](#application-security-ex-container)
+    - [1.2.1. K8s Security Categories](#121-k8s-security-categories)
+      - [1.2.1.1. Host Operating System Security (Ex. Linux)](#1211-host-operating-system-security-ex-linux)
+      - [1.2.1.2. Kubernetes Cluster Security (Ex. Kubernetes)](#1212-kubernetes-cluster-security-ex-kubernetes)
+      - [1.2.1.3. Application Security (Ex. Container)](#1213-application-security-ex-container)
 - [2. Create your course K8S cluster](#2-create-your-course-k8s-cluster)
   - [2.1. Cluster Specification](#21-cluster-specification)
   - [2.2. Configure gcloud command](#22-configure-gcloud-command)
@@ -24,106 +24,106 @@
     - [3.2.1. Intro](#321-intro)
       - [3.2.1.1. Container and Image](#3211-container-and-image)
     - [3.2.2. Test Tools Introduction](#322-test-tools-introduction)
-      - [Container tools](#container-tools)
-        - [Dockerfile](#dockerfile)
-        - [Build Dockerfile](#build-dockerfile)
-        - [List image](#list-image)
-        - [Docker run](#docker-run)
-        - [Podman build](#podman-build)
-        - [Podman run](#podman-run)
+      - [3.2.2.1. Container tools](#3221-container-tools)
+        - [3.2.2.1.1. Dockerfile](#32211-dockerfile)
+        - [3.2.2.1.2. Build Dockerfile](#32212-build-dockerfile)
+        - [3.2.2.1.3. List image](#32213-list-image)
+        - [3.2.2.1.4. Docker run](#32214-docker-run)
+        - [3.2.2.1.5. Podman build](#32215-podman-build)
+        - [3.2.2.1.6. Podman run](#32216-podman-run)
     - [3.2.3. The PID Namespace](#323-the-pid-namespace)
-      - [Run c1 container](#run-c1-container)
-      - [Show process on c1 container](#show-process-on-c1-container)
-      - [Run c2 container](#run-c2-container)
-      - [Show process on c2 container](#show-process-on-c2-container)
-      - [Show process on host](#show-process-on-host)
-      - [Delete c2 container](#delete-c2-container)
-      - [Recreate container with same namespace.](#recreate-container-with-same-namespace)
-      - [Show process on c2 container (you can see other container process).](#show-process-on-c2-container-you-can-see-other-container-process)
-      - [Show process on c1 container (you can see other container process).](#show-process-on-c1-container-you-can-see-other-container-process)
+      - [3.2.3.1. Run c1 container](#3231-run-c1-container)
+      - [3.2.3.2. Show process on c1 container](#3232-show-process-on-c1-container)
+      - [3.2.3.3. Run c2 container](#3233-run-c2-container)
+      - [3.2.3.4. Show process on c2 container](#3234-show-process-on-c2-container)
+      - [3.2.3.5. Show process on host](#3235-show-process-on-host)
+      - [3.2.3.6. Delete c2 container](#3236-delete-c2-container)
+      - [3.2.3.7. Recreate container with same namespace.](#3237-recreate-container-with-same-namespace)
+      - [3.2.3.8. Show process on c2 container (you can see other container process).](#3238-show-process-on-c2-container-you-can-see-other-container-process)
+      - [3.2.3.9. Show process on c1 container (you can see other container process).](#3239-show-process-on-c1-container-you-can-see-other-container-process)
     - [3.2.4. Recap](#324-recap)
 - [4. Cluster setup](#4-cluster-setup)
   - [4.1. Network Policies](#41-network-policies)
     - [4.1.1. Introduction 1](#411-introduction-1)
-      - [NetworkPolicies](#networkpolicies)
-      - [Without NetworkPolicies](#without-networkpolicies)
+      - [4.1.1.1. NetworkPolicies](#4111-networkpolicies)
+      - [4.1.1.2. Without NetworkPolicies](#4112-without-networkpolicies)
     - [4.1.2. Introduction 2](#412-introduction-2)
-      - [NetworkPolicy example](#networkpolicy-example)
-      - [Multiple NetworkPolicies](#multiple-networkpolicies)
-        - [Merge example2a + example2b](#merge-example2a--example2b)
+      - [4.1.2.1. NetworkPolicy example](#4121-networkpolicy-example)
+      - [4.1.2.2. Multiple NetworkPolicies](#4122-multiple-networkpolicies)
+        - [4.1.2.2.1. Merge example2a + example2b](#41221-merge-example2a--example2b)
     - [4.1.3. Default Deny](#413-default-deny)
-      - [Create a frontend and backend applications and expose.](#create-a-frontend-and-backend-applications-and-expose)
-      - [Test connection between applications](#test-connection-between-applications)
-      - [Create the NetworkPolicy](#create-the-networkpolicy)
-      - [Test connection between apps](#test-connection-between-apps)
+      - [4.1.3.1. Create a frontend and backend applications and expose.](#4131-create-a-frontend-and-backend-applications-and-expose)
+      - [4.1.3.2. Test connection between applications](#4132-test-connection-between-applications)
+      - [4.1.3.3. Create the NetworkPolicy](#4133-create-the-networkpolicy)
+      - [4.1.3.4. Test connection between apps](#4134-test-connection-between-apps)
     - [4.1.4. Frontend to Backend traffic](#414-frontend-to-backend-traffic)
-      - [Test connection](#test-connection)
-      - [Test connection](#test-connection-1)
-      - [If you want connect to DNS, you indicate Port 53](#if-you-want-connect-to-dns-you-indicate-port-53)
+      - [4.1.4.1. Test connection](#4141-test-connection)
+      - [4.1.4.2. Test connection](#4142-test-connection)
+      - [4.1.4.3. If you want connect to DNS, you indicate Port 53](#4143-if-you-want-connect-to-dns-you-indicate-port-53)
     - [4.1.5. Backend to database traffic](#415-backend-to-database-traffic)
-      - [Create a namespace](#create-a-namespace)
-      - [Create a Pod](#create-a-pod)
-      - [Get Pod Cassandra IP](#get-pod-cassandra-ip)
-      - [Test connection](#test-connection-2)
-      - [Apply egress to cassandra namespace](#apply-egress-to-cassandra-namespace)
-      - [Test connection](#test-connection-3)
-      - [Create configuration to Deny all to cassandra Pod](#create-configuration-to-deny-all-to-cassandra-pod)
-      - [And create NetworkPolicy to cassandra ingress from default](#and-create-networkpolicy-to-cassandra-ingress-from-default)
-      - [Labeled default namespace and launch curl](#labeled-default-namespace-and-launch-curl)
+      - [4.1.5.1. Create a namespace](#4151-create-a-namespace)
+      - [4.1.5.2. Create a Pod](#4152-create-a-pod)
+      - [4.1.5.3. Get Pod Cassandra IP](#4153-get-pod-cassandra-ip)
+      - [4.1.5.4. Test connection](#4154-test-connection)
+      - [4.1.5.5. Apply egress to cassandra namespace](#4155-apply-egress-to-cassandra-namespace)
+      - [4.1.5.6. Test connection](#4156-test-connection)
+      - [4.1.5.7. Create configuration to Deny all to cassandra Pod](#4157-create-configuration-to-deny-all-to-cassandra-pod)
+      - [4.1.5.8. And create NetworkPolicy to cassandra ingress from default](#4158-and-create-networkpolicy-to-cassandra-ingress-from-default)
+      - [4.1.5.9. Labeled default namespace and launch curl](#4159-labeled-default-namespace-and-launch-curl)
     - [4.1.6. Recap](#416-recap)
   - [4.2. GUI Elements](#42-gui-elements)
     - [4.2.1. Introduction](#421-introduction)
-      - [Gui Elements and the Dashboard](#gui-elements-and-the-dashboard)
-      - [Kubectl proxy](#kubectl-proxy)
-      - [Kubectl port-forward](#kubectl-port-forward)
-      - [Ingress](#ingress)
+      - [4.2.1.1. Gui Elements and the Dashboard](#4211-gui-elements-and-the-dashboard)
+      - [4.2.1.2. Kubectl proxy](#4212-kubectl-proxy)
+      - [4.2.1.3. Kubectl port-forward](#4213-kubectl-port-forward)
+      - [4.2.1.4. Ingress](#4214-ingress)
     - [4.2.2. Install Dashboard](#422-install-dashboard)
-      - [Deploy Dashboard](#deploy-dashboard)
-      - [Get objects](#get-objects)
+      - [4.2.2.1. Deploy Dashboard](#4221-deploy-dashboard)
+      - [4.2.2.2. Get objects](#4222-get-objects)
     - [4.2.3. Outside Insecure Access](#423-outside-insecure-access)
-      - [Expose insecure Dashboard](#expose-insecure-dashboard)
+      - [4.2.3.1. Expose insecure Dashboard](#4231-expose-insecure-dashboard)
     - [4.2.4. RBAC for the dashboard](#424-rbac-for-the-dashboard)
     - [4.2.5. Recap](#425-recap)
-      - [Interesting dashboard security arguments](#interesting-dashboard-security-arguments)
+      - [4.2.5.1. Interesting dashboard security arguments](#4251-interesting-dashboard-security-arguments)
   - [4.3. Secure Ingress](#43-secure-ingress)
     - [4.3.3. Create an Ingress](#433-create-an-ingress)
-      - [Setup an example Ingress](#setup-an-example-ingress)
+      - [4.3.3.1. Setup an example Ingress](#4331-setup-an-example-ingress)
     - [4.3.4. Secure an Ingress](#434-secure-an-ingress)
     - [4.3.5. Recap](#435-recap)
   - [4.4. Node metadata protection](#44-node-metadata-protection)
     - [4.4.1. Introduction](#441-introduction)
-      - [Cloud Platform Node Metadata](#cloud-platform-node-metadata)
-      - [Limit permissions for instance credentials](#limit-permissions-for-instance-credentials)
+      - [4.4.1.1. Cloud Platform Node Metadata](#4411-cloud-platform-node-metadata)
+      - [4.4.1.2. Limit permissions for instance credentials](#4412-limit-permissions-for-instance-credentials)
     - [4.4.2. Access Node Metadata](#442-access-node-metadata)
     - [4.4.3. Protect Node Metadata via Network Policy](#443-protect-node-metadata-via-network-policy)
-      - [All pods in namespace cannot access metadata endpoint](#all-pods-in-namespace-cannot-access-metadata-endpoint)
-      - [Only pods with label are allowed to access metadata endpoint](#only-pods-with-label-are-allowed-to-access-metadata-endpoint)
-      - [Labeled Pod](#labeled-pod)
+      - [4.4.3.1. All pods in namespace cannot access metadata endpoint](#4431-all-pods-in-namespace-cannot-access-metadata-endpoint)
+      - [4.4.3.2. Only pods with label are allowed to access metadata endpoint](#4432-only-pods-with-label-are-allowed-to-access-metadata-endpoint)
+      - [4.4.3.3. Labeled Pod](#4433-labeled-pod)
   - [4.5. CIS Bechmarck](#45-cis-bechmarck)
     - [4.5.1. Introduction](#451-introduction)
-      - [CIS - Center for Internet Security](#cis---center-for-internet-security)
+      - [4.5.1.1. CIS - Center for Internet Security](#4511-cis---center-for-internet-security)
     - [4.5.2. CIS in action](#452-cis-in-action)
     - [4.5.3. kube-bench](#453-kube-bench)
-      - [How to run](#how-to-run)
+      - [4.5.3.1. How to run](#4531-how-to-run)
     - [4.5.4. Recap](#454-recap)
   - [4.6. Verify Platform Binaries](#46-verify-platform-binaries)
     - [4.6.1. Verify apiserver binary running in our cluster](#461-verify-apiserver-binary-running-in-our-cluster)
 - [5. Cluster Hardening](#5-cluster-hardening)
   - [5.1. RBAC](#51-rbac)
     - [5.1.1. Intro](#511-intro)
-      - [RBAC](#rbac)
-      - [POLP (Principle Of Least Privilege)](#polp-principle-of-least-privilege)
-      - [RBAC- Namespaced Resources vs Cluster Resources](#rbac--namespaced-resources-vs-cluster-resources)
-      - [RoleBinding](#rolebinding)
-      - [ClusterRoleBinding](#clusterrolebinding)
+      - [5.1.1.1. RBAC](#5111-rbac)
+      - [5.1.1.2. POLP (Principle Of Least Privilege)](#5112-polp-principle-of-least-privilege)
+      - [5.1.1.3. RBAC- Namespaced Resources vs Cluster Resources](#5113-rbac--namespaced-resources-vs-cluster-resources)
+      - [5.1.1.4. RoleBinding](#5114-rolebinding)
+      - [5.1.1.5. ClusterRoleBinding](#5115-clusterrolebinding)
     - [5.1.2. Role and Rolebinding](#512-role-and-rolebinding)
     - [5.1.3. ClusterRole and ClusterRoleBinding](#513-clusterrole-and-clusterrolebinding)
     - [5.1.4. Accounts and Users](#514-accounts-and-users)
     - [5.1.5. CertificateSingingRequets](#515-certificatesingingrequets)
-      - [Users and Certificates](#users-and-certificates)
+      - [5.1.5.1. Users and Certificates](#5151-users-and-certificates)
   - [5.2. Exercise caution in using ServiceAccounts](#52-exercise-caution-in-using-serviceaccounts)
     - [5.2.1. Intro](#521-intro)
-      - [Accounts](#accounts)
+      - [5.2.1.1. Accounts](#5211-accounts)
       - [ServiceAccounts and Pods](#serviceaccounts-and-pods)
     - [5.2.2. Pods uses custom ServiceAccount](#522-pods-uses-custom-serviceaccount)
     - [5.2.3. Disable ServiceAccount Mounting](#523-disable-serviceaccount-mounting)
@@ -131,27 +131,27 @@
     - [5.2.5. Recap](#525-recap)
   - [5.3. Restrict API Access](#53-restrict-api-access)
     - [5.3.1. Intro](#531-intro)
-      - [Request workflow](#request-workflow)
-      - [Restrictions](#restrictions)
+      - [5.3.1.1. Request workflow](#5311-request-workflow)
+      - [5.3.1.2. Restrictions](#5312-restrictions)
     - [5.3.2. Anonymous Access](#532-anonymous-access)
-      - [Anonymous Access](#anonymous-access)
-        - [Set anonymous-auth=false](#set-anonymous-authfalse)
+      - [5.3.2.1. Anonymous Access](#5321-anonymous-access)
+        - [5.3.2.2. Set anonymous-auth=false](#5322-set-anonymous-authfalse)
     - [5.3.3. Insecure Access](#533-insecure-access)
-      - [HTTP/HTTPS Access](#httphttps-access)
-      - [Insecure Access](#insecure-access)
+      - [5.3.3.1. HTTP/HTTPS Access](#5331-httphttps-access)
+      - [5.3.3.2. Insecure Access](#5332-insecure-access)
     - [5.3.4. Manual API Requests](#534-manual-api-requests)
     - [5.3.5. NodeRestriction AdmissionController](#535-noderestriction-admissioncontroller)
-      - [NodeRestriction](#noderestriction)
+      - [5.3.5.1. NodeRestriction](#5351-noderestriction)
     - [5.3.6. Verify NodeRestriction](#536-verify-noderestriction)
     - [5.3.7. Recap](#537-recap)
   - [5.4. Upgrade Kubernetes](#54-upgrade-kubernetes)
     - [5.4.1. Intro](#541-intro)
-      - [Why upgrade frequently?](#why-upgrade-frequently)
-      - [Kubernetes Release Cycles](#kubernetes-release-cycles)
-      - [Support](#support)
-      - [How to upgrade a cluster](#how-to-upgrade-a-cluster)
-      - [How to upgrade a node](#how-to-upgrade-a-node)
-      - [How to make your application survive an upgrade](#how-to-make-your-application-survive-an-upgrade)
+      - [5.4.1.1. Why upgrade frequently?](#5411-why-upgrade-frequently)
+      - [5.4.1.2. Kubernetes Release Cycles](#5412-kubernetes-release-cycles)
+      - [5.4.1.3. Support](#5413-support)
+      - [5.4.1.4. How to upgrade a cluster](#5414-how-to-upgrade-a-cluster)
+      - [5.4.1.5. How to upgrade a node](#5415-how-to-upgrade-a-node)
+      - [5.4.1.6. How to make your application survive an upgrade](#5416-how-to-make-your-application-survive-an-upgrade)
     - [5.4.2. Ubuntu 20.04 Update](#542-ubuntu-2004-update)
     - [5.4.3. Create outdated cluster](#543-create-outdated-cluster)
     - [5.4.4. Upgrade controlplane node](#544-upgrade-controlplane-node)
@@ -160,68 +160,68 @@
 - [6. Microservice Vulnerabilities](#6-microservice-vulnerabilities)
   - [6.1. Manage Kubernetes](#61-manage-kubernetes)
     - [6.1.1. Create Simple Secret Scenario](#611-create-simple-secret-scenario)
-      - [Create a generic secret](#create-a-generic-secret)
-      - [Mount secret in a Pod](#mount-secret-in-a-pod)
+      - [6.1.1.1. Create a generic secret](#6111-create-a-generic-secret)
+      - [6.1.1.2. Mount secret in a Pod](#6112-mount-secret-in-a-pod)
     - [6.1.2. Hacks Secret in Container Runtime](#612-hacks-secret-in-container-runtime)
-      - [Search "mypod"](#search-mypod)
-      - [Inspect container and show "envs" and "mounts"](#inspect-container-and-show-envs-and-mounts)
+      - [6.1.2.1. Search "mypod"](#6121-search-mypod)
+      - [6.1.2.2. Inspect container and show "envs" and "mounts"](#6122-inspect-container-and-show-envs-and-mounts)
     - [6.1.3. Hacks Secret in ETCD](#613-hacks-secret-in-etcd)
-      - [Access secret int etcd](#access-secret-int-etcd)
-      - [Show secret](#show-secret)
+      - [6.1.3.1. Access secret int etcd](#6131-access-secret-int-etcd)
+      - [6.1.3.2. Show secret](#6132-show-secret)
     - [6.1.4. ETCD Encryption](#614-etcd-encryption)
-      - [Encrypt](#encrypt)
-      - [Encrypt (all Secrets) in ETCD](#encrypt-all-secrets-in-etcd)
-      - [Decrypt all Secrets in ETCD](#decrypt-all-secrets-in-etcd)
+      - [6.1.4.1. Encrypt](#6141-encrypt)
+      - [6.1.4.2. Encrypt (all Secrets) in ETCD](#6142-encrypt-all-secrets-in-etcd)
+      - [6.1.4.3. Decrypt all Secrets in ETCD](#6143-decrypt-all-secrets-in-etcd)
     - [6.1.5. Encrypt ETCD (example)](#615-encrypt-etcd-example)
-      - [/etc/kubernetes/etcd/ec.yaml](#etckubernetesetcdecyaml)
-      - [Edit API Server](#edit-api-server)
-      - [Encrypt existing Secrets](#encrypt-existing-secrets)
+      - [6.1.5.1. /etc/kubernetes/etcd/ec.yaml](#6151-etckubernetesetcdecyaml)
+      - [6.1.5.2. Edit API Server](#6152-edit-api-server)
+      - [6.1.5.3. Encrypt existing Secrets](#6153-encrypt-existing-secrets)
     - [6.1.6. Recap](#616-recap)
   - [6.2. Container Runtime](#62-container-runtime)
     - [6.2.1. Intro](#621-intro)
-      - [Technical Overview](#technical-overview)
-      - [Technical Overview: Containers/Docker](#technical-overview-containersdocker)
-      - [Technical Overview: Sandbox](#technical-overview-sandbox)
-      - [Technical Overview: Containers and system calls](#technical-overview-containers-and-system-calls)
-      - [Technical Overview: Sandbox comes not for free](#technical-overview-sandbox-comes-not-for-free)
+      - [6.2.1.1. Technical Overview](#6211-technical-overview)
+      - [6.2.1.2. Technical Overview: Containers/Docker](#6212-technical-overview-containersdocker)
+      - [6.2.1.3. Technical Overview: Sandbox](#6213-technical-overview-sandbox)
+      - [6.2.1.4. Technical Overview: Containers and system calls](#6214-technical-overview-containers-and-system-calls)
+      - [6.2.1.5. Technical Overview: Sandbox comes not for free](#6215-technical-overview-sandbox-comes-not-for-free)
     - [6.2.2. Containers Calls Linux Kernel](#622-containers-calls-linux-kernel)
-      - [Why even sandbox?](#why-even-sandbox)
+      - [6.2.2.1. Why even sandbox?](#6221-why-even-sandbox)
     - [6.2.3. Open Container Iniciative OCI](#623-open-container-iniciative-oci)
-      - [OCI - Open Container Initiative](#oci---open-container-initiative)
-      - [Kubernetes runtimes and CRI (Container Runtime Interface)](#kubernetes-runtimes-and-cri-container-runtime-interface)
+      - [6.2.3.1. OCI - Open Container Initiative](#6231-oci---open-container-initiative)
+      - [6.2.3.2. Kubernetes runtimes and CRI (Container Runtime Interface)](#6232-kubernetes-runtimes-and-cri-container-runtime-interface)
     - [6.2.4. Sandbox Runtime Katacontainers](#624-sandbox-runtime-katacontainers)
-      - [kata containers](#kata-containers)
+      - [6.2.4.1. Kata containers](#6241-kata-containers)
     - [6.2.5. Sandbox Runtime gVisor (Google)](#625-sandbox-runtime-gvisor-google)
     - [6.2.6. Create and use RuntimeClasses](#626-create-and-use-runtimeclasses)
-      - [RuntimeClassess](#runtimeclassess)
-      - [Create Pod](#create-pod)
-      - [Describe pod](#describe-pod)
+      - [6.2.6.1. RuntimeClassess](#6261-runtimeclassess)
+      - [6.2.6.2. Create Pod](#6262-create-pod)
+      - [6.2.6.3. Describe pod](#6263-describe-pod)
     - [6.2.7. Install and use gVisor](#627-install-and-use-gvisor)
-      - [Install](#install)
+      - [6.2.7.1. Install](#6271-install)
     - [6.2.8. Recap](#628-recap)
   - [6.3. OS Level Security](#63-os-level-security)
     - [6.3.1. Intro and Security Context](#631-intro-and-security-context)
-      - [Security Context](#security-context)
+      - [6.3.1.1. Security Context](#6311-security-context)
     - [6.3.2. Set container User and Group](#632-set-container-user-and-group)
-      - [security Contexts & UID GID](#security-contexts--uid-gid)
+      - [6.3.2.1. security Contexts \& UID GID](#6321-security-contexts--uid-gid)
     - [6.3.3. Force container non-root](#633-force-container-non-root)
     - [6.3.4. Privileged Containers](#634-privileged-containers)
-      - [Privileged Containers in Kubernetes](#privileged-containers-in-kubernetes)
+      - [6.3.4.1. Privileged Containers in Kubernetes](#6341-privileged-containers-in-kubernetes)
     - [6.3.5. Created Privileged Containers](#635-created-privileged-containers)
     - [6.3.6. PrivilegeScalation](#636-privilegescalation)
     - [6.3.7. Disable PrivilegeScalation](#637-disable-privilegescalation)
     - [6.3.8. PodSecurityPolicies](#638-podsecuritypolicies)
-      - [Pod Security Policies](#pod-security-policies)
+      - [6.3.8.1. Pod Security Policies](#6381-pod-security-policies)
   - [6.4. mTLS](#64-mtls)
     - [6.4.1. Intro](#641-intro)
-      - [mTLS - Mutual TLS](#mtls---mutual-tls)
+      - [6.4.1.1. mTLS - Mutual TLS](#6411-mtls---mutual-tls)
     - [6.4.2. Create sidecar proxy](#642-create-sidecar-proxy)
-      - [Without Capabilities](#without-capabilities)
-      - [With Capabilities](#with-capabilities)
+      - [6.4.2.1. Without Capabilities](#6421-without-capabilities)
+      - [6.4.2.2. With Capabilities](#6422-with-capabilities)
 - [7. Open Policy Agent (OPA)](#7-open-policy-agent-opa)
   - [7.1. Introduction](#71-introduction)
-    - [OPA - Open Policy Agent](#opa---open-policy-agent)
-    - [OPA - Gatekeeper](#opa---gatekeeper)
+    - [7.1.1. OPA - Open Policy Agent](#711-opa---open-policy-agent)
+    - [7.1.2. OPA - Gatekeeper](#712-opa---gatekeeper)
   - [7.2. Install OPA](#72-install-opa)
   - [7.3. Deny All Policy](#73-deny-all-policy)
   - [7.4. Enforce Namespace Labels](#74-enforce-namespace-labels)
@@ -231,42 +231,42 @@
 - [8. Supply Chain Security](#8-supply-chain-security)
   - [8.1. Image footprint](#81-image-footprint)
     - [8.1.1. Introduction](#811-introduction)
-      - [Containers and Docker - Layers](#containers-and-docker---layers)
+      - [8.1.1.1. Containers and Docker - Layers](#8111-containers-and-docker---layers)
     - [8.1.2. Reduce image Footprint with Multi-Stage](#812-reduce-image-footprint-with-multi-stage)
-      - [Build image with app code](#build-image-with-app-code)
-      - [Show size](#show-size)
-      - [Rebuild](#rebuild)
-      - [Show size](#show-size-1)
+      - [8.1.2.1. Build image with app code](#8121-build-image-with-app-code)
+      - [8.1.2.2. Show size](#8122-show-size)
+      - [8.1.2.3. Rebuild](#8123-rebuild)
+      - [8.1.2.4. Show size](#8124-show-size)
     - [8.1.3. Secure and Harden images](#813-secure-and-harden-images)
-      - [Use specifig package version](#use-specifig-package-version)
-      - [Dont run as root](#dont-run-as-root)
-      - [Make filesystem read only](#make-filesystem-read-only)
-      - [Remove shell access](#remove-shell-access)
+      - [8.1.3.1. Use specifig package version](#8131-use-specifig-package-version)
+      - [8.1.3.2. Dont run as root](#8132-dont-run-as-root)
+      - [8.1.3.3. Make filesystem read only](#8133-make-filesystem-read-only)
+      - [8.1.3.4. Remove shell access](#8134-remove-shell-access)
     - [8.1.4. Recap](#814-recap)
   - [8.2. Static Analysis](#82-static-analysis)
     - [8.2.1. Introduction](#821-introduction)
-      - [Static Analysis](#static-analysis)
-      - [Static Analysis Rules](#static-analysis-rules)
-      - [Static Analysis in CI/CD](#static-analysis-in-cicd)
-      - [Manual Check](#manual-check)
-        - [Insecure](#insecure)
-        - [Secure](#secure)
+      - [8.2.1.1. Static Analysis](#8211-static-analysis)
+      - [8.2.1.2. Static Analysis Rules](#8212-static-analysis-rules)
+      - [8.2.1.3. Static Analysis in CI/CD](#8213-static-analysis-in-cicd)
+      - [8.2.1.4. Manual Check](#8214-manual-check)
+        - [8.2.1.4.1. Insecure](#82141-insecure)
+        - [8.2.1.4.2. Secure](#82142-secure)
     - [8.2.2. Kubesec](#822-kubesec)
     - [8.2.3. Practice Kubesec](#823-practice-kubesec)
     - [8.2.4. OPA Conftest](#824-opa-conftest)
     - [8.2.5. OPA Conftest for K8s YAML](#825-opa-conftest-for-k8s-yaml)
-      - [Fixed](#fixed)
+      - [8.2.5.1. Fixed](#8251-fixed)
     - [8.2.6. OPA Conftest for Dockerfile](#826-opa-conftest-for-dockerfile)
   - [8.3. Image Vulnerability Scanning](#83-image-vulnerability-scanning)
     - [8.3.1. Introduction](#831-introduction)
-      - [Known Image Vulnerabilities](#known-image-vulnerabilities)
+      - [8.3.1.1. Known Image Vulnerabilities](#8311-known-image-vulnerabilities)
     - [8.3.2. Clair and Trivy](#832-clair-and-trivy)
-      - [Clair](#clair)
-      - [Trivy](#trivy)
+      - [8.3.2.1. Clair](#8321-clair)
+      - [8.3.2.2. Trivy](#8322-trivy)
     - [8.3.3. Use Trivy to scan images](#833-use-trivy-to-scan-images)
   - [8.4. Secure Supply Chain](#84-secure-supply-chain)
     - [8.4.1. Introduction](#841-introduction)
-      - [K8s and Container Registries](#k8s-and-container-registries)
+      - [8.4.1.1. K8s and Container Registries](#8411-k8s-and-container-registries)
     - [8.4.2. Image Digest](#842-image-digest)
     - [8.4.3. Whitelist Registries with OPA](#843-whitelist-registries-with-opa)
     - [8.4.4. ImagePolicyWebhook](#844-imagepolicywebhook)
@@ -274,53 +274,53 @@
 - [9. Runtime Security](#9-runtime-security)
   - [9.1. Behavioral Analytics at host and ...](#91-behavioral-analytics-at-host-and-)
     - [9.1.1. Introduction](#911-introduction)
-      - [Kernel vs User Space](#kernel-vs-user-space)
+      - [9.1.1.1. Kernel vs User Space](#9111-kernel-vs-user-space)
     - [9.1.2. Strace](#912-strace)
-      - [strace: show syscalls](#strace-show-syscalls)
+      - [9.1.2.1. strace: show syscalls](#9121-strace-show-syscalls)
     - [9.1.3. Strace and /proc on ETCD](#913-strace-and-proc-on-etcd)
-      - [/prod directory](#prod-directory)
-      - [strace and /proc: etcd](#strace-and-proc-etcd)
+      - [9.1.3.1. /prod directory](#9131-prod-directory)
+      - [9.1.3.2. strace and /proc: etcd](#9132-strace-and-proc-etcd)
     - [9.1.4. /proc and env variables](#914-proc-and-env-variables)
     - [9.1.5. Falco and Installation](#915-falco-and-installation)
-      - [Falco](#falco)
+      - [9.1.5.1. Falco](#9151-falco)
     - [9.1.7. Investigate Falco rules](#917-investigate-falco-rules)
     - [9.1.8. Change Falco rule](#918-change-falco-rule)
     - [9.1.9. Recap](#919-recap)
   - [9.2. Inmutability of containers at runtime](#92-inmutability-of-containers-at-runtime)
     - [9.2.1. Introduction](#921-introduction)
-      - [Inmutability](#inmutability)
+      - [9.2.1.1. Inmutability](#9211-inmutability)
     - [9.2.2. Ways to enforce immutability](#922-ways-to-enforce-immutability)
-      - [Enforce on Container Image Level](#enforce-on-container-image-level)
-      - [Make manual changes to container - Command ?](#make-manual-changes-to-container---command-)
-      - [Make manual changes to container - StartupProbe ?](#make-manual-changes-to-container---startupprobe-)
-      - [Enforce Read-Only Root Filesystem](#enforce-read-only-root-filesystem)
-      - [Move logic to InitContainer ?](#move-logic-to-initcontainer-)
+      - [9.2.2.1. Enforce on Container Image Level](#9221-enforce-on-container-image-level)
+      - [9.2.2.2. Make manual changes to container - Command ?](#9222-make-manual-changes-to-container---command-)
+      - [9.2.2.3. Make manual changes to container - StartupProbe ?](#9223-make-manual-changes-to-container---startupprobe-)
+      - [9.2.2.4. Enforce Read-Only Root Filesystem](#9224-enforce-read-only-root-filesystem)
+      - [9.2.2.5. Move logic to InitContainer ?](#9225-move-logic-to-initcontainer-)
     - [9.2.3. StartupProbe changes container](#923-startupprobe-changes-container)
-      - [StartupProbe for Immutability](#startupprobe-for-immutability)
+      - [9.2.3.1. StartupProbe for Immutability](#9231-startupprobe-for-immutability)
     - [9.2.4. SecurityContext renders container immutable](#924-securitycontext-renders-container-immutable)
-      - [Enforce RO-filesystem](#enforce-ro-filesystem)
+      - [9.2.4.1. Enforce RO-filesystem](#9241-enforce-ro-filesystem)
     - [9.2.5. Recap](#925-recap)
   - [9.3. Auditing](#93-auditing)
     - [9.3.1. Introduction](#931-introduction)
-      - [Audit Logs - Introduction](#audit-logs---introduction)
-      - [API Request Stages](#api-request-stages)
-      - [Audit Policy - Waht data to store?](#audit-policy---waht-data-to-store)
-      - [Audit Backends - Where to store all that data?](#audit-backends---where-to-store-all-that-data)
-      - [Audit Logs - Overview](#audit-logs---overview)
+      - [9.3.1.1. Audit Logs - Introduction](#9311-audit-logs---introduction)
+      - [9.3.1.2. API Request Stages](#9312-api-request-stages)
+      - [9.3.1.3. Audit Policy - Waht data to store?](#9313-audit-policy---waht-data-to-store)
+      - [9.3.1.4. Audit Backends - Where to store all that data?](#9314-audit-backends---where-to-store-all-that-data)
+      - [9.3.1.5. Audit Logs - Overview](#9315-audit-logs---overview)
     - [9.3.2. Enable Auditing Logging in Apiserver](#932-enable-auditing-logging-in-apiserver)
-      - [Setup Audit Logs](#setup-audit-logs)
+      - [9.3.2.1. Setup Audit Logs](#9321-setup-audit-logs)
     - [9.3.3. Create Secret and check Audit Logs](#933-create-secret-and-check-audit-logs)
     - [9.3.4. Create advanced Audit Policy](#934-create-advanced-audit-policy)
     - [9.3.5. Recap](#935-recap)
 - [10. System Hardening](#10-system-hardening)
   - [10.1. Kernel Hardening Tools](#101-kernel-hardening-tools)
     - [10.1.1. Introduction](#1011-introduction)
-      - [Linux Kernel Isolation](#linux-kernel-isolation)
-      - [Kernel vs User Space](#kernel-vs-user-space-1)
-      - [Overview](#overview)
+      - [10.1.1.1. Linux Kernel Isolation](#10111-linux-kernel-isolation)
+      - [10.1.1.2. Kernel vs User Space](#10112-kernel-vs-user-space)
+      - [10.1.1.3. Overview](#10113-overview)
     - [10.1.2. AppArmor](#1012-apparmor)
-      - [AppArmor](#apparmor)
-      - [Main Commands](#main-commands)
+      - [10.1.2.1. AppArmor](#10121-apparmor)
+      - [10.1.2.2. Main Commands](#10122-main-commands)
     - [10.1.3. AppArmor for curl](#1013-apparmor-for-curl)
     - [10.1.4. AppArmor for Docker Nginx](#1014-apparmor-for-docker-nginx)
     - [10.1.5. AppArmor for Kubernetes Nginx](#1015-apparmor-for-kubernetes-nginx)
@@ -330,13 +330,13 @@
     - [10.1.9. Recap](#1019-recap)
   - [10.2. Reduce Attack Surface](#102-reduce-attack-surface)
     - [10.2.1. Introduction](#1021-introduction)
-      - [Overview](#overview-1)
-      - [Nodes that run Kubernetes](#nodes-that-run-kubernetes)
-      - [Linux Distributions](#linux-distributions)
-      - [Open Ports](#open-ports)
-      - [Port used by which application?](#port-used-by-which-application)
-      - [Running Services](#running-services)
-      - [Processes and Users](#processes-and-users)
+      - [10.2.1.1. Overview](#10211-overview)
+      - [10.2.1.2. Nodes that run Kubernetes](#10212-nodes-that-run-kubernetes)
+      - [10.2.1.3. Linux Distributions](#10213-linux-distributions)
+      - [10.2.1.4. Open Ports](#10214-open-ports)
+      - [10.2.1.5. Port used by which application?](#10215-port-used-by-which-application)
+      - [10.2.1.6. Running Services](#10216-running-services)
+      - [10.2.1.7. Processes and Users](#10217-processes-and-users)
     - [10.2.2. Systemctl and Services](#1022-systemctl-and-services)
     - [10.2.3. Install and investigate Services](#1023-install-and-investigate-services)
     - [10.2.4. Disabled application listening on port](#1024-disabled-application-listening-on-port)
@@ -347,8 +347,8 @@
 This are my notes to prepare CKS exam.
 
 ## 1.2. K8s Security Best Practices
-### K8s Security Categories
-#### Host Operating System Security (Ex. Linux)
+### 1.2.1. K8s Security Categories
+#### 1.2.1.1. Host Operating System Security (Ex. Linux)
 * Kubernetes Nodes should only do one thing: Kubernetes
 * Reduce Attack Surface
   * Remove unnecessary applications
@@ -357,7 +357,7 @@ This are my notes to prepare CKS exam.
 * Find and identify malicious processes
 * Restrict IAM/SSH access
 
-#### Kubernetes Cluster Security (Ex. Kubernetes)
+#### 1.2.1.2. Kubernetes Cluster Security (Ex. Kubernetes)
 * Kubernetes componentes are running secure and up-to-date:
   * Apiserver
   * Kubelet
@@ -369,7 +369,7 @@ This are my notes to prepare CKS exam.
 * Enable Audit Logging
 * Security Benchmarking
 
-#### Application Security (Ex. Container)
+#### 1.2.1.3. Application Security (Ex. Container)
 * Use Secrets/no hardcoded credentials
 * RBAC
 * Container Sandboxing
@@ -391,7 +391,6 @@ This are my notes to prepare CKS exam.
 # Install Kubernetes master
 sudo -i
 bash <(curl -s https://raw.githubusercontent.com/killer-sh/cks-course-environment/master/cluster-setup/latest/install_master.sh)
-
 
 # Install Kubernetes Worker
 sudo -i
@@ -493,19 +492,19 @@ minikube start --network-plugin=cni --cni=calico -p cks
   * Just a process which runs on the Linux Kernel (but which cannot see everything).
 
 ### 3.2.2. Test Tools Introduction
-#### Container tools
+#### 3.2.2.1. Container tools
 * **Docker**: Container Runtime + Tool for managing containers and images.
 * **Containerd**: Container Runtime.
 * **Crictl**: CLI for CRI-compatible Container Runtimes.
 * **Podman**: Tool for managing containers and images.
 
-##### Dockerfile
+##### 3.2.2.1.1. Dockerfile
 ```sh
 FROM bash
 CMD ["ping", "killer.sh"]
 ```
 
-##### Build Dockerfile
+##### 3.2.2.1.2. Build Dockerfile
 ```sh
 $ docker build -t simple .
 
@@ -526,14 +525,14 @@ Successfully built 92ccea391f11
 Successfully tagged simple:latest
 ```
 
-##### List image
+##### 3.2.2.1.3. List image
 ```sh
 $ docker image ls | grep simple
 
 simple  latest      92ccea391f11   21 seconds ago   13.3MB
 ```
 
-##### Docker run
+##### 3.2.2.1.4. Docker run
 ```sh
 $ docker run simple
 
@@ -551,7 +550,7 @@ PING killer.sh (35.227.196.29): 56 data bytes
 round-trip min/avg/max = 11.517/11.782/12.187 ms
 ```
 
-##### Podman build
+##### 3.2.2.1.5. Podman build
 ```sh
 $ podman build -t simple .
 
@@ -572,7 +571,7 @@ Successfully tagged localhost/simple:latest
 3cbf70561b780951ece7abfb1f59f18018f7bb47fc8838e1496be2f7f82753bb
 ```
 
-##### Podman run
+##### 3.2.2.1.6. Podman run
 ```sh
 $ podman run simple
 
@@ -590,7 +589,7 @@ round-trip min/avg/max = 13.569/13.691/13.926 ms
 ### 3.2.3. The PID Namespace
 Create two containers and check they cannot see each other.
 
-#### Run c1 container
+#### 3.2.3.1. Run c1 container
 ```sh
 $ docker run --name c1 -d ubuntu sh -c "sleep 1d"
 
@@ -602,7 +601,7 @@ Status: Downloaded newer image for ubuntu:latest
 8e3e209a6bccd98763d0a53843fcd0d3f6ba4034518d90f6739a62b101fecf13
 ```
 
-#### Show process on c1 container
+#### 3.2.3.2. Show process on c1 container
 ```sh
 $ docker exec c1 ps aux
 
@@ -612,14 +611,14 @@ root           7  0.0  0.0   2788  1052 ?        S    16:24   0:00 sleep 1d
 root           8  0.0  0.0   7060  1584 ?        Rs   16:25   0:00 ps aux
 ```
 
-#### Run c2 container
+#### 3.2.3.3. Run c2 container
 ```sh
 $ docker run --name c2 -d ubuntu sh -c "sleep 999d"
 
 7868efe1dca5c0c97632ee9631974e85836a035120acf358a25ffa6e5b034a0b
 ```
 
-#### Show process on c2 container
+#### 3.2.3.4. Show process on c2 container
 ```sh
 $ docker exec c2 ps aux
 
@@ -629,7 +628,7 @@ root           7  0.0  0.0   2788  1020 ?        S    16:25   0:00 sleep 999d
 root           8  0.0  0.0   7060  1664 ?        Rs   16:26   0:00 ps aux
 ```
 
-#### Show process on host
+#### 3.2.3.5. Show process on host
 ```sh
 $ ps aux | grep sleep
 
@@ -640,20 +639,20 @@ root       16340  0.0  0.0   2788  1020 ?        S    18:25   0:00 sleep 999d
 adrianm+   16599  0.0  0.0  11664  2624 pts/0    S+   18:26   0:00 grep --color=auto sleep
 ```
 
-#### Delete c2 container
+#### 3.2.3.6. Delete c2 container
 ```sh
 $ docker rm c2 --force
 c2
 ```
 
-#### Recreate container with same namespace.
+#### 3.2.3.7. Recreate container with same namespace.
 ```sh
 $ docker run --name c2 --pid=container:c1 -d ubuntu sh -c "sleep 999d"
 
 71fa5ea24dc86f99af4c2c04f7599409b4b1b92082bb07b57261a4d4418fd5a7
 ```
 
-#### Show process on c2 container (you can see other container process).
+#### 3.2.3.8. Show process on c2 container (you can see other container process).
 ```sh
 $ docker exec c2 ps aux
 
@@ -665,7 +664,7 @@ root          20  0.0  0.0   2788  1028 ?        S    16:30   0:00 sleep 999d
 root          28  0.0  0.0   7060  1588 ?        Rs   16:32   0:00 ps aux
 ```
 
-#### Show process on c1 container (you can see other container process).
+#### 3.2.3.9. Show process on c1 container (you can see other container process).
 ```sh
 $ docker exec c1 ps aux
 
@@ -685,18 +684,18 @@ root          35  1.0  0.0   7060  1584 ?        Rs   16:32   0:00 ps aux
 # 4. Cluster setup
 ## 4.1. Network Policies
 ### 4.1.1. Introduction 1
-#### NetworkPolicies
+#### 4.1.1.1. NetworkPolicies
 * Firewall rules in Kubernetes
 * Implemented by the Network Plugins CNI (Calico/Weave)
 * Namespace level
 * Restrict the Ingress and/or Egress for a group of Pods based on certain rules and conditions
 
-#### Without NetworkPolicies
+#### 4.1.1.2. Without NetworkPolicies
 * By default every pod can access every pod
 * Pods are **NOT** isolated.
 
 ### 4.1.2. Introduction 2
-#### NetworkPolicy example
+#### 4.1.2.1. NetworkPolicy example
 ```yaml
 apiVersion: networking.k8s.io/v1
 kind: NetworkPolicy
@@ -727,13 +726,13 @@ spec:
             id: backend
 ```
 
-#### Multiple NetworkPolicies
+#### 4.1.2.2. Multiple NetworkPolicies
 * Possible to have multiple NPs selecting the same pods
 * If a pod has more than one NP
   * Then the union of all NPs is applied
   * order doesnt affect policy result
 
-##### Merge example2a + example2b
+##### 4.1.2.2.1. Merge example2a + example2b
 ```yaml
 apiVersion: networking.k8s.io/v1
 kind: NetworkPolicy
@@ -776,7 +775,7 @@ spec:
 ```
 
 ### 4.1.3. Default Deny
-#### Create a frontend and backend applications and expose.
+#### 4.1.3.1. Create a frontend and backend applications and expose.
 ```sh
 $ kubectl run frontend --image=nginx
 pod/frontend created
@@ -801,7 +800,7 @@ service/frontend     ClusterIP   10.109.74.7     <none>        80/TCP    32s
 service/kubernetes   ClusterIP   10.96.0.1       <none>        443/TCP   7h
 ```
 
-#### Test connection between applications
+#### 4.1.3.2. Test connection between applications
 ```sh
 # From frontend
 $ kubectl exec frontend -- curl backend
@@ -863,7 +862,7 @@ Commercial support is available at
 </html>
 ```
 
-#### Create the NetworkPolicy
+#### 4.1.3.3. Create the NetworkPolicy
 ```yaml
 # deny all incoming and outgoing traffic from all pods in namespace default
 apiVersion: networking.k8s.io/v1
@@ -878,7 +877,7 @@ spec:
   - Ingress
 ```
 
-#### Test connection between apps
+#### 4.1.3.4. Test connection between apps
 ```sh
 $ kubectl exec frontend -- curl backend
 
@@ -917,7 +916,7 @@ spec:
           run: backend
 ```
 
-#### Test connection
+#### 4.1.4.1. Test connection
 ```sh
 kubectl exec frontend -- curl 10.98.148.165
   % Total    % Received % Xferd  Average Speed   Time    Time     Time  Current
@@ -945,7 +944,7 @@ spec:
           run: frontend
 ```
 
-#### Test connection
+#### 4.1.4.2. Test connection
 ```sh
 $ kubectl exec frontend -- curl 10.98.148.165             
 
@@ -977,7 +976,7 @@ Commercial support is available at
 </html>
 ```
 
-#### If you want connect to DNS, you indicate Port 53
+#### 4.1.4.3. If you want connect to DNS, you indicate Port 53
 ```yaml
 # deny all incoming and outgoing traffic from all pods in namespace default
 # but allow DNS traffic. This way you can do for example: kubectl exec frontend -- curl backend
@@ -1000,7 +999,7 @@ spec:
 ```
 
 ### 4.1.5. Backend to database traffic
-#### Create a namespace
+#### 4.1.5.1. Create a namespace
 ```sh
 $ kubectl create ns cassandra
 namespace/cassandra created
@@ -1008,20 +1007,20 @@ namespace/cassandra created
 $ kubectl label namespace cassandra "ns=cassandra"
 namespace/cassandra labeled
 ```
-#### Create a Pod
+#### 4.1.5.2. Create a Pod
 ```sh
 $ kubectl -n cassandra run cassandra --image nginx
 pod/cassandra created
 ```
 
-#### Get Pod Cassandra IP
+#### 4.1.5.3. Get Pod Cassandra IP
 ```sh
 kubectl -n cassandra get po -owide
 NAME        READY   STATUS    RESTARTS   AGE   IP               NODE    NOMINATED NODE   READINESS GATES
 cassandra   1/1     Running   0          35s   10.244.158.131   cksv1   <none>           <none>
 ```
 
-#### Test connection
+#### 4.1.5.4. Test connection
 ```sh
 $ kubectl exec backend -- curl 10.244.158.131
   % Total    % Received % Xferd  Average Speed   Time    Time     Time  Current
@@ -1029,7 +1028,7 @@ $ kubectl exec backend -- curl 10.244.158.131
   0     0    0     0    0     0      0      0 --:--:--  0:00:31 --:--:--     0^C
 ```
 
-#### Apply egress to cassandra namespace
+#### 4.1.5.5. Apply egress to cassandra namespace
 ```yaml
 apiVersion: networking.k8s.io/v1
 kind: NetworkPolicy
@@ -1055,7 +1054,7 @@ spec:
           ns: cassandra
 ```
 
-#### Test connection
+#### 4.1.5.6. Test connection
 ```sh
 kubectl exec backend -- curl 10.244.158.131           
   % Total    % Received % Xferd  Average Speed   Time    Time     Time  Current
@@ -1086,7 +1085,7 @@ Commercial support is available at
 </html>
 ```
 
-#### Create configuration to Deny all to cassandra Pod
+#### 4.1.5.7. Create configuration to Deny all to cassandra Pod
 ```yaml
 apiVersion: networking.k8s.io/v1
 kind: NetworkPolicy
@@ -1102,7 +1101,7 @@ spec:
   - Egress
 ```
 
-#### And create NetworkPolicy to cassandra ingress from default
+#### 4.1.5.8. And create NetworkPolicy to cassandra ingress from default
 ```yaml
 apiVersion: networking.k8s.io/v1
 kind: NetworkPolicy
@@ -1121,7 +1120,7 @@ spec:
         matchLabels:
           ns: default
 ```
-#### Labeled default namespace and launch curl
+#### 4.1.5.9. Labeled default namespace and launch curl
 ```sh
 $ kubectl label namespaces default "ns=default"
 namespace/default labeled
@@ -1160,34 +1159,34 @@ Commercial support is available at
 
 ## 4.2. GUI Elements
 ### 4.2.1. Introduction
-#### Gui Elements and the Dashboard
+#### 4.2.1.1. Gui Elements and the Dashboard
 * only expose services externally if needed
 * cluster internal services/dashboards can also be accessed using `kubectl port-forward`
 
-#### Kubectl proxy
+#### 4.2.1.2. Kubectl proxy
 * Creates a proxy server between localhost and the Kubernetes API Server
 * Uses connection as configured in the kubeconfig
 * Allows to access API locally just over http and without authentication
 
 ![cks](images/04_intro_kubectl_proxy.png)
 
-#### Kubectl port-forward
+#### 4.2.1.3. Kubectl port-forward
 * Forwards connections from a localhost-por to a pod-port
 * More generic than kubectl proxy
 * Can be used for all TCP traffic not just HTTP
 
 ![cks](images/04_intro_kubectl_port-forward.png)
 
-#### Ingress
+#### 4.2.1.4. Ingress
 ![cks](images/04_intro_ingress.png)
 
 ### 4.2.2. Install Dashboard
-#### Deploy Dashboard
+#### 4.2.2.1. Deploy Dashboard
 ```sh
 $ kubectl apply -f https://raw.githubusercontent.com/kubernetes/dashboard/v2.1.0/aio/deploy/recommended.yaml
 ```
 
-#### Get objects
+#### 4.2.2.2. Get objects
 ```sh
 # Get Namespaces
 $ kubectl get ns
@@ -1213,7 +1212,7 @@ service/kubernetes-dashboard        ClusterIP   10.101.163.180   <none>        4
 ```
 
 ### 4.2.3. Outside Insecure Access
-#### Expose insecure Dashboard
+#### 4.2.3.1. Expose insecure Dashboard
 ```sh
 # Edit deployment
 $ kubectl -n kubernetes-dashboard edit deploy kubernetes-dashboard
@@ -1270,7 +1269,7 @@ $ kubectl -n kubernetes-dashboard create clusterrolebinding insecure --serviceac
 ```
 
 ### 4.2.5. Recap
-#### Interesting dashboard security arguments
+#### 4.2.5.1. Interesting dashboard security arguments
 ```sh
 --authentication-mode=basic
 --enable-skip=true
@@ -1281,7 +1280,7 @@ $ kubectl -n kubernetes-dashboard create clusterrolebinding insecure --serviceac
 
 ## 4.3. Secure Ingress
 ### 4.3.3. Create an Ingress
-#### Setup an example Ingress
+#### 4.3.3.1. Setup an example Ingress
 ![cks](images/04_create_an_ingress.png)
 
 ```yaml
@@ -1390,19 +1389,18 @@ https://kubernetes.io/docs/concepts/services-networking/ingress/#tls
 ### 4.3.5. Recap
 ## 4.4. Node metadata protection
 ### 4.4.1. Introduction
-#### Cloud Platform Node Metadata
+#### 4.4.1.1. Cloud Platform Node Metadata
 * Metadata service API by default reachable from VMs
 * Can contain cloud credentials for VMs/Nodes
 * Can contain provisioning dat like kubelet credentials
 
-#### Limit permissions for instance credentials
+#### 4.4.1.2. Limit permissions for instance credentials
 * Ensure that the cloud-instance-account has only the necessary permissions
 * Each cloud provider has a set of recommendations to follow
 * Not in the hands of Kubernetes
 
 
 ### 4.4.2. Access Node Metadata
-
 ```sh
 # Example
 curl "http://metadata.google.internal/computeMetadata/v1/instance/disks/" -H "Metadata-Flavor: Google"
@@ -1412,8 +1410,7 @@ curl "http://metadata.google.internal/computeMetadata/v1/instance/disks/" -H "Me
 
 
 ### 4.4.3. Protect Node Metadata via Network Policy
-
-#### All pods in namespace cannot access metadata endpoint
+#### 4.4.3.1. All pods in namespace cannot access metadata endpoint
 ```yaml
 apiVersion: networking.k8s.io/v1
 kind: NetworkPolicy
@@ -1432,7 +1429,7 @@ spec:
         - 169.254.169.254/32
 ```
 
-#### Only pods with label are allowed to access metadata endpoint
+#### 4.4.3.2. Only pods with label are allowed to access metadata endpoint
 ```yaml
 apiVersion: networking.k8s.io/v1
 kind: NetworkPolicy
@@ -1451,14 +1448,14 @@ spec:
         cidr: 169.254.169.254/32
 ```
 
-#### Labeled Pod
+#### 4.4.3.3. Labeled Pod
 ```sh
 $ kubectl label pod nginx role=metadata-accessor 
 ```
 
 ## 4.5. CIS Bechmarck
 ### 4.5.1. Introduction
-#### CIS - Center for Internet Security
+#### 4.5.1.1. CIS - Center for Internet Security
 * Best practices for the secure configuration of a target system
 * Covering more than 14 technology groups
 * Developed through a unique consensus-based process comprised of cybersecurity professionals and subject matter experts around the world
@@ -1472,7 +1469,7 @@ $ kubectl label pod nginx role=metadata-accessor
 > https://ettayeb.fr/content/files/2022/03/CIS_Kubernetes_Benchmark_v1.6.0.pdf
 
 ### 4.5.3. kube-bench
-#### How to run
+#### 4.5.3.1. How to run
 > https://github.com/aquasecurity/kube-bench/blob/main/docs/running.md
 
 ```sh
@@ -1517,7 +1514,7 @@ c0826f1dbb94c224b888e7caba035a187e0dbd1bf23a57042eca99633fdf7aa9f0f1663745307b09
 # 5. Cluster Hardening
 ## 5.1. RBAC
 ### 5.1.1. Intro
-#### RBAC
+#### 5.1.1.1. RBAC
 * "Role-based access control (RBAC) is a method of regulating access to computer or network resources based on the roles of individual users within your organization."
 
 ```sh
@@ -1532,10 +1529,10 @@ Ordered list of plugins to do authorization on secure port. Comma-delimited list
 * Specify what is ALLOWED, everything else is DENIED
   * whitelisting
 
-#### POLP (Principle Of Least Privilege)
+#### 5.1.1.2. POLP (Principle Of Least Privilege)
 * Only access to data or information that is necessary for the legitimate purpose.
 
-#### RBAC- Namespaced Resources vs Cluster Resources
+#### 5.1.1.3. RBAC- Namespaced Resources vs Cluster Resources
 ![cks](images/05_intro_rbac.png)
 
 ```sh
@@ -1556,11 +1553,11 @@ $ kubectl api-resources --namespaced=false
 * User X can be secret-m,anager in multiple namespaces, permissions are the same in each.
 ![cks](images/05_intro_rbac_clusterrole.png)
 
-#### RoleBinding
+#### 5.1.1.4. RoleBinding
 ![cks](images/05_intro_rolebinding.png)
 ![cks](images/05_intro_rbac_role_02.png)
 
-#### ClusterRoleBinding
+#### 5.1.1.5. ClusterRoleBinding
 ![cks](images/05_intro_clusterrolebinding.png)
 ![cks](images/05_intro_rbac_clusterrole_02.png)
 
@@ -1593,15 +1590,12 @@ $ kubectl create clusterrole deploy-deleter --verb=delete --resource=deployment
 $ kubectl create clusterrolebinding deploy-deleter --clusterrole=deploy-deleter --user=jane
 $ kubectl -n red create rolebinding deploy-deleter --clusterrole=deploy-deleter --user=jim
 
-
 # Test jane
 $ kubectl auth can-i delete deploy --as jane # yes
 $ kubectl auth can-i delete deploy --as jane -n red # yes
 $ kubectl auth can-i delete deploy --as jane -n blue # yes
 $ kubectl auth can-i delete deploy --as jane -A # yes
 $ kubectl auth can-i create deploy --as jane --all-namespaces # no
-
-
 
 # Test jim
 $ kubectl auth can-i delete deploy --as jim # no
@@ -1618,7 +1612,7 @@ $ kubectl auth can-i delete deploy --as jim -n blue # no
 
 
 ### 5.1.5. CertificateSingingRequets
-#### Users and Certificates
+#### 5.1.5.1. Users and Certificates
 Create a certificate+key and authenticate as user jane
 * Create CSR
 * Sign CSR using kubernetes API
@@ -1700,7 +1694,7 @@ $ kubectl auth can-i get secrets -n red # yes
 
 ## 5.2. Exercise caution in using ServiceAccounts
 ### 5.2.1. Intro
-#### Accounts
+#### 5.2.1.1. Accounts
 ![cks](images/05_sa_intro.png)
 
 #### ServiceAccounts and Pods
@@ -1790,7 +1784,6 @@ $ curl https://10.96.0.1 -k -H "Authorization: Bearer $(cat /run/secrets/kuberne
 ```
 
 ### 5.2.3. Disable ServiceAccount Mounting
-
 ```yaml
 apiVersion: v1
 kind: ServiceAccount
@@ -1837,7 +1830,7 @@ yes
 
 ## 5.3. Restrict API Access
 ### 5.3.1. Intro
-#### Request workflow
+#### 5.3.1.1. Request workflow
 ![cks](images/05_restrict_api_intro.png)
 
 * API requests are always tied to
@@ -1847,7 +1840,7 @@ yes
 * Every request must authenticate
   * Or be treated as an anonymous user
 
-#### Restrictions
+#### 5.3.1.2. Restrictions
 1. **Dont allow anonymous access**
 2. **Close insecure port**
 3. **Dont expose ApiServer to the outside**
@@ -1857,7 +1850,7 @@ yes
 7. ApiServer port behind firewall/allowed ip ranges (cloud provider)
 
 ### 5.3.2. Anonymous Access
-#### Anonymous Access
+#### 5.3.2.1. Anonymous Access
 * kube-apiserver --anonymous-auth=true|false
 * In 1.6+ anonymous access is enable by default
   * if authorization mode other than AlwaysAllow
@@ -1877,7 +1870,7 @@ $ curl -k https://192.168.49.2:8443
 }
 ```
 
-##### Set anonymous-auth=false
+##### 5.3.2.2. Set anonymous-auth=false
 In kube-apiserver manifest set --anonymous-auth=false
 ```sh
 $ curl -k https://192.168.49.2:8443
@@ -1895,10 +1888,10 @@ $ curl -k https://192.168.49.2:8443
 ### 5.3.3. Insecure Access
 > Since k8s 1.20 the insecure access is not longer posible. `kube-apiserver --insecure-port=8080`
 
-#### HTTP/HTTPS Access
+#### 5.3.3.1. HTTP/HTTPS Access
 ![cks](images/05_restrict_api_insecure_access.png)
 
-#### Insecure Access
+#### 5.3.3.2. Insecure Access
 * kube-apiserver `--insecure-port=8080` (default: `--insecure-port=0`)
   * HTTP
   * Request bypasses authentication and authorization modules
@@ -1941,7 +1934,7 @@ $ curl -k https://192.168.49.2:8443 \
 ### 5.3.5. NodeRestriction AdmissionController
 ![cks](images/05_restrict_api_adm_contr.png)
 
-#### NodeRestriction
+#### 5.3.5.1. NodeRestriction
 * **Admision Controller**
   * kube-apiserver --enable-admission-plugins=NodeRestriction
   * Limits the Node labels a kubelet can modify
@@ -1976,13 +1969,13 @@ Error from server (Forbidden): nodes "cks-worker" is forbidden: is not allowed t
 
 ## 5.4. Upgrade Kubernetes
 ### 5.4.1. Intro
-#### Why upgrade frequently?
+#### 5.4.1.1. Why upgrade frequently?
 * Support
 * Security fixed
 * Bug fixed
 * Stay up to date for dependencies
 
-#### Kubernetes Release Cycles
+#### 5.4.1.2. Kubernetes Release Cycles
 ```sh
 1.19.2
 major.minor.path
@@ -1991,12 +1984,12 @@ major.minor.path
 * Minor version every 3 months
 * No TLS (Long Term Support)
 
-#### Support
+#### 5.4.1.3. Support
 Maintenance release branches for the most recent three minor releases (1.19, 1.18, 1.17)
 
 Applicable fixes, including security fixes, may be backported to those three release branches, depending on severity and feasibility.
 
-#### How to upgrade a cluster
+#### 5.4.1.4. How to upgrade a cluster
 * **First upgrade the master componentes**
   * apiserver, controller-manager, scheduler
 * **Then the worker componentes**
@@ -2004,7 +1997,7 @@ Applicable fixes, including security fixes, may be backported to those three rel
 * **Components same minor version as apiserver**
   * or one below
 
-#### How to upgrade a node
+#### 5.4.1.5. How to upgrade a node
 1. `kubectl drain`
    1. Safely evict all pods from node
    2. Mark as node as SchedulingDisabled (`kubectl cordon`)
@@ -2012,7 +2005,7 @@ Applicable fixes, including security fixes, may be backported to those three rel
 3. `kubectl uncordon`
    1. Unmark node as SchedulingDisabled
   
-#### How to make your application survive an upgrade
+#### 5.4.1.6. How to make your application survive an upgrade
 * Pod graciePeriod/Terminating stateç
 * Pod Lifecycle Events
 * PodDisruptionBudget
@@ -2100,13 +2093,13 @@ $ kubectl uncordon cks-node
 # 6. Microservice Vulnerabilities
 ## 6.1. Manage Kubernetes
 ### 6.1.1. Create Simple Secret Scenario
-#### Create a generic secret
+#### 6.1.1.1. Create a generic secret
 ```sh
 $ kubectl create secret generic secret1 --from-literal pass=12345678
 secret/secret1 created
 ```
 
-#### Mount secret in a Pod
+#### 6.1.1.2. Mount secret in a Pod
 ```yaml
 apiVersion: v1
 kind: Pod
@@ -2143,13 +2136,13 @@ $ kubectl exec -it mypod -- cat /etc/foo/pass
 ```
 
 ### 6.1.2. Hacks Secret in Container Runtime
-#### Search "mypod"
+#### 6.1.2.1. Search "mypod"
 ```sh
 $ crictl ps | grep mypod
 a7f2d581cf409       redis@sha256:aeed51f49a6331df0cb2c1039ae3d1d70d882be3f48bde75cd240452a2348e88   8 minutes ago       Running             mypod                     0                   af04a70423e9d
 ```
 
-#### Inspect container and show "envs" and "mounts"
+#### 6.1.2.2. Inspect container and show "envs" and "mounts"
 ```sh
 $ crictl inspect a7f2d581cf409
 {
@@ -2173,19 +2166,18 @@ $ crictl inspect a7f2d581cf409
 
 ```
 ### 6.1.3. Hacks Secret in ETCD
-#### Access secret int etcd
+#### 6.1.3.1. Access secret int etcd
 ```sh
 $ ETCDCTL_API=3 etcdctl --cert /etc/kubernetes/pki/apiserver-etcd-client.crt --key /etc/kubernetes/pki/apiserver-etcd-client.key --cacert /etc/kubernetes/pki/etcd/ca.crt endpoint health
 127.0.0.1:2379 is healthy: successfully committed proposal: took = 1.34553ms
 ```
 > --endpoints "https://127.0.0.1:2379" not necessary because we’re on same node
 
-#### Show secret
+#### 6.1.3.2. Show secret
 ```sh
 $ ETCDCTL_API=3 etcdctl --cert /etc/kubernetes/pki/apiserver-etcd-client.crt --key /etc/kubernetes/pki/apiserver-etcd-client.key --cacert /etc/kubernetes/pki/etcd/ca.crt get /registry/secrets/default/secret1
 
 k8s
-
 
 v1Secret
 
@@ -2196,7 +2188,7 @@ datasecretOpaque"
 ```
 
 ### 6.1.4. ETCD Encryption
-#### Encrypt
+#### 6.1.4.1. Encrypt
 ```yaml
 apiVersion: apiserver.config.k8s.io/v1
 kind: EncryptionConfiguration
@@ -2226,7 +2218,7 @@ resources:
 
 > `--encryption-provider-config=<file>` in API Server
 
-#### Encrypt (all Secrets) in ETCD
+#### 6.1.4.2. Encrypt (all Secrets) in ETCD
 ```yaml
 apiVersion: apiserver.config.k8s.io/v1
 kind: EncryptionConfiguration
@@ -2246,7 +2238,7 @@ resources:
 $ kubectl get secrets -A -ojson | kubectl replace -f -
 ```
 
-#### Decrypt all Secrets in ETCD
+#### 6.1.4.3. Decrypt all Secrets in ETCD
 ```yaml
 apiVersion: apiserver.config.k8s.io/v1
 kind: EncryptionConfiguration
@@ -2267,7 +2259,7 @@ $ kubectl get secrets -A -ojson | kubectl replace -f -
 
 ### 6.1.5. Encrypt ETCD (example)
 
-#### /etc/kubernetes/etcd/ec.yaml
+#### 6.1.5.1. /etc/kubernetes/etcd/ec.yaml
 ```yaml
 apiVersion: apiserver.config.k8s.io/v1
 kind: EncryptionConfiguration
@@ -2283,7 +2275,7 @@ resources:
     - identity: {}
 ```
 
-#### Edit API Server
+#### 6.1.5.2. Edit API Server
 ```yaml
 spec:
   containers:
@@ -2307,12 +2299,11 @@ spec:
 ...
 ```
 
-#### Encrypt existing Secrets
+#### 6.1.5.3. Encrypt existing Secrets
 ```sh
 $ ETCDCTL_API=3 etcdctl --cert /etc/kubernetes/pki/apiserver-etcd-client.crt --key /etc/kubernetes/pki/apiserver-etcd-client.key --cacert /etc/kubernetes/pki/etcd/ca.crt get /registry/secrets/one/s1
 /registry/secrets/one/s1
 k8s
-
 
 v1Secret
 
@@ -2331,6 +2322,7 @@ k8s:enc:aesgcm:v1:key1:Li&?ųw!lSV2      ~(n4h͊ЗwyP"`;yQZ2=Jtet`%=qĕ@qӦss
                                                                        -^V*Yp\V|N3P+J@p.Dr$j]St/7e <ȏbUf"kh_?SyTV- v.Idr7(n&Pգo
 ```
 > https://kubernetes.io/docs/tasks/administer-cluster/encrypt-data
+
 ### 6.1.6. Recap
 > https://v1-22.docs.kubernetes.io/docs/concepts/configuration/secret/#risks
 
@@ -2341,15 +2333,15 @@ k8s:enc:aesgcm:v1:key1:Li&?ųw!lSV2      ~(n4h͊ЗwyP"`;yQZ2=Jtet`%=qĕ@qӦss
 
 ## 6.2. Container Runtime
 ### 6.2.1. Intro
-#### Technical Overview
+#### 6.2.1.1. Technical Overview
 **Containers are not contained**
 
 Just because it runs in a container doesnt mean its more protected.
 
-#### Technical Overview: Containers/Docker
+#### 6.2.1.2. Technical Overview: Containers/Docker
 ![cks](images/06_container_runtime_intro.png)
 
-#### Technical Overview: Sandbox
+#### 6.2.1.3. Technical Overview: Sandbox
 
 **Sandbox?**
 * Playground when implement an API
@@ -2357,17 +2349,17 @@ Just because it runs in a container doesnt mean its more protected.
 * Development server
 * When we talk about sandbox means **Security layer to reduce attack surface**
 
-#### Technical Overview: Containers and system calls
+#### 6.2.1.4. Technical Overview: Containers and system calls
 ![cks](images/06_container_runtime_intro_01.png)
 
-#### Technical Overview: Sandbox comes not for free
+#### 6.2.1.5. Technical Overview: Sandbox comes not for free
 * More resources needed
 * Might be better for smaller containers
 * Not good for syscall heavy workloads
 * No direct access to hardware
 
 ### 6.2.2. Containers Calls Linux Kernel
-#### Why even sandbox?
+#### 6.2.2.1. Why even sandbox?
 **Contact the Linux Kernel from inside a container**
 
 ```sh
@@ -2402,7 +2394,7 @@ exit_group(0)                           = ?
 > https://dirtycow.ninja/
 
 ### 6.2.3. Open Container Iniciative OCI
-#### OCI - Open Container Initiative
+#### 6.2.3.1. OCI - Open Container Initiative
 * Open Container Initiative
 * Linux Foundation project to design open standards for virtualization
 * **Specification**
@@ -2412,13 +2404,13 @@ exit_group(0)                           = ?
 
 ![cks](images/06_container_runtime_oci.png)
 
-#### Kubernetes runtimes and CRI (Container Runtime Interface)
+#### 6.2.3.2. Kubernetes runtimes and CRI (Container Runtime Interface)
 ![cks](images/06_container_runtime_oci_01.png)
 
 ![cks](images/06_container_runtime_oci_02.png)
 
 ### 6.2.4. Sandbox Runtime Katacontainers
-#### kata containers
+#### 6.2.4.1. Kata containers
 ![cks](images/06_container_runtime_katacontainers.png)
 
 * Strong separation layer
@@ -2437,7 +2429,7 @@ exit_group(0)                           = ?
 ![cks](images/06_container_runtime_gvisor.png)
 
 ### 6.2.6. Create and use RuntimeClasses
-#### RuntimeClassess
+#### 6.2.6.1. RuntimeClassess
 **Create and use RuntimeClasses form runtime runsc (gvisor)**
 
 ```yaml
@@ -2450,7 +2442,7 @@ handler: runsc
 
 > https://kubernetes.io/docs/concepts/containers/runtime-class/
 
-#### Create Pod
+#### 6.2.6.2. Create Pod
 ```yaml
 apiVersion: v1
 kind: Pod
@@ -2468,7 +2460,7 @@ spec:
   restartPolicy: Always
 ```
 
-#### Describe pod
+#### 6.2.6.3. Describe pod
 ```sh
 Events:
   Type     Reason                  Age   From               Message
@@ -2478,7 +2470,7 @@ Events:
 ```
 
 ### 6.2.7. Install and use gVisor
-#### Install
+#### 6.2.7.1. Install
 ```sh
 #!/usr/bin/env bash
 # IF THIS FAILS then you can try to change the URL= further down from specific to the latest release
@@ -2572,7 +2564,7 @@ node01         Ready    <none>          22d   v1.24.0   172.30.2.2    <none>    
 
 ## 6.3. OS Level Security
 ### 6.3.1. Intro and Security Context
-#### Security Context
+#### 6.3.1.1. Security Context
 **Define privilege and access control for Pod/Container**
 * userID and groupID
 * Run privileged or unprivileged
@@ -2600,7 +2592,7 @@ spec:
 > https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.25/#podsecuritycontext-v1-core
 
 ### 6.3.2. Set container User and Group
-#### security Contexts & UID GID
+#### 6.3.2.1. security Contexts & UID GID
 **Change the user and group under which the container processes are running**
 
 ```yaml
@@ -2728,7 +2720,7 @@ Events:
 
 **Privileged means that container user 0 (root is directly mapped to host user 0 (root)**
 
-#### Privileged Containers in Kubernetes
+#### 6.3.4.1. Privileged Containers in Kubernetes
 By default in Kubernetes containers ar not running privileged
 
 ```yaml
@@ -2900,7 +2892,7 @@ NoNewPrivs:	1
 ```
 
 ### 6.3.8. PodSecurityPolicies
-#### Pod Security Policies
+#### 6.3.8.1. Pod Security Policies
 * Cluster-level resource
 * Constrols under which security conditions a Pod has to run
 
@@ -2919,7 +2911,7 @@ containers:
 
 ## 6.4. mTLS
 ### 6.4.1. Intro
-#### mTLS - Mutual TLS
+#### 6.4.1.1. mTLS - Mutual TLS
 * Mutual authentication
 * Two-way (bilateral) authentication
 * Two parties authenticating each other at the same time
@@ -2961,7 +2953,7 @@ PING google.com (142.250.185.14): 56 data bytes
 64 bytes from 142.250.185.14: seq=7 ttl=113 time=15.561 ms
 ^C
 ```
-#### Without Capabilities
+#### 6.4.2.1. Without Capabilities
 ```yaml
 apiVersion: v1
 kind: Pod
@@ -2998,7 +2990,7 @@ Processing triggers for libc-bin (2.35-0ubuntu3.1) ...
 iptables v1.8.7 (nf_tables): Could not fetch rule set generation id: Permission denied (you must be root)
 ```
 
-#### With Capabilities
+#### 6.4.2.2. With Capabilities
 ```yaml
 apiVersion: v1
 kind: Pod
@@ -3048,7 +3040,7 @@ target     prot opt source               destination
 
 # 7. Open Policy Agent (OPA)
 ## 7.1. Introduction
-### OPA - Open Policy Agent
+### 7.1.1. OPA - Open Policy Agent
 "The Open Policy Agent (OPA) is an open source, general-purpose policy engine that enables unified, context-aware policy enforcement across the entire stack."
 * Not Kubernetes specific
 * Easy implementation of policies (Rego lenguage)
@@ -3056,7 +3048,7 @@ target     prot opt source               destination
 * In k8s it uses Admission Controllers
 * Does not know concepts like pods or deployments
 
-### OPA - Gatekeeper
+### 7.1.2. OPA - Gatekeeper
 Compared to using OPA with its sidecar kube-mgmt (aka Gatekeeper v1.0), Gatekeeper introduces the following functionality:
 
 * An extensible, parameterized policy library
@@ -3309,7 +3301,7 @@ error: failed to create deployment: admission webhook "validation.gatekeeper.sh"
 # 8. Supply Chain Security
 ## 8.1. Image footprint
 ### 8.1.1. Introduction
-#### Containers and Docker - Layers
+#### 8.1.1.1. Containers and Docker - Layers
 ```sh
 FROM ubuntu # Import layers
 RUN apt-get update && apt-get install -y golang-go # add new layer
@@ -3321,7 +3313,7 @@ CMD ["sh"]
 ### 8.1.2. Reduce image Footprint with Multi-Stage
 **We look at an example Golang Dockerfile and reduce the image footprint via Multi-Stage build**
 
-#### Build image with app code
+#### 8.1.2.1. Build image with app code
 ```sh
 FROM ubuntu
 ARG DEBIAN_FRONTEND=noninteractive
@@ -3374,13 +3366,13 @@ Get:7 http://security.ubuntu.com/ubuntu jammy-security/multiverse amd64 Packages
 ...
 ```
 
-#### Show size
+#### 8.1.2.2. Show size
 ```sh
 $ docker image ls | grep app
 app                                                                latest              d5126f532faa   43 seconds ago   860MB
 ```
 
-#### Rebuild 
+#### 8.1.2.3. Rebuild 
 ```sh
 FROM ubuntu
 ARG DEBIAN_FRONTEND=noninteractive
@@ -3394,14 +3386,14 @@ COPY --from=0 /app .
 CMD ["./app"]
 ```
 
-#### Show size
+#### 8.1.2.4. Show size
 ```sh
 docker image ls | grep app
 app                                                                latest              399a853a78bc   9 seconds ago   7.41MB
 ```
 
 ### 8.1.3. Secure and Harden images
-#### Use specifig package version
+#### 8.1.3.1. Use specifig package version
 ```sh
 FROM ubuntu
 ARG DEBIAN_FRONTEND=noninteractive
@@ -3416,7 +3408,7 @@ COPY --from=0 /app .
 CMD ["./app"]
 ```
 
-#### Dont run as root
+#### 8.1.3.2. Dont run as root
 ```
 FROM ubuntu
 ARG DEBIAN_FRONTEND=noninteractive
@@ -3431,7 +3423,7 @@ USER appuser
 CMD ["./app"]
 ```
 
-#### Make filesystem read only
+#### 8.1.3.3. Make filesystem read only
 ```
 FROM ubuntu
 ARG DEBIAN_FRONTEND=noninteractive
@@ -3447,7 +3439,7 @@ USER appuser
 CMD ["./app"]
 ```
 
-#### Remove shell access
+#### 8.1.3.4. Remove shell access
 ```
 FROM ubuntu
 ARG DEBIAN_FRONTEND=noninteractive
@@ -3469,20 +3461,20 @@ CMD ["./app"]
 
 ## 8.2. Static Analysis
 ### 8.2.1. Introduction
-#### Static Analysis
+#### 8.2.1.1. Static Analysis
 * Looks at source code and text files
 * check against rules
 * Enforce rules
 
-#### Static Analysis Rules
+#### 8.2.1.2. Static Analysis Rules
 **Always define resource request and limits** (Depend on use case and company or project)
 **Pods should never use the default ServiceAccount** (Generally: dont store sensitive data plain in K8s/Docker files)
 
-#### Static Analysis in CI/CD
+#### 8.2.1.3. Static Analysis in CI/CD
 ![cks](images/08_static_analysis_intro.png)
 
-#### Manual Check
-##### Insecure
+#### 8.2.1.4. Manual Check
+##### 8.2.1.4.1. Insecure
 ```yaml
 apiVersion: v1
 kind: Pod
@@ -3531,7 +3523,7 @@ spec:
   restartPolicy: Always
 ```
 
-##### Secure
+##### 8.2.1.4.2. Secure
 ```yaml
 apiVersion: v1
 kind: Pod
@@ -3717,7 +3709,7 @@ FAIL - deploy.yaml - main - Containers must not run as root
 2 tests, 1 passed, 0 warnings, 1 failure, 0 exceptions
 ```
 
-#### Fixed
+#### 8.2.5.1. Fixed
 ```yaml
 apiVersion: apps/v1
 kind: Deployment
@@ -3816,7 +3808,7 @@ FAIL - Dockerfile - commands - unallowed commands found ["apt-get update && apt-
 
 ![cks](images/08_image_vulnerability_intro.png)
 
-#### Known Image Vulnerabilities
+#### 8.3.1.1. Known Image Vulnerabilities
 **Databases**
 * https://cve.mitre.org
 * https://nvd.nist.gov
@@ -3826,13 +3818,13 @@ FAIL - Dockerfile - commands - unallowed commands found ["apt-get update && apt-
 * Check at runtime
 
 ### 8.3.2. Clair and Trivy
-#### Clair
+#### 8.3.2.1. Clair
 * Open source project
 * Static analysis of vulnerabilities in application containers
 * Ingests vulnerability metadata from a configured set of courses
 * Provides API
 
-#### Trivy
+#### 8.3.2.2. Trivy
 * Open source project
 * "A simple and Comprehensive Vulnerability Scanner for Containers and other Artifacts, Suitable for CI"
 * Simple, Easy and Fast
@@ -3870,7 +3862,7 @@ Status: Downloaded newer image for ghcr.io/aquasecurity/trivy:latest
 
 ## 8.4. Secure Supply Chain
 ### 8.4.1. Introduction
-#### K8s and Container Registries
+#### 8.4.1.1. K8s and Container Registries
 **Private registry with Docker**
 
 ```sh
@@ -4174,7 +4166,7 @@ https://github.com/flavio/kube-image-bouncer
 # 9. Runtime Security
 ## 9.1. Behavioral Analytics at host and ...
 ### 9.1.1. Introduction
-#### Kernel vs User Space
+#### 9.1.1.1. Kernel vs User Space
 ![cks](images/09_behaviorial%20analytics_intro.png)
 
 > https://man7.org/linux/man-pages/man2/syscalls.2.html
@@ -4185,7 +4177,7 @@ https://github.com/flavio/kube-image-bouncer
 * Log and display signals received by a process
 * Diagnostic, Learning, Debugging
 
-#### strace: show syscalls
+#### 9.1.2.1. strace: show syscalls
 **strace "ls"**
 Investigate what it does and find all syscalls
 
@@ -4313,7 +4305,7 @@ exit_group(0)                           = ?
 ```
 
 ### 9.1.3. Strace and /proc on ETCD
-#### /prod directory
+#### 9.1.3.1. /prod directory
 * Information and connections to processes and kernel
 * Study it to learn how processes work
 * Configuration and administrative tasks
@@ -4345,7 +4337,7 @@ Display all 104 possibilities? (y or n)
 2265/              894/               iomem              partitions  
 ```
 
-#### strace and /proc: etcd
+#### 9.1.3.2. strace and /proc: etcd
 **strace Kubernetes etcd**
 1. List syscalls
 2. Find open files
@@ -4390,6 +4382,7 @@ strace: Process 1862 detached
 strace: Process 1863 detached
 strace: Process 1946 detached
 strace: Process 1984 detached
+
 % time     seconds  usecs/call     calls    errors syscall
 ------ ----------- ----------- --------- --------- ----------------
  87.25  250.512304       27300      9176      1470 futex
@@ -4508,7 +4501,7 @@ KUBERNETES_SERVICE_PORT=443KUBERNETES_PORT=tcp://10.96.0.1:443HTTPD_VERSION=2.4.
 **Secret as environment variables can be read from anyone who can access /proc on the host**
 
 ### 9.1.5. Falco and Installation
-#### Falco
+#### 9.1.5.1. Falco
 * Cloud-Native runtime security (CNCF)
 * **ACCESS**
   * Deep kernel tracing built on the Linux Kernel
@@ -4618,27 +4611,27 @@ $ falco
 
 ## 9.2. Inmutability of containers at runtime
 ### 9.2.1. Introduction
-#### Inmutability
+#### 9.2.1.1. Inmutability
 ![cks](images/09_immutability_intro.png)
 
 ### 9.2.2. Ways to enforce immutability
-#### Enforce on Container Image Level
+#### 9.2.2.1. Enforce on Container Image Level
 ![cks](images/09_immutability_enforce.png)
 
-#### Make manual changes to container - Command ?
+#### 9.2.2.2. Make manual changes to container - Command ?
 ![cks](images/09_immutability_enforce_02.png)
 
-#### Make manual changes to container - StartupProbe ?
+#### 9.2.2.3. Make manual changes to container - StartupProbe ?
 ![cks](images/09_immutability_enforce_03.png)
 
-#### Enforce Read-Only Root Filesystem
+#### 9.2.2.4. Enforce Read-Only Root Filesystem
 Enforce Read-Only root filesystem using **SecurityContexts** and **PodSecurityPolicies**
 
-#### Move logic to InitContainer ?
+#### 9.2.2.5. Move logic to InitContainer ?
 ![cks](images/09_immutability_enforce_04.png)
 
 ### 9.2.3. StartupProbe changes container
-#### StartupProbe for Immutability
+#### 9.2.3.1. StartupProbe for Immutability
 **Use StartupProbe to remove** `touch` and `bash` **from container**
 
 ```yaml
@@ -4734,7 +4727,7 @@ command terminated with exit code 126
 ```
 
 ### 9.2.4. SecurityContext renders container immutable
-#### Enforce RO-filesystem
+#### 9.2.4.1. Enforce RO-filesystem
 **Create Pod SecurityContext to make filesystem Read-Only**
 Ensure some directories are still writeable using emptyDir volume
 
@@ -4823,7 +4816,7 @@ With RBAC it should be ensured that only certain people can even edit pod specs
 
 ## 9.3. Auditing
 ### 9.3.1. Introduction
-#### Audit Logs - Introduction
+#### 9.3.1.1. Audit Logs - Introduction
 ![cks](images/09_auditing_intro.png)
 
 * Did someone access an important secret while it was not protected?
@@ -4832,14 +4825,14 @@ With RBAC it should be ensured that only certain people can even edit pod specs
 
 ![cks](images/09_auditing_intro_02.png)
 
-#### API Request Stages
+#### 9.3.1.2. API Request Stages
 Each request can be recorded with an associated "stage". The known stages are:
 * `RequestReceived` - The stage for events generated as soon as the audit handler receives the request, and before it is delegated down the handler chain.
 * `ResponseStarted` - Once the response headers are sent, but before the response body is sent. This stage is only generated for long-running requests (e.g. watch).
 * `ResponseComplete` - The response body has been completed and no more bytes will be sent.
 * `Panic` - Events generated when a panic ocurred.
 
-#### Audit Policy - Waht data to store?
+#### 9.3.1.3. Audit Policy - Waht data to store?
 ![cks](images/09_auditing_intro_03.png)
 
 **Wath events should be recorded and wath data should these contain?**
@@ -4878,14 +4871,14 @@ rules:
   - level: Metadata
 ```
 
-#### Audit Backends - Where to store all that data?
+#### 9.3.1.4. Audit Backends - Where to store all that data?
 ![cks](images/09_auditing_intro_04.png)
 
-#### Audit Logs - Overview
+#### 9.3.1.5. Audit Logs - Overview
 ![cks](images/09_auditing_intro_05.png)
 
 ### 9.3.2. Enable Auditing Logging in Apiserver
-#### Setup Audit Logs
+#### 9.3.2.1. Setup Audit Logs
 **Configure apiserver to store Audit Logs in JSON format**
 ```sh
 $ root@cks:/ cd /etc/kubernetes/audit
@@ -4977,20 +4970,20 @@ rules:
 # 10. System Hardening
 ## 10.1. Kernel Hardening Tools
 ### 10.1.1. Introduction
-#### Linux Kernel Isolation
+#### 10.1.1.1. Linux Kernel Isolation
 ![cks](images/10_hardening_intro.png)
 
-#### Kernel vs User Space
+#### 10.1.1.2. Kernel vs User Space
 ![cks](images/10_hardening_intro_02.png)
-#### Overview
+#### 10.1.1.3. Overview
 ![cks](images/10_hardening_intro_03.png)
 
 ### 10.1.2. AppArmor
-#### AppArmor
+#### 10.1.2.1. AppArmor
 ![cks](images/10_hardening_apparmor.png)
 ![cks](images/10_hardening_apparmor_02.png)
 
-#### Main Commands
+#### 10.1.2.2. Main Commands
 ```sh
 # Show all profiles
 aa-status
@@ -5129,6 +5122,7 @@ apparmor module is loaded.
 ```sh
 $ apt-get install apparmor-utils
 ```
+
 ### 10.1.4. AppArmor for Docker Nginx
 `/etc/apparmor.d/docker-nginx`
 ```sh
@@ -5341,10 +5335,10 @@ status: {}
 
 ## 10.2. Reduce Attack Surface
 ### 10.2.1. Introduction
-#### Overview
+#### 10.2.1.1. Overview
 ![cks](images/10_reduce_attack_surface_intro.png)
 
-#### Nodes that run Kubernetes
+#### 10.2.1.2. Nodes that run Kubernetes
 * Only purpose: run Kubernetes components
   * Remove unnecesary services
 * Node Recycling
@@ -5352,24 +5346,24 @@ status: {}
   * Created from images
   * Can be recycled any time (and fas if necessary)
 
-#### Linux Distributions
+#### 10.2.1.3. Linux Distributions
 * Often include number of services
 * Meant to help, but widen attack surface
 * The more existing and running services, the more environment
 
-#### Open Ports
+#### 10.2.1.4. Open Ports
 `netstat` (Red Hat: ssh command)
 ![cks](images/10_reduce_attack_surface_intro_02.png)
 
-#### Port used by which application?
+#### 10.2.1.5. Port used by which application?
 `netstat` or `lsfot`
 ![cks](images/10_reduce_attack_surface_intro_03.png)
 
-#### Running Services
+#### 10.2.1.6. Running Services
 `systemctl`
 ![cks](images/10_reduce_attack_surface_intro_04.png)
 
-#### Processes and Users
+#### 10.2.1.7. Processes and Users
 `ps`
 ![cks](images/10_reduce_attack_surface_intro_05.png)
 
